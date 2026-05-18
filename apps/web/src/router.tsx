@@ -18,6 +18,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import TeacherClassDetail from './pages/TeacherClassDetail';
 import QuestionBank from './pages/QuestionBank';
 import AssignmentWizard from './pages/AssignmentWizard';
+import ParentDashboard from './pages/ParentDashboard';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
   const { token, user } = useAuthStore();
@@ -67,7 +68,7 @@ export const router = createBrowserRouter([
     path: '/parent',
     element: <ProtectedRoute role="parent"><ParentLayout /></ProtectedRoute>,
     children: [
-      { index: true, element: <div className="p-4">Parent Dashboard (Coming soon)</div> },
+      { index: true, element: <ParentDashboard /> },
     ]
   },
   
