@@ -13,3 +13,10 @@ export function calculateQualityScore(is_correct: boolean, response_time_ms: num
   if (t < SM2_CONSTANTS.RESPONSE_MEDIUM_MS) return 4;
   return 3;
 }
+
+export function updateEasinessFactor(current_ef: number, q: number): number {
+  const delta = 0.1 - (5 - q) * (0.08 + (5 - q) * 0.02);
+  const raw = current_ef + delta;
+  const clamped = Math.max(SM2_CONSTANTS.EF_MIN, Math.min(SM2_CONSTANTS.EF_MAX, raw));
+  return Math.round(clamped * 100) / 100;
+}
