@@ -14,6 +14,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+import authRoutes from './modules/auth/auth.routes';
+
+app.use('/api/auth', authRoutes);
+
 // Add error handler as the last middleware
 app.use(errorHandler);
 
