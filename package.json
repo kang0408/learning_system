@@ -1,0 +1,8 @@
+{
+  "name": "adaptive-lang",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
