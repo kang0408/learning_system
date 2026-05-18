@@ -16,9 +16,11 @@ app.get('/health', (req, res) => {
 
 import authRoutes from './modules/auth/auth.routes';
 import classesRoutes from './modules/classes/classes.routes';
+import questionsRoutes from './modules/questions/questions.routes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/classes', classesRoutes);
+app.use('/api/questions', questionsRoutes);
 
 // Add error handler as the last middleware
 app.use(errorHandler);
