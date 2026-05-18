@@ -20,3 +20,56 @@ export function updateEasinessFactor(current_ef: number, q: number): number {
   const clamped = Math.max(SM2_CONSTANTS.EF_MIN, Math.min(SM2_CONSTANTS.EF_MAX, raw));
   return Math.round(clamped * 100) / 100;
 }
+
+import { SM2Input, SM2Result, SM2_DEFAULTS } from '@adaptive-lang/types';
+
+export function calculateNextInterval(
+  current_interval: number,
+  repetition_count: number,
+  new_ef: number, 
+  q: number
+): { new_interval: number; new_repetition_count: number } {
+  if (q < 3) {
+    return { new_interval: 1, new_repetition_count: 0 };
+  }
+  
+  let new_interval = 1;
+  if (repetition_count === 0) {
+    new_interval = 1;
+  } else if (repetition_count === 1) {
+    new_interval = 6;
+  } else {
+    new_interval = Math.round(current_interval * new_ef);
+  }
+  
+  return { new_interval, new_repetition_count: repetition_count + 1 };
+}
+
+export function addDays(base: Date, days: number): Date {
+  const result = new Date(base);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+export function updateSM2(input: SM2Input, today: Date = new Date()): SM2Result {
+  const q = calculateQualityScore(input.is_correct, input.response_time_ms);
+  const progress = input.progress || SM2_DEFAULTS;
+  
+  const new_ef = updateEasinessFactor(progress.easiness_factor, q);
+  const { new_interval, new_repetition_count } = calculateNextInterval(
+    progress.interval_days, 
+    progress.repetition_count, 
+    new_ef, 
+    q
+  );
+  
+  const next_review_date = addDays(today, new_interval);
+  
+  return { 
+    q, 
+    new_ef, 
+    new_interval, 
+    new_repetition_count, 
+    next_review_date 
+  };
+}
