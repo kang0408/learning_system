@@ -8,6 +8,7 @@ import TeacherLayout from './layouts/TeacherLayout';
 import ParentLayout from './layouts/ParentLayout';
 
 // Pages
+import Register from './pages/Register';
 import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
 import QuizPage from './pages/QuizPage';
@@ -21,6 +22,7 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
+  { path: '/register', element: <Register /> },
   { path: '/', element: <Navigate to="/student" replace /> },
   
   // Student Routes
