@@ -19,12 +19,14 @@ import classesRoutes from './modules/classes/classes.routes';
 import questionsRoutes from './modules/questions/questions.routes';
 import sessionsRoutes from './modules/sessions/sessions.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
+import parentRoutes from './modules/parent/parent.routes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/classes', classesRoutes);
 app.use('/api/questions', questionsRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/parents', parentRoutes);
 
 // Add error handler as the last middleware
 app.use(errorHandler);
