@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { registerSchema } from './auth.schema';
+import { registerSchema, loginSchema } from './auth.schema';
 
 export class AuthController {
   static async register(req: Request, res: Response) {
@@ -11,5 +11,14 @@ export class AuthController {
     
     const user = await AuthService.register(parseResult.data);
     res.status(201).json({ user });
+  }
+
+  static async login(req: Request, res: Response) {
+    const parseResult = loginSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: parseResult.error });
+    }
+    const result = await AuthService.login(parseResult.data);
+    res.json(result);
   }
 }
