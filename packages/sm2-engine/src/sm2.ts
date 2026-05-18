@@ -39,7 +39,10 @@ export function calculateNextInterval(
   } else if (repetition_count === 1) {
     new_interval = 6;
   } else {
-    new_interval = Math.round(current_interval * new_ef);
+    new_interval = Math.max(
+      Math.round(current_interval * new_ef),
+      current_interval + 1
+    );
   }
   
   return { new_interval, new_repetition_count: repetition_count + 1 };
@@ -47,7 +50,8 @@ export function calculateNextInterval(
 
 export function addDays(base: Date, days: number): Date {
   const result = new Date(base);
-  result.setDate(result.getDate() + days);
+  result.setUTCDate(result.getUTCDate() + days);
+  result.setUTCHours(0, 0, 0, 0); // normalize về 00:00 UTC
   return result;
 }
 
@@ -63,7 +67,12 @@ export function updateSM2(input: SM2Input, today: Date = new Date()): SM2Result 
     q
   );
   
-  const next_review_date = addDays(today, new_interval);
+  const todayUTC = new Date(Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  ));
+  const next_review_date = addDays(todayUTC, new_interval);
   
   return { 
     q, 
