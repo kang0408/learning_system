@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { errorHandler } from './middlewares/error.middleware';
 import helmet from 'helmet';
 import 'express-async-errors';
 
@@ -12,5 +13,8 @@ app.use(express.json());
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
+
+// Add error handler as the last middleware
+app.use(errorHandler);
 
 export default app;
