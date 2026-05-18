@@ -1,12 +1,12 @@
-import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { Home, LogOut, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function ParentLayout() {
   const { logout, user } = useAuthStore();
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();

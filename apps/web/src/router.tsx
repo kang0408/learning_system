@@ -11,6 +11,7 @@ import ParentLayout from './layouts/ParentLayout';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
+import StudentClasses from './pages/StudentClasses';
 import QuizPage from './pages/QuizPage';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
@@ -31,7 +32,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute role="student"><StudentLayout /></ProtectedRoute>,
     children: [
       { index: true, element: <StudentDashboard /> },
-      { path: 'classes', element: <div className="p-4">Student Classes (Coming soon)</div> }
+      { path: 'classes', element: <StudentClasses /> }
     ]
   },
   { 
