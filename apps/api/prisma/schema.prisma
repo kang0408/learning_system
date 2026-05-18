@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  password_hash String    @db.VarChar(255)
+  full_name     String    @db.VarChar(100)
+  role          String    @db.VarChar(20)
+  avatar_url    String?   @db.VarChar(500)
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now()) @db.Timestamptz
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at    DateTime? @db.Timestamptz
+
+  classes          Class[]
+  class_members    ClassMember[]
+  questions        Question[]
+  sm2_progress     Sm2Progress[]
+  quiz_sessions    QuizSession[]
+  parent_links     ParentStudentLink[] @relation("Parent")
+  student_links    ParentStudentLink[] @relation("Student")
+  assignments      Assignment[]
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Class {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teacher_id  String    @db.Uuid
+  name        String    @db.VarChar(100)
+  subject     String    @db.VarChar(50)
+  join_code   String    @unique @db.VarChar(10)
+  description String?   @db.Text
+  is_active   Boolean   @default(true)
+  created_at  DateTime  @default(now()) @db.Timestamptz
+  updated_at  DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at  DateTime? @db.Timestamptz
+
+  teacher     User          @relation(fields: [teacher_id], references: [id], onDelete: Restrict)
+  members     ClassMember[]
+  assignments Assignment[]
+
+  @@index([teacher_id])
+  @@map("classes")
+}
+
+model ClassMember {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  class_id   String   @db.Uuid
+  student_id String   @db.Uuid
+  joined_at  DateTime @default(now()) @db.Timestamptz
+  is_active  Boolean  @default(true)
+
+  class      Class    @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  student    User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@unique([class_id, student_id])
+  @@index([class_id])
+  @@index([student_id])
+  @@map("class_members")
+}
+
+model Question {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_by    String    @db.Uuid
+  content       String    @db.Text
+  question_type String    @db.VarChar(30)
+  topic         String?   @db.VarChar(100)
+  difficulty    Int       @default(3) @db.SmallInt
+  explanation   String?   @db.Text
+  audio_url     String?   @db.VarChar(500)
+  image_url     String?   @db.VarChar(500)
+  is_public     Boolean   @default(false)
+  created_at    DateTime  @default(now()) @db.Timestamptz
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at    DateTime? @db.Timestamptz
+
+  author               User                 @relation(fields: [created_by], references: [id], onDelete: Restrict)
+  answer_options       AnswerOption[]
+  assignment_questions AssignmentQuestion[]
+  sm2_progress         Sm2Progress[]
+  session_answers      SessionAnswer[]
+
+  @@index([created_by])
+  @@index([topic])
+  @@index([difficulty])
+  @@map("questions")
+}
+
+model AnswerOption {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  question_id String   @db.Uuid
+  content     String   @db.Text
+  is_correct  Boolean  @default(false)
+  order_index Int      @default(0) @db.SmallInt
+  created_at  DateTime @default(now()) @db.Timestamptz
+
+  question        Question        @relation(fields: [question_id], references: [id], onDelete: Cascade)
+  session_answers SessionAnswer[]
+
+  @@index([question_id])
+  @@map("answer_options")
+}
+
+model Assignment {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  class_id     String    @db.Uuid
+  created_by   String    @db.Uuid
+  title        String    @db.VarChar(200)
+  description  String?   @db.Text
+  mode         String    @default("adaptive") @db.VarChar(20)
+  deadline     DateTime? @db.Timestamptz
+  max_attempts Int       @default(0) @db.SmallInt
+  time_limit   Int?      @db.SmallInt
+  is_published Boolean   @default(false)
+  published_at DateTime? @db.Timestamptz
+  created_at   DateTime  @default(now()) @db.Timestamptz
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at   DateTime? @db.Timestamptz
+
+  class                Class                @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  author               User                 @relation(fields: [created_by], references: [id], onDelete: Restrict)
+  assignment_questions AssignmentQuestion[]
+  quiz_sessions        QuizSession[]
+
+  @@index([class_id])
+  @@index([created_by])
+  @@map("assignments")
+}
+
+model AssignmentQuestion {
+  id            String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  assignment_id String @db.Uuid
+  question_id   String @db.Uuid
+  order_index   Int    @default(0) @db.SmallInt
+
+  assignment Assignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [question_id], references: [id], onDelete: Restrict)
+
+  @@unique([assignment_id, question_id])
+  @@index([assignment_id])
+  @@index([question_id])
+  @@map("assignment_questions")
+}
+
+model Sm2Progress {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id       String    @db.Uuid
+  question_id      String    @db.Uuid
+  easiness_factor  Decimal   @default(2.50) @db.Decimal(4, 2)
+  interval_days    Int       @default(1) @db.SmallInt
+  repetition_count Int       @default(0) @db.SmallInt
+  next_review_date DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  last_reviewed_at DateTime? @db.Timestamptz
+  total_attempts   Int       @default(0)
+  correct_attempts Int       @default(0)
+  created_at       DateTime  @default(now()) @db.Timestamptz
+  updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  student  User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [question_id], references: [id], onDelete: Cascade)
+
+  @@unique([student_id, question_id])
+  @@index([student_id])
+  @@index([student_id, next_review_date])
+  @@index([question_id])
+  @@map("sm2_progress")
+}
+
+model QuizSession {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id    String    @db.Uuid
+  assignment_id String    @db.Uuid
+  started_at    DateTime  @default(now()) @db.Timestamptz
+  finished_at   DateTime? @db.Timestamptz
+  score         Decimal?  @db.Decimal(5, 2)
+  total_q       Int       @default(0) @db.SmallInt
+  correct_q     Int       @default(0) @db.SmallInt
+  status        String    @default("in_progress") @db.VarChar(20)
+
+  student         User            @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  assignment      Assignment      @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+  session_answers SessionAnswer[]
+
+  @@index([student_id])
+  @@index([assignment_id])
+  @@index([started_at])
+  @@map("quiz_sessions")
+}
+
+model SessionAnswer {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  session_id       String   @db.Uuid
+  question_id      String   @db.Uuid
+  selected_option  String?  @db.Uuid
+  text_answer      String?  @db.Text
+  is_correct       Boolean
+  response_time_ms Int      @default(0)
+  sm2_quality      Int      @default(0) @db.SmallInt
+  answered_at      DateTime @default(now()) @db.Timestamptz
+
+  session QuizSession   @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  question Question     @relation(fields: [question_id], references: [id], onDelete: Restrict)
+  option   AnswerOption? @relation(fields: [selected_option], references: [id], onDelete: SetNull)
+
+  @@index([session_id])
+  @@index([question_id])
+  @@map("session_answers")
+}
+
+model ParentStudentLink {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parent_id  String   @db.Uuid
+  student_id String   @db.Uuid
+  linked_at  DateTime @default(now()) @db.Timestamptz
+  is_active  Boolean  @default(true)
+
+  parent  User @relation("Parent", fields: [parent_id], references: [id], onDelete: Cascade)
+  student User @relation("Student", fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@unique([parent_id, student_id])
+  @@index([parent_id])
+  @@index([student_id])
+  @@map("parent_student_links")
+}
