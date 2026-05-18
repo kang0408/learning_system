@@ -18,7 +18,7 @@ export class SessionsService {
       }
     });
 
-    return { session, questions: assignmentQuestions.map(aq => aq.question) };
+    return { session, questions: assignmentQuestions.map((aq: any) => aq.question) };
   }
 
   static async submitAnswer(studentId: string, sessionId: string, data: any) {
