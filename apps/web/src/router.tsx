@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentClasses from './pages/StudentClasses';
 import QuizPage from './pages/QuizPage';
+import SessionResult from './pages/SessionResult';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
   const { token, user } = useAuthStore();
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
   { 
     path: '/quiz', 
     element: <ProtectedRoute role="student"><QuizPage /></ProtectedRoute> 
+  },
+  { 
+    path: '/session-result', 
+    element: <ProtectedRoute role="student"><SessionResult /></ProtectedRoute> 
   },
   
   // Teacher Routes
