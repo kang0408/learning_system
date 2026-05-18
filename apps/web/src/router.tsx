@@ -2,6 +2,7 @@ import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
+import QuizPage from './pages/QuizPage';
 import { useAuthStore } from './store/authStore';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
@@ -17,5 +18,9 @@ export const router = createBrowserRouter([
   { 
     path: '/student', 
     element: <ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute> 
+  },
+  { 
+    path: '/quiz', 
+    element: <ProtectedRoute role="student"><QuizPage /></ProtectedRoute> 
   }
 ]);
