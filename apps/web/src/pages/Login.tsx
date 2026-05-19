@@ -36,7 +36,8 @@ export default function Login() {
       else if (user.role === 'parent') navigate('/parent');
       else navigate('/student');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+      const errorMessage = err.response?.data?.error?.message || err.response?.data?.message || 'Failed to login. Please check your credentials.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
