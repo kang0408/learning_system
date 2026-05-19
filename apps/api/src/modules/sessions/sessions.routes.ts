@@ -11,6 +11,6 @@ router.post('/:id/finish', requireAuth, requireRole(['student']), SessionsContro
 router.post('/:id/abandon', requireAuth, requireRole(['student']), SessionsController.abandon);
 
 router.get('/:id', requireAuth, requireRole(['student']), SessionsController.getInfo);
-router.get('/:id/result', requireAuth, requireRole(['student']), SessionsController.getInfo);
+router.get('/:id/result', requireAuth, requireRole(['student']), SessionsController.getResult);
 
 export default router;

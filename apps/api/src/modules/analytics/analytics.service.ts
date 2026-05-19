@@ -9,8 +9,48 @@ export class AnalyticsService {
     const correctAnswers = await prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' }, is_correct: true } });
     const overallAccuracy = totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 0;
     
-    const currentStreakDays = 5; // mock
-    const longestStreakDays = 12; // mock
+    const activeDates = await prisma.$queryRaw<{date: string}[]>`
+      SELECT DISTINCT DATE(started_at)::text as date
+      FROM quiz_sessions
+      WHERE student_id = ${studentId}::uuid AND status = 'completed'
+      ORDER BY date DESC;
+    `;
+    
+    let currentStreakDays = 0;
+    let longestStreakDays = 0;
+
+    if (activeDates.length > 0) {
+      const dates = activeDates.map(d => new Date(d.date));
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      // Calculate longest streak
+      let currentLen = 1;
+      longestStreakDays = 1;
+      for (let i = 0; i < dates.length - 1; i++) {
+        const diff = Math.floor((dates[i].getTime() - dates[i+1].getTime()) / (1000 * 3600 * 24));
+        if (diff === 1) {
+          currentLen++;
+          if (currentLen > longestStreakDays) longestStreakDays = currentLen;
+        } else {
+          currentLen = 1;
+        }
+      }
+
+      // Calculate current streak
+      const diffFirst = Math.floor((today.getTime() - dates[0].getTime()) / (1000 * 3600 * 24));
+      if (diffFirst <= 1) {
+        currentStreakDays = 1;
+        for (let i = 0; i < dates.length - 1; i++) {
+          const diff = Math.floor((dates[i].getTime() - dates[i+1].getTime()) / (1000 * 3600 * 24));
+          if (diff === 1) {
+            currentStreakDays++;
+          } else {
+            break;
+          }
+        }
+      }
+    }
 
     const sm2Progress = await prisma.sm2Progress.findMany({ where: { student_id: studentId } });
     const today = new Date();

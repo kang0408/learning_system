@@ -275,4 +275,45 @@ export class SessionsService {
       finished_at: session.finished_at
     };
   }
+
+  static async getSessionResult(studentId: string, sessionId: string) {
+    const session = await prisma.quizSession.findUnique({
+      where: { id: sessionId },
+      include: { session_answers: { include: { question: true } } }
+    });
+    if (!session || session.student_id !== studentId) throw { status: 404, message: 'Session not found' };
+    if (session.status !== 'completed') throw { status: 400, message: 'Session is not completed yet' };
+
+    const score = session.score || 0;
+    const durationSeconds = session.finished_at ? Math.floor((session.finished_at.getTime() - session.started_at.getTime()) / 1000) : 0;
+
+    // Topic performance logic
+    const topicStats: Record<string, { total: number, correct: number }> = {};
+    for (const ans of session.session_answers) {
+      const topic = ans.question.topic || 'General';
+      if (!topicStats[topic]) topicStats[topic] = { total: 0, correct: 0 };
+      topicStats[topic].total++;
+      if (ans.is_correct) topicStats[topic].correct++;
+    }
+
+    const performance_by_topic = Object.entries(topicStats).map(([topic, stat]) => ({
+      topic,
+      accuracy: (stat.correct / stat.total) * 100
+    }));
+
+    const weakestTopic = performance_by_topic.length > 0 
+      ? performance_by_topic.sort((a, b) => a.accuracy - b.accuracy)[0].topic 
+      : null;
+
+    return {
+      session_id: sessionId,
+      score,
+      total_questions: session.total_q,
+      correct_questions: session.correct_q,
+      duration_seconds: durationSeconds,
+      finished_at: session.finished_at,
+      performance_by_topic,
+      weakest_topic: weakestTopic
+    };
+  }
 }

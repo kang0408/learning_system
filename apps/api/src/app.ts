@@ -10,6 +10,7 @@ import assignmentsRoutes from './modules/assignments/assignments.routes';
 import sessionsRoutes from './modules/sessions/sessions.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
 import parentRoutes from './modules/parent/parent.routes';
+import usersRoutes from './modules/users/users.routes';
 const app = express();
 
 app.use(helmet());
@@ -21,6 +22,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/classes', classesRoutes);
 app.use('/api/questions', questionsRoutes);
 app.use('/api/assignments', assignmentsRoutes);

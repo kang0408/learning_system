@@ -35,4 +35,14 @@ export class SessionsController {
     const result = await SessionsService.getSessionInfo(req.user.userId, id);
     res.json({ success: true, data: result });
   }
+
+  static async getResult(req: any, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await SessionsService.getSessionResult(req.user.userId, id);
+      res.json({ success: true, data: result });
+    } catch (err: any) {
+      res.status(err.status || 500).json({ success: false, error: err.message });
+    }
+  }
 }
