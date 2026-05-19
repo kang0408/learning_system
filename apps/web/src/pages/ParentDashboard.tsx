@@ -23,7 +23,7 @@ export default function ParentDashboard() {
   const fetchChildren = async () => {
     try {
       const res = await api.get('/api/analytics/parent/children');
-      setChildrenData(res.data);
+      setChildrenData(res.data.data || res.data);
     } catch (err) {
       setError('Failed to load children analytics');
     } finally {

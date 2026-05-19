@@ -4,10 +4,9 @@ import api from '../api/axios';
 
 interface Question {
   id: string;
-  type: string;
+  question_type: string;
   content: string;
-  options?: string[];
-  correct_answer: any;
+  answer_options?: any[];
 }
 
 export default function QuestionBank() {
@@ -26,7 +25,7 @@ export default function QuestionBank() {
   const fetchQuestions = async () => {
     try {
       const res = await api.get('/api/questions');
-      setQuestions(res.data);
+      setQuestions(res.data.data || res.data);
     } catch (err) {
       setError('Failed to load questions');
     } finally {
@@ -42,12 +41,19 @@ export default function QuestionBank() {
     e.preventDefault();
     if (!newContent.trim()) return;
 
-    const payload: any = { type: newType, content: newContent };
+    const payload: any = { question_type: newType, content: newContent, topic: 'General', difficulty: 3 };
     if (newType === 'multiple_choice') {
-      payload.options = newOptions;
-      payload.correct_answer = newCorrectOption;
+      payload.answer_options = newOptions.map((opt, index) => ({
+        content: opt,
+        is_correct: index === newCorrectOption,
+        order_index: index
+      }));
     } else {
-      payload.correct_answer = newFillInAnswer;
+      payload.answer_options = [{
+        content: newFillInAnswer,
+        is_correct: true,
+        order_index: 0
+      }];
     }
 
     setCreating(true);
@@ -105,23 +111,23 @@ export default function QuestionBank() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex-grow">
                     <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mb-2 ${
-                      q.type === 'multiple_choice' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
+                      q.question_type === 'multiple_choice' ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'
                     }`}>
-                      {q.type === 'multiple_choice' ? 'Multiple Choice' : 'Fill In Blank'}
+                      {q.question_type === 'multiple_choice' ? 'Multiple Choice' : 'Fill In Blank'}
                     </span>
                     <p className="font-medium text-gray-900">{q.content}</p>
-                    {q.type === 'multiple_choice' && q.options && (
+                    {q.question_type === 'multiple_choice' && q.answer_options && (
                       <div className="grid grid-cols-2 gap-2 mt-3">
-                        {q.options.map((opt, i) => (
-                          <div key={i} className={`text-sm p-2 rounded border ${i === q.correct_answer ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-50 text-gray-600'}`}>
-                            {opt}
+                        {q.answer_options.map((opt: any, i: number) => (
+                          <div key={i} className={`text-sm p-2 rounded border ${opt.is_correct ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-50 text-gray-600'}`}>
+                            {opt.content}
                           </div>
                         ))}
                       </div>
                     )}
-                    {q.type === 'fill_in' && (
+                    {q.question_type === 'fill_blank' && q.answer_options && q.answer_options.length > 0 && (
                       <div className="mt-2 text-sm text-gray-600">
-                        Correct answer: <span className="font-semibold text-green-700">{q.correct_answer}</span>
+                        Correct answer: <span className="font-semibold text-green-700">{q.answer_options[0].content}</span>
                       </div>
                     )}
                   </div>
@@ -150,7 +156,7 @@ export default function QuestionBank() {
                   className="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm py-2 px-3 border"
                 >
                   <option value="multiple_choice">Multiple Choice</option>
-                  <option value="fill_in">Fill In Blank</option>
+                  <option value="fill_blank">Fill In Blank</option>
                 </select>
               </div>
 

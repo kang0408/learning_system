@@ -10,7 +10,7 @@ interface ClassItem {
 
 interface Question {
   id: string;
-  type: string;
+  question_type: string;
   content: string;
 }
 
@@ -35,10 +35,11 @@ export default function AssignmentWizard() {
           api.get('/api/classes'),
           api.get('/api/questions')
         ]);
-        setClasses(clsRes.data);
-        setQuestions(qRes.data);
-        if (clsRes.data.length > 0) {
-          setClassId(clsRes.data[0].id);
+        setClasses(clsRes.data.data || clsRes.data);
+        setQuestions(qRes.data.data || qRes.data);
+        const currentClasses = clsRes.data.data || clsRes.data;
+        if (currentClasses.length > 0) {
+          setClassId(currentClasses[0].id);
         }
       } catch (err) {
         console.error(err);
@@ -149,7 +150,7 @@ export default function AssignmentWizard() {
                   />
                   <div className="ml-3">
                     <span className="block text-sm font-medium text-gray-900">{q.content}</span>
-                    <span className="block text-xs text-gray-500 capitalize mt-1">{q.type.replace('_', ' ')}</span>
+                    <span className="block text-xs text-gray-500 capitalize mt-1">{q.question_type?.replace('_', ' ') || 'Unknown'}</span>
                   </div>
                 </label>
               ))}

@@ -29,7 +29,7 @@ export default function TeacherClassDetail() {
     const fetchAnalytics = async () => {
       try {
         const res = await api.get(`/api/analytics/class/${id}`);
-        setAnalytics(res.data);
+        setAnalytics(res.data.data || res.data);
       } catch (err) {
         setError('Failed to load class analytics');
       } finally {

@@ -7,24 +7,25 @@ interface ClassItem {
   id: string;
   name: string;
   description: string;
-  code: string;
-  student_count: number;
+  join_code: string;
+  _count?: { members: number };
 }
 
 export default function TeacherDashboard() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [showModal, setShowModal] = useState(false);
   const [newClassName, setNewClassName] = useState('');
   const [newClassDesc, setNewClassDesc] = useState('');
+  const [newClassSubject, setNewClassSubject] = useState('');
   const [creating, setCreating] = useState(false);
 
   const fetchClasses = async () => {
     try {
       const res = await api.get('/api/classes');
-      setClasses(res.data);
+      setClasses(res.data.data || res.data);
     } catch (err) {
       setError('Failed to load classes');
     } finally {
@@ -39,15 +40,17 @@ export default function TeacherDashboard() {
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClassName.trim()) return;
-    
+
     setCreating(true);
     try {
       await api.post('/api/classes', {
         name: newClassName,
+        subject: newClassSubject,
         description: newClassDesc
       });
       setShowModal(false);
       setNewClassName('');
+      setNewClassSubject('English');
       setNewClassDesc('');
       fetchClasses();
     } catch (err) {
@@ -79,13 +82,13 @@ export default function TeacherDashboard() {
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-xl font-semibold text-gray-900">{cls.name}</h3>
               <span className="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                Code: {cls.code}
+                Code: {cls.join_code}
               </span>
             </div>
             <p className="text-gray-500 text-sm flex-1 mb-4">{cls.description}</p>
             <div className="flex items-center text-gray-600 mb-6">
               <Users className="w-5 h-5 mr-2" />
-              {cls.student_count || 0} students
+              {cls._count?.members || 0} students
             </div>
             <Link
               to={`/teacher/classes/${cls.id}`}
@@ -113,6 +116,16 @@ export default function TeacherDashboard() {
                   type="text"
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm py-2 px-3 border"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Subject</label>
+                <input
+                  type="text"
+                  value={newClassSubject}
+                  onChange={(e) => setNewClassSubject(e.target.value)}
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500 sm:text-sm py-2 px-3 border"
                   required
                 />
