@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, Calendar, Clock, Trophy, Loader2, ArrowRight, Flame, CheckCircle, AlertCircle } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 interface Analytics {
   questions_due_today: number;
@@ -182,25 +182,57 @@ export default function StudentDashboard() {
             {assignments.length > 0 ? (
               <div className="flex overflow-x-auto pb-6 -mx-4 px-4 space-x-4 snap-x">
                 {assignments.map(assignment => {
-                  const isOverdue = new Date(assignment.due_date) < new Date();
+                  const isOverdue = assignment.deadline ? new Date(assignment.deadline) < new Date() : false;
+                  const sessions = (assignment as any).quiz_sessions || [];
+                  const completedSessions = sessions.filter((s: any) => s.status === 'completed');
+                  const attemptsCount = completedSessions.length;
+                  const maxAttempts = (assignment as any).max_attempts || 0;
+                  const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
+
                   return (
-                    <Link 
+                    <div 
                       key={assignment.id} 
-                      to={`/quiz?assignment=${assignment.id}`}
-                      className="snap-start flex-none w-72 bg-white rounded-xl shadow-sm border p-5 hover:border-indigo-400 hover:shadow-md transition-all group"
+                      className={`snap-start flex-none w-72 bg-white rounded-xl shadow-sm border p-5 flex flex-col group transition-all ${isLocked ? 'opacity-80' : 'hover:border-indigo-400 hover:shadow-md'}`}
                     >
                       <div className="flex justify-between items-start mb-3">
                         <h4 className="font-bold text-gray-900 group-hover:text-indigo-700 line-clamp-2">{assignment.title}</h4>
                         {isOverdue && <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 ml-2" />}
                       </div>
                       
-                      <div className="flex items-center text-sm font-medium mt-auto pt-4 border-t border-gray-100">
+                      <div className="flex items-center text-sm font-medium mt-auto pt-4 border-t border-gray-100 mb-4">
                         <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
                         <span className={isOverdue ? 'text-red-600' : 'text-gray-600'}>
-                          {isOverdue ? 'Quá hạn!' : `Còn ${Math.ceil((new Date(assignment.due_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} ngày`}
+                          {isOverdue ? 'Quá hạn!' : assignment.deadline ? `Còn ${Math.ceil((new Date(assignment.deadline).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} ngày` : 'Không hạn'}
                         </span>
                       </div>
-                    </Link>
+
+                        <div className="mt-4 flex gap-2">
+                          {isLocked ? (
+                            <div className="w-full flex gap-2">
+                              <Link to={`/session-result?id=${completedSessions[0].id}`} className="flex-1 py-2 bg-green-50 text-green-700 font-bold rounded-lg text-center text-sm hover:bg-green-100">
+                                Xem kết quả
+                              </Link>
+                              <button disabled className="flex-1 py-2 bg-gray-100 text-gray-500 font-bold rounded-lg cursor-not-allowed text-sm">
+                                Hết lượt ({attemptsCount}/{maxAttempts})
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="w-full flex gap-2">
+                              {attemptsCount > 0 && (
+                                <Link to={`/session-result?id=${completedSessions[0].id}`} className="flex-1 py-2 bg-green-50 text-green-700 font-bold rounded-lg text-center text-sm hover:bg-green-100">
+                                  Xem kết quả
+                                </Link>
+                              )}
+                              <Link 
+                                to={`/quiz?assignment=${assignment.id}`}
+                                className="flex-1 text-center py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-lg transition-colors text-sm"
+                              >
+                                {attemptsCount > 0 ? 'Làm lại' : 'Bắt đầu làm'}
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                    </div>
                   );
                 })}
               </div>

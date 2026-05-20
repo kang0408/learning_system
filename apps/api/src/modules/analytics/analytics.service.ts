@@ -89,13 +89,14 @@ export class AnalyticsService {
 
   static async getStudentWeakTopics(studentId: string) {
     const weakTopics = await prisma.$queryRaw`
-      SELECT q.topic, COUNT(sa.id)::int as total_answers, 
+      SELECT COALESCE(t.name, 'General') as topic, COUNT(sa.id)::int as total_answers, 
       (SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::float / NULLIF(COUNT(sa.id), 0) * 100) as accuracy_pct
       FROM session_answers sa
       JOIN quiz_sessions qs ON sa.session_id = qs.id
       JOIN questions q ON sa.question_id = q.id
+      LEFT JOIN topics t ON q.topic_id = t.id
       WHERE qs.student_id = ${studentId}::uuid AND qs.status = 'completed'
-      GROUP BY q.topic
+      GROUP BY t.name
       HAVING (SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::float / NULLIF(COUNT(sa.id), 0) * 100) < 60
       ORDER BY accuracy_pct ASC;
     `;
@@ -125,7 +126,7 @@ export class AnalyticsService {
   static async getTeacherClassTopics(teacherId: string, classId: string) {
     const topics = await prisma.$queryRaw`
       SELECT
-          q.topic,
+          COALESCE(t.name, 'General') as topic,
           COUNT(sa.id)::int                                      AS total_answers,
           SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::int    AS correct_answers,
           ROUND(
@@ -137,18 +138,67 @@ export class AnalyticsService {
       JOIN assignments   a    ON a.id             = qs.assignment_id
       JOIN session_answers sa ON sa.session_id   = qs.id
       JOIN questions     q    ON q.id            = sa.question_id
+      LEFT JOIN topics t      ON q.topic_id      = t.id
       WHERE
           cm.class_id  = ${classId}::uuid
           AND a.class_id = ${classId}::uuid
           AND qs.status = 'completed'
-      GROUP BY q.topic
+      GROUP BY t.name
       ORDER BY accuracy_pct ASC;
     `;
     return topics;
   }
 
   static async getTeacherClassStudents(teacherId: string, classId: string) {
-    return { students: [] };
+    const students = await prisma.$queryRaw`
+      WITH BestScores AS (
+        SELECT 
+          qs.student_id,
+          qs.assignment_id,
+          MAX(qs.score) as best_score
+        FROM quiz_sessions qs
+        JOIN assignments a ON a.id = qs.assignment_id
+        WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed'
+        GROUP BY qs.student_id, qs.assignment_id
+      )
+      SELECT 
+        u.id as student_id,
+        u.full_name as name,
+        COALESCE(SUM(bs.best_score), 0)::int as score
+      FROM class_members cm
+      JOIN users u ON cm.student_id = u.id
+      LEFT JOIN BestScores bs ON bs.student_id = cm.student_id
+      WHERE cm.class_id = ${classId}::uuid AND cm.is_active = true
+      GROUP BY u.id, u.full_name
+      ORDER BY score DESC
+    `;
+    return students;
+  }
+
+  static async getTeacherStudentStats(teacherId: string, studentId: string) {
+    // Verify student is in at least one of the teacher's classes
+    const membership = await prisma.classMember.findFirst({
+      where: {
+        student_id: studentId,
+        is_active: true,
+        class: { teacher_id: teacherId, deleted_at: null }
+      }
+    });
+
+    if (!membership) {
+      throw { status: 403, message: 'Học sinh này không thuộc bất kỳ lớp nào của bạn.' };
+    }
+
+    // Combine dashboard, calendar, and weak topics
+    const dashboard = await this.getStudentDashboard(studentId);
+    const calendar = await this.getStudentCalendar(studentId);
+    const weakTopics = await this.getStudentWeakTopics(studentId);
+
+    return {
+      ...dashboard,
+      ...calendar,
+      ...weakTopics
+    };
   }
 
   // --- PARENT DASHBOARD ---

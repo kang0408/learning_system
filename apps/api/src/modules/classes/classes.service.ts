@@ -26,7 +26,11 @@ export class ClassesService {
 
   static async getClassById(classId: string) {
     const classData = await prisma.class.findUnique({
-      where: { id: classId, deleted_at: null }
+      where: { id: classId, deleted_at: null },
+      include: {
+        teacher: { select: { full_name: true, email: true } },
+        _count: { select: { members: { where: { is_active: true } } } }
+      }
     });
     if (!classData) throw { status: 404, message: 'Class not found' };
     return classData;

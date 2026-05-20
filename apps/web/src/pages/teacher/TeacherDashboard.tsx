@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, Plus, Loader2, ArrowRight } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 interface ClassItem {
   id: string;

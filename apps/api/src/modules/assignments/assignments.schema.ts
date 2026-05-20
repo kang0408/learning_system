@@ -8,7 +8,9 @@ export const createAssignmentSchema = z.object({
   deadline: z.string().datetime().optional().nullable(),
   max_attempts: z.number().int().min(0).default(0),
   time_limit: z.number().int().min(0).optional().nullable(),
-  question_ids: z.array(z.string().uuid()).min(1, 'Phải có ít nhất 1 câu hỏi')
+  topic_ids: z.array(z.string().uuid()).optional(),
+  question_ids: z.array(z.string().uuid()).optional(),
+  student_ids: z.array(z.string().uuid()).optional()
 });
 
 export const updateAssignmentSchema = z.object({
@@ -18,5 +20,7 @@ export const updateAssignmentSchema = z.object({
   deadline: z.string().datetime().optional().nullable(),
   max_attempts: z.number().int().min(0).optional(),
   time_limit: z.number().int().min(0).optional().nullable(),
-  question_ids: z.array(z.string().uuid()).optional()
+  topic_ids: z.array(z.string().uuid()).optional(),
+  question_ids: z.array(z.string().uuid()).optional(),
+  student_ids: z.array(z.string().uuid()).optional()
 });

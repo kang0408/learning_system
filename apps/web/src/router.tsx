@@ -8,17 +8,25 @@ import TeacherLayout from './layouts/TeacherLayout';
 import ParentLayout from './layouts/ParentLayout';
 
 // Pages
-import Register from './pages/Register';
-import Login from './pages/Login';
-import StudentDashboard from './pages/StudentDashboard';
-import StudentClasses from './pages/StudentClasses';
-import QuizPage from './pages/QuizPage';
-import SessionResult from './pages/SessionResult';
-import TeacherDashboard from './pages/TeacherDashboard';
-import TeacherClassDetail from './pages/TeacherClassDetail';
-import QuestionBank from './pages/QuestionBank';
-import AssignmentWizard from './pages/AssignmentWizard';
-import ParentDashboard from './pages/ParentDashboard';
+import Register from './pages/auth/Register';
+import Login from './pages/auth/Login';
+import StudentDashboard from './pages/student/StudentDashboard';
+import StudentClasses from './pages/student/StudentClasses';
+import StudentClassDetail from './pages/student/StudentClassDetail';
+import QuizPage from './pages/student/QuizPage';
+import SessionResult from './pages/student/SessionResult';
+// Teacher Routes
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherClassDetail from './pages/teacher/TeacherClassDetail';
+import TeacherClassMembers from './pages/teacher/TeacherClassMembers';
+import TeacherStudentDetail from './pages/teacher/TeacherStudentDetail';
+import TeacherClassAssignments from './pages/teacher/TeacherClassAssignments';
+import TeacherClassNewAssignment from './pages/teacher/TeacherClassNewAssignment';
+import TeacherClassEditAssignment from './pages/teacher/TeacherClassEditAssignment';
+import QuestionBank from './pages/teacher/QuestionBank';
+import TeacherTopicDetail from './pages/teacher/TeacherTopicDetail';
+import AssignmentWizard from './pages/teacher/AssignmentWizard';
+import ParentDashboard from './pages/parent/ParentDashboard';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
   const { token, user } = useAuthStore();
@@ -38,7 +46,8 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute role="student"><StudentLayout /></ProtectedRoute>,
     children: [
       { index: true, element: <StudentDashboard /> },
-      { path: 'classes', element: <StudentClasses /> }
+      { path: 'classes', element: <StudentClasses /> },
+      { path: 'classes/:id', element: <StudentClassDetail /> }
     ]
   },
   { 
@@ -58,8 +67,15 @@ export const router = createBrowserRouter([
       { index: true, element: <TeacherDashboard /> },
       { path: 'classes', element: <TeacherDashboard /> },
       { path: 'classes/:id', element: <TeacherClassDetail /> },
+      { path: 'classes/:id/members', element: <TeacherClassMembers /> },
+      { path: 'classes/:id/members/:studentId', element: <TeacherStudentDetail /> },
+      { path: 'classes/:id/assignments', element: <TeacherClassAssignments /> },
+      { path: 'classes/:id/assignments/new', element: <TeacherClassNewAssignment /> },
+      { path: 'classes/:id/assignments/:assignmentId/edit', element: <TeacherClassEditAssignment /> },
       { path: 'questions', element: <QuestionBank /> },
+      { path: 'questions/topics/:topicId', element: <TeacherTopicDetail /> },
       { path: 'assignments', element: <AssignmentWizard /> },
+      { path: 'assignments/new', element: <AssignmentWizard /> },
     ]
   },
   

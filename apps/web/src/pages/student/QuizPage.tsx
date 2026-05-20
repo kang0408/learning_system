@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { X, CheckCircle, XCircle, Loader2, ArrowLeft, Lightbulb } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 interface AnswerOption {
   id: string;
@@ -35,8 +35,10 @@ export default function QuizPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
   
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [fillText, setFillText] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [correctAnswerId, setCorrectAnswerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -54,8 +56,16 @@ export default function QuizPage() {
         const payload = { assignment_id: assignmentId };
         const res = await api.post('/api/sessions', payload);
         
-        setSession(res.data.data?.session || res.data.session);
-        setQuestions(res.data.data?.questions || res.data.questions || []);
+        const responseData = res.data.data || res.data;
+        setSession({
+          id: responseData.session_id,
+          status: 'in_progress',
+          assignment_id: assignmentId
+        });
+        if (responseData.time_limit_seconds) {
+          setTimeLeft(responseData.time_limit_seconds);
+        }
+        setQuestions(responseData.questions || []);
         startTimeRef.current = Date.now();
       } catch (err: any) {
         const errorMessage = err.response?.data?.message 
@@ -69,6 +79,23 @@ export default function QuizPage() {
     };
     initSession();
   }, [assignmentId]);
+
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0 || submitting || feedback) return;
+    
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          handleFinishQuiz();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [timeLeft, submitting, feedback]);
 
   if (loading) {
     return (
@@ -84,19 +111,22 @@ export default function QuizPage() {
 
   const currentQuestion = questions[currentIndex];
 
-  const handleSelect = async (optId: string) => {
+  const handleSelect = async (optId?: string, text?: string) => {
     if (feedback || submitting) return;
-    setSelectedOptionId(optId);
+    if (optId) setSelectedOptionId(optId);
     setSubmitting(true);
     
     const responseTimeMs = Date.now() - startTimeRef.current;
     
     try {
-      const res = await api.post(`/api/sessions/${session?.id}/answers`, {
+      const payload: any = {
         question_id: currentQuestion.id,
-        selected_option_id: optId,
         response_time_ms: responseTimeMs
-      });
+      };
+      if (optId) payload.selected_option_id = optId;
+      if (text !== undefined) payload.fill_text = text;
+
+      const res = await api.post(`/api/sessions/${session?.id}/answers`, payload);
       
       const responseData = res.data.data || res.data;
       const isCorrect = responseData.is_correct;
@@ -108,8 +138,7 @@ export default function QuizPage() {
         setCorrectAnswerId(optId);
       }
 
-      // Automatically move to next after 2.5 seconds
-      setTimeout(handleNext, 2500);
+      // Do not automatically move to next, wait for user to click Next
     } catch (err: any) {
       alert('Không thể nộp câu trả lời, vui lòng thử lại.');
       setSelectedOptionId(null);
@@ -123,16 +152,21 @@ export default function QuizPage() {
       setCurrentIndex(prev => prev + 1);
       setFeedback(null);
       setSelectedOptionId(null);
+      setFillText('');
       setCorrectAnswerId(null);
       startTimeRef.current = Date.now();
     } else {
-      try {
-        const finishRes = await api.post(`/api/sessions/${session?.id}/finish`);
-        navigate('/session-result', { state: finishRes.data.data || finishRes.data });
-      } catch (err: any) {
-        alert('Lỗi kết thúc bài học');
-        navigate('/student');
-      }
+      handleFinishQuiz();
+    }
+  };
+
+  const handleFinishQuiz = async () => {
+    try {
+      const finishRes = await api.post(`/api/sessions/${session?.id}/finish`);
+      navigate('/session-result', { state: finishRes.data.data || finishRes.data });
+    } catch (err: any) {
+      alert('Lỗi kết thúc bài học');
+      navigate('/student');
     }
   };
 
@@ -154,7 +188,12 @@ export default function QuizPage() {
         <div className="w-full max-w-md mx-4 h-3 bg-slate-200 rounded-full overflow-hidden">
           <div className="h-full bg-indigo-500 transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          {timeLeft !== null && (
+            <div className={`font-mono font-bold ${timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-slate-600'}`}>
+              {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
+            </div>
+          )}
           <span className="font-bold text-slate-700">{currentIndex + 1}/{questions.length}</span>
           <button onClick={confirmExit} className="p-2 hover:bg-slate-100 rounded-full cursor-pointer transition-colors text-slate-500 hidden sm:block">
             <X className="w-5 h-5" />
@@ -175,43 +214,76 @@ export default function QuizPage() {
         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-8 leading-snug">{currentQuestion?.content}</h2>
         
         <div className="space-y-4">
-          {currentQuestion?.answer_options?.map((opt) => {
-            const isSelected = opt.id === selectedOptionId;
-            const isCorrect = opt.id === correctAnswerId;
-            
-            let btnClass = 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 text-slate-700 bg-white';
-            let Icon = null;
-            
-            // Optimistic UI while submitting
-            if (submitting && !feedback && isSelected) {
-              btnClass = 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200';
-            }
-            
-            // Feedback state
-            if (feedback) {
-              if (isCorrect) {
-                btnClass = 'border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200 scale-[1.02]';
-                Icon = <CheckCircle className="w-5 h-5 text-green-600 ml-auto" />;
-              } else if (isSelected) {
-                btnClass = 'border-red-500 bg-red-50 text-red-700 ring-2 ring-red-200';
-                Icon = <XCircle className="w-5 h-5 text-red-600 ml-auto" />;
-              } else {
-                btnClass = 'border-slate-200 text-slate-400 opacity-50 bg-slate-50';
-              }
-            }
-
-            return (
-              <button
-                key={opt.id}
+          {currentQuestion?.question_type === 'fill_blank' ? (
+            <div className="mt-4">
+              <input
+                type="text"
+                value={fillText}
+                onChange={(e) => setFillText(e.target.value)}
                 disabled={!!feedback || submitting}
-                onClick={() => handleSelect(opt.id)}
-                className={`w-full p-4 md:p-5 rounded-xl border-2 text-left font-medium text-lg transition-all flex items-center shadow-sm ${btnClass}`}
-              >
-                <span>{opt.content}</span>
-                {Icon}
-              </button>
-            );
-          })}
+                placeholder="Nhập câu trả lời của bạn..."
+                className={`w-full p-4 md:p-5 rounded-xl border-2 font-medium text-lg transition-all focus:outline-none focus:ring-0 ${
+                  feedback === 'correct' 
+                    ? 'border-green-500 bg-green-50 text-green-700' 
+                    : feedback === 'incorrect'
+                      ? 'border-red-500 bg-red-50 text-red-700'
+                      : 'border-slate-200 focus:border-indigo-500 text-slate-800'
+                }`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && fillText.trim()) {
+                    handleSelect(undefined, fillText);
+                  }
+                }}
+              />
+              {!feedback && !submitting && (
+                <button
+                  onClick={() => handleSelect(undefined, fillText)}
+                  disabled={!fillText.trim()}
+                  className="mt-4 w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold rounded-xl transition-colors"
+                >
+                  Gửi đáp án
+                </button>
+              )}
+            </div>
+          ) : (
+            currentQuestion?.answer_options?.map((opt) => {
+              const isSelected = opt.id === selectedOptionId;
+              const isCorrect = opt.id === correctAnswerId;
+              
+              let btnClass = 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 text-slate-700 bg-white';
+              let Icon = null;
+              
+              // Optimistic UI while submitting
+              if (submitting && !feedback && isSelected) {
+                btnClass = 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200';
+              }
+              
+              // Feedback state
+              if (feedback) {
+                if (isCorrect) {
+                  btnClass = 'border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200 scale-[1.02]';
+                  Icon = <CheckCircle className="w-5 h-5 text-green-600 ml-auto" />;
+                } else if (isSelected) {
+                  btnClass = 'border-red-500 bg-red-50 text-red-700 ring-2 ring-red-200';
+                  Icon = <XCircle className="w-5 h-5 text-red-600 ml-auto" />;
+                } else {
+                  btnClass = 'border-slate-200 text-slate-400 opacity-50 bg-slate-50';
+                }
+              }
+
+              return (
+                <button
+                  key={opt.id}
+                  disabled={!!feedback || submitting}
+                  onClick={() => handleSelect(opt.id)}
+                  className={`w-full p-4 md:p-5 rounded-xl border-2 text-left font-medium text-lg transition-all flex items-center shadow-sm ${btnClass}`}
+                >
+                  <span>{opt.content}</span>
+                  {Icon}
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
 

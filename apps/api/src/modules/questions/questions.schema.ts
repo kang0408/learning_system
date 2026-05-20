@@ -9,10 +9,18 @@ export const answerOptionSchema = z.object({
 export const createQuestionSchema = z.object({
   content: z.string().min(1, 'Nội dung câu hỏi là bắt buộc'),
   question_type: z.enum(['multiple_choice', 'true_false', 'fill_blank', 'matching']),
-  topic: z.string().optional(),
   difficulty: z.number().int().min(1).max(5).default(3),
   explanation: z.string().optional(),
+  topic_id: z.string().uuid().optional().nullable(),
+  is_public: z.boolean().optional().default(false),
   answer_options: z.array(answerOptionSchema).optional()
 });
 
 export const updateQuestionSchema = createQuestionSchema;
+
+export const createTopicSchema = z.object({
+  name: z.string().min(1, 'Tiêu đề là bắt buộc'),
+  description: z.string().optional()
+});
+
+export const updateTopicSchema = createTopicSchema;

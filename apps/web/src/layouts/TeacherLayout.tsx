@@ -14,8 +14,7 @@ export default function TeacherLayout() {
   };
 
   const navItems = [
-    { to: '/teacher', icon: Home, label: 'Dashboard', end: true },
-    { to: '/teacher/classes', icon: Users, label: 'Classes' },
+    { to: '/teacher/classes', icon: Users, label: 'Classes', end: true },
     { to: '/teacher/questions', icon: FileText, label: 'Question Bank' },
     { to: '/teacher/assignments', icon: ClipboardList, label: 'Assignments' },
   ];
@@ -54,10 +53,9 @@ export default function TeacherLayout() {
                   end={item.end}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-purple-50 text-purple-700'
-                        : 'text-gray-700 hover:bg-gray-100'
+                    `flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${isActive
+                      ? 'bg-purple-50 text-purple-700'
+                      : 'text-gray-700 hover:bg-gray-100'
                     }`
                   }
                 >

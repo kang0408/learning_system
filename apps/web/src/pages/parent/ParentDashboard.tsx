@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Plus, User, Book, TrendingUp } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 interface ChildAnalytics {
   student_id: string;

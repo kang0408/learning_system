@@ -13,6 +13,7 @@ router.get('/student/me/weak-topics', requireAuth, requireRole(['student']), Ana
 router.get('/class/:classId', requireAuth, requireRole(['teacher']), AnalyticsController.getTeacherClassStats);
 router.get('/class/:classId/topics', requireAuth, requireRole(['teacher']), AnalyticsController.getTeacherClassTopics);
 router.get('/class/:classId/students', requireAuth, requireRole(['teacher']), AnalyticsController.getTeacherClassStudents);
+router.get('/student/:studentId', requireAuth, requireRole(['teacher']), AnalyticsController.getTeacherStudentStats);
 
 // Parent routes
 router.get('/parent/children', requireAuth, requireRole(['parent']), AnalyticsController.getParentChildren);

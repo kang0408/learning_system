@@ -35,6 +35,12 @@ export class AnalyticsController {
     res.json({ success: true, data: students });
   }
 
+  static async getTeacherStudentStats(req: any, res: Response) {
+    const { studentId } = req.params;
+    const stats = await AnalyticsService.getTeacherStudentStats(req.user.userId, studentId);
+    res.json({ success: true, data: stats });
+  }
+
   static async getParentChildren(req: any, res: Response) {
     const data = await AnalyticsService.getParentChildren(req.user.userId);
     res.json({ success: true, data });

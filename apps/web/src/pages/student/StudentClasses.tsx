@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Loader2, Users, Search, Plus, BookOpen } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 interface ClassItem {
   id: string;
-  name: string;
-  description: string;
-  teacher_name: string;
+  class_id: string;
+  name?: string;
+  description?: string;
+  teacher_name?: string;
+  class?: any;
 }
 
 export default function StudentClasses() {
@@ -87,17 +90,17 @@ export default function StudentClasses() {
         ) : classes.length > 0 ? (
           <ul className="divide-y divide-gray-200">
             {classes.map((cls) => (
-              <li key={cls.id} className="p-4 hover:bg-gray-50 transition-colors">
+              <Link key={cls.id} to={`/student/classes/${cls.class_id}`} className="block p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-lg font-medium text-indigo-600">{cls?.name || cls.name}</h4>
-                    <p className="text-sm text-gray-500 mt-1">{cls?.description || cls.description}</p>
+                    <h4 className="text-lg font-medium text-indigo-600">{cls.class?.name || cls.name}</h4>
+                    <p className="text-sm text-gray-500 mt-1">{cls.class?.description || cls.description}</p>
                   </div>
                   <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                     Giáo viên: <span className="font-medium text-gray-900">{cls.class?.teacher?.full_name || cls.teacher_name}</span>
                   </div>
                 </div>
-              </li>
+              </Link>
             ))}
           </ul>
         ) : (

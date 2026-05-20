@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Loader2 } from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
-import api from '../api/axios';
+import { useAuthStore } from '../../store/authStore';
+import api from '../../api/axios';
 
 export default function Login() {
   const [email, setEmail] = useState('');

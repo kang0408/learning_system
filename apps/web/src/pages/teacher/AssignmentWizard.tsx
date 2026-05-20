@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Loader2, Check } from 'lucide-react';
-import api from '../api/axios';
+import api from '../../api/axios';
 
 interface ClassItem {
   id: string;

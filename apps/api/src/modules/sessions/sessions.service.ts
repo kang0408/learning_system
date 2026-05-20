@@ -25,7 +25,7 @@ export class SessionsService {
     if (assignment.mode === 'adaptive') {
       // Phan 2 Query 1: SM-2 Due Questions
       const dueQuestions: any[] = await prisma.$queryRaw`
-        SELECT q.id, q.content, q.question_type, q.topic, q.difficulty,
+        SELECT q.id, q.content, q.question_type, q.topic_id, q.difficulty,
                sp.easiness_factor, sp.repetition_count, sp.next_review_date
         FROM sm2_progress sp
         JOIN questions q ON q.id = sp.question_id
@@ -40,7 +40,7 @@ export class SessionsService {
 
       // Get assignment questions missing from progress (new questions)
       const newQuestions: any[] = await prisma.$queryRaw`
-        SELECT q.id, q.content, q.question_type, q.topic, q.difficulty
+        SELECT q.id, q.content, q.question_type, q.topic_id, q.difficulty
         FROM assignment_questions aq
         JOIN questions q ON q.id = aq.question_id
         LEFT JOIN sm2_progress sp ON sp.question_id = q.id AND sp.student_id = ${studentId}::uuid
@@ -51,6 +51,23 @@ export class SessionsService {
       `;
       
       questionsList = [...dueQuestions, ...newQuestions];
+      
+      // Fallback: If no questions are due and no new questions exist, fetch some for early review
+      if (questionsList.length === 0) {
+        const earlyReview: any[] = await prisma.$queryRaw`
+          SELECT q.id, q.content, q.question_type, q.topic_id, q.difficulty,
+                 sp.easiness_factor, sp.repetition_count, sp.next_review_date
+          FROM sm2_progress sp
+          JOIN questions q ON q.id = sp.question_id
+          JOIN assignment_questions aq ON aq.question_id = q.id
+          WHERE sp.student_id = ${studentId}::uuid
+            AND aq.assignment_id = ${assignmentId}::uuid
+            AND q.deleted_at IS NULL
+          ORDER BY sp.next_review_date ASC, sp.easiness_factor ASC
+          LIMIT 20;
+        `;
+        questionsList = earlyReview;
+      }
       
     } else {
       // Fixed mode
@@ -94,6 +111,7 @@ export class SessionsService {
       total_questions: questionsList.length,
       time_limit_seconds: assignment.time_limit ? assignment.time_limit * 60 : null,
       started_at: session.started_at,
+      questions: questionsList,
       first_question: { ...questionsList[0], question_index: 1 }
     };
   }
@@ -110,7 +128,13 @@ export class SessionsService {
     // Check correct answer
     const options = await prisma.answerOption.findMany({ where: { question_id } });
     const correctOpt = options.find(o => o.is_correct);
-    const isCorrect = correctOpt ? correctOpt.id === selected_option_id : false;
+    
+    let isCorrect = false;
+    if (data.fill_text !== undefined) {
+      isCorrect = correctOpt ? correctOpt.content.trim().toLowerCase() === data.fill_text.trim().toLowerCase() : false;
+    } else {
+      isCorrect = correctOpt ? correctOpt.id === selected_option_id : false;
+    }
 
     // Calc SM-2 Quality
     let sm2Quality = 0;
@@ -118,8 +142,8 @@ export class SessionsService {
       if (response_time_ms < 5000) sm2Quality = 5;
       else if (response_time_ms <= 15000) sm2Quality = 4;
       else sm2Quality = 3;
-    } else if (selected_option_id) {
-      sm2Quality = 1; // Wrong option chosen
+    } else if (selected_option_id || data.fill_text !== undefined) {
+      sm2Quality = 1; // Wrong option chosen or wrong text
     } else {
       sm2Quality = 0; // Timeout / No answer
     }
@@ -145,7 +169,8 @@ export class SessionsService {
       data: {
         session_id: sessionId,
         question_id,
-        selected_option: selected_option_id,
+        selected_option: selected_option_id || null,
+        text_answer: data.fill_text || null,
         is_correct: isCorrect,
         response_time_ms,
         sm2_quality: sm2Quality
@@ -207,7 +232,7 @@ export class SessionsService {
   static async finishSession(studentId: string, sessionId: string) {
     const session = await prisma.quizSession.findUnique({
       where: { id: sessionId },
-      include: { session_answers: { include: { question: true } } }
+      include: { session_answers: { include: { question: { include: { topic: true } } } } }
     });
     if (!session || session.student_id !== studentId) throw { status: 404, message: 'Session not found' };
 
@@ -225,10 +250,10 @@ export class SessionsService {
     // Topic performance logic
     const topicStats: Record<string, { total: number, correct: number }> = {};
     for (const ans of session.session_answers) {
-      const topic = ans.question.topic || 'General';
-      if (!topicStats[topic]) topicStats[topic] = { total: 0, correct: 0 };
-      topicStats[topic].total++;
-      if (ans.is_correct) topicStats[topic].correct++;
+      const topicName = (ans.question as any).topic?.name || 'General';
+      if (!topicStats[topicName]) topicStats[topicName] = { total: 0, correct: 0 };
+      topicStats[topicName].total++;
+      if (ans.is_correct) topicStats[topicName].correct++;
     }
 
     const performance_by_topic = Object.entries(topicStats).map(([topic, stat]) => ({
@@ -279,7 +304,7 @@ export class SessionsService {
   static async getSessionResult(studentId: string, sessionId: string) {
     const session = await prisma.quizSession.findUnique({
       where: { id: sessionId },
-      include: { session_answers: { include: { question: true } } }
+      include: { session_answers: { include: { question: { include: { topic: true, answer_options: true } } } } }
     });
     if (!session || session.student_id !== studentId) throw { status: 404, message: 'Session not found' };
     if (session.status !== 'completed') throw { status: 400, message: 'Session is not completed yet' };
@@ -290,10 +315,10 @@ export class SessionsService {
     // Topic performance logic
     const topicStats: Record<string, { total: number, correct: number }> = {};
     for (const ans of session.session_answers) {
-      const topic = ans.question.topic || 'General';
-      if (!topicStats[topic]) topicStats[topic] = { total: 0, correct: 0 };
-      topicStats[topic].total++;
-      if (ans.is_correct) topicStats[topic].correct++;
+      const topicName = (ans.question as any).topic?.name || 'General';
+      if (!topicStats[topicName]) topicStats[topicName] = { total: 0, correct: 0 };
+      topicStats[topicName].total++;
+      if (ans.is_correct) topicStats[topicName].correct++;
     }
 
     const performance_by_topic = Object.entries(topicStats).map(([topic, stat]) => ({
@@ -313,7 +338,8 @@ export class SessionsService {
       duration_seconds: durationSeconds,
       finished_at: session.finished_at,
       performance_by_topic,
-      weakest_topic: weakestTopic
+      weakest_topic: weakestTopic,
+      session_answers: session.session_answers
     };
   }
 }
