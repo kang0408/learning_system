@@ -108,18 +108,65 @@ export class AnalyticsService {
     const classData = await prisma.class.findFirst({ where: { id: classId, teacher_id: teacherId } });
     if (!classData) throw { status: 403, message: 'Forbidden' };
 
-    const totalStudents = await prisma.classMember.count({ where: { class_id: classId } });
+    const totalStudents = await prisma.classMember.count({ where: { class_id: classId, is_active: true } });
+
+    // Current week active
     const activeStudentsResult: any = await prisma.$queryRaw`
       SELECT COUNT(DISTINCT qs.student_id)::int as active_count
       FROM quiz_sessions qs
       JOIN class_members cm ON qs.student_id = cm.student_id
       WHERE cm.class_id = ${classId}::uuid AND qs.started_at >= NOW() - INTERVAL '7 days';
     `;
+    const currentActive = activeStudentsResult[0]?.active_count || 0;
+
+    // Previous week active
+    const prevActiveStudentsResult: any = await prisma.$queryRaw`
+      SELECT COUNT(DISTINCT qs.student_id)::int as active_count
+      FROM quiz_sessions qs
+      JOIN class_members cm ON qs.student_id = cm.student_id
+      WHERE cm.class_id = ${classId}::uuid 
+        AND qs.started_at >= NOW() - INTERVAL '14 days'
+        AND qs.started_at < NOW() - INTERVAL '7 days';
+    `;
+    const prevActive = prevActiveStudentsResult[0]?.active_count || 0;
+
+    // Averages (current and previous)
+    const currentAvg: any = await prisma.$queryRaw`
+      SELECT COALESCE(AVG(score), 0)::float as avg_score
+      FROM quiz_sessions qs
+      JOIN assignments a ON a.id = qs.assignment_id
+      WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed' AND qs.started_at >= NOW() - INTERVAL '7 days';
+    `;
+
+    const prevAvg: any = await prisma.$queryRaw`
+      SELECT COALESCE(AVG(score), 0)::float as avg_score
+      FROM quiz_sessions qs
+      JOIN assignments a ON a.id = qs.assignment_id
+      WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed' 
+        AND qs.started_at >= NOW() - INTERVAL '14 days'
+        AND qs.started_at < NOW() - INTERVAL '7 days';
+    `;
+
+    // Completion Rate (assignments with at least one completed session)
+    const totalAssignments = await prisma.assignment.count({ where: { class_id: classId, deleted_at: null } });
+    const completionRate = totalStudents > 0 ? Math.round((currentActive / totalStudents) * 100) : 0; 
+    const prevCompletionRate = totalStudents > 0 ? Math.round((prevActive / totalStudents) * 100) : 0;
 
     return {
       class_name: classData.name,
       total_students: totalStudents,
-      active_students_this_week: activeStudentsResult[0]?.active_count || 0
+      active_students: {
+        current: currentActive,
+        trend: currentActive >= prevActive ? 'up' : 'down'
+      },
+      completion_rate: {
+        current: isNaN(completionRate) ? 0 : completionRate,
+        trend: completionRate >= prevCompletionRate ? 'up' : 'down'
+      },
+      average_score: {
+        current: Math.round(currentAvg[0]?.avg_score || 0),
+        trend: (currentAvg[0]?.avg_score || 0) >= (prevAvg[0]?.avg_score || 0) ? 'up' : 'down'
+      }
     };
   }
 
