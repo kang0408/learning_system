@@ -222,6 +222,31 @@ export class AnalyticsService {
     return students;
   }
 
+  static async getTeacherClassTopicStudents(teacherId: string, classId: string, topicName: string) {
+    const topicFilter = topicName === 'General' ? null : topicName;
+    const students = await prisma.$queryRaw`
+      SELECT 
+        u.id as student_id,
+        u.full_name as name,
+        COALESCE(SUM(qs.score), 0)::int as score,
+        ROUND(SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(sa.id), 0), 2) as accuracy_pct
+      FROM class_members cm
+      JOIN users u ON cm.student_id = u.id
+      JOIN quiz_sessions qs ON qs.student_id = cm.student_id
+      JOIN assignments a ON a.id = qs.assignment_id
+      JOIN session_answers sa ON sa.session_id = qs.id
+      JOIN questions q ON q.id = sa.question_id
+      LEFT JOIN topics t ON q.topic_id = t.id
+      WHERE cm.class_id = ${classId}::uuid 
+        AND a.class_id = ${classId}::uuid
+        AND qs.status = 'completed'
+        AND (t.name = ${topicFilter} OR (${topicFilter} IS NULL AND t.id IS NULL))
+      GROUP BY u.id, u.full_name
+      ORDER BY accuracy_pct ASC, score DESC
+    `;
+    return students;
+  }
+
   static async getTeacherStudentStats(teacherId: string, studentId: string) {
     // Verify student is in at least one of the teacher's classes
     const membership = await prisma.classMember.findFirst({
