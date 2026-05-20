@@ -202,7 +202,11 @@ export class AnalyticsService {
         SELECT 
           qs.student_id,
           qs.assignment_id,
-          MAX(qs.score) as best_score
+          MAX(qs.score) as best_score,
+          COUNT(qs.id) as attempts,
+          MAX(qs.finished_at) as last_active,
+          SUM(qs.correct_q) as total_correct,
+          SUM(qs.total_q) as total_questions
         FROM quiz_sessions qs
         JOIN assignments a ON a.id = qs.assignment_id
         WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed'
@@ -211,7 +215,10 @@ export class AnalyticsService {
       SELECT 
         u.id as student_id,
         u.full_name as name,
-        COALESCE(SUM(bs.best_score), 0)::int as score
+        COALESCE(SUM(bs.best_score), 0)::int as score,
+        COALESCE(SUM(bs.attempts), 0)::int as sessions_count,
+        ROUND(COALESCE(SUM(bs.total_correct) * 100.0 / NULLIF(SUM(bs.total_questions), 0), 0), 2) as accuracy,
+        MAX(bs.last_active) as last_active_at
       FROM class_members cm
       JOIN users u ON cm.student_id = u.id
       LEFT JOIN BestScores bs ON bs.student_id = cm.student_id
