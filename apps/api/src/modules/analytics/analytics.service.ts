@@ -173,6 +173,7 @@ export class AnalyticsService {
   static async getTeacherClassTopics(teacherId: string, classId: string) {
     const topics = await prisma.$queryRaw`
       SELECT
+          COALESCE(t.id::text, 'general') as topic_id,
           COALESCE(t.name, 'General') as topic,
           COUNT(sa.id)::int                                      AS total_answers,
           SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::int    AS correct_answers,
@@ -190,7 +191,7 @@ export class AnalyticsService {
           cm.class_id  = ${classId}::uuid
           AND a.class_id = ${classId}::uuid
           AND qs.status = 'completed'
-      GROUP BY t.name
+      GROUP BY t.id, t.name
       ORDER BY accuracy_pct ASC;
     `;
     return topics;
@@ -229,8 +230,8 @@ export class AnalyticsService {
     return students;
   }
 
-  static async getTeacherClassTopicStudents(teacherId: string, classId: string, topicName: string) {
-    const topicFilter = topicName === 'General' ? null : topicName;
+  static async getTeacherClassTopicStudents(teacherId: string, classId: string, topicId: string) {
+    const isGeneral = topicId.toLowerCase() === 'general' || topicId.toLowerCase() === 'null';
     const students = await prisma.$queryRaw`
       SELECT 
         u.id as student_id,
@@ -243,11 +244,13 @@ export class AnalyticsService {
       JOIN assignments a ON a.id = qs.assignment_id
       JOIN session_answers sa ON sa.session_id = qs.id
       JOIN questions q ON q.id = sa.question_id
-      LEFT JOIN topics t ON q.topic_id = t.id
       WHERE cm.class_id = ${classId}::uuid 
         AND a.class_id = ${classId}::uuid
         AND qs.status = 'completed'
-        AND (t.name = ${topicFilter} OR (${topicFilter} IS NULL AND t.id IS NULL))
+        AND (
+          (${isGeneral} AND q.topic_id IS NULL)
+          OR (NOT ${isGeneral} AND q.topic_id = ${topicId}::uuid)
+        )
       GROUP BY u.id, u.full_name
       ORDER BY accuracy_pct ASC, score DESC
     `;

@@ -36,8 +36,8 @@ export class AnalyticsController {
   }
 
   static async getTeacherClassTopicStudents(req: any, res: Response) {
-    const { classId, topicName } = req.params;
-    const students = await AnalyticsService.getTeacherClassTopicStudents(req.user.userId, classId, decodeURIComponent(topicName));
+    const { classId, topicId } = req.params;
+    const students = await AnalyticsService.getTeacherClassTopicStudents(req.user.userId, classId, topicId);
     res.json({ success: true, data: students });
   }
 
