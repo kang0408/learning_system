@@ -80,7 +80,8 @@ export class AssignmentsService {
       include: {
         assigned_students: {
           include: { student: { select: { id: true, full_name: true, email: true } } }
-        }
+        },
+        quiz_sessions: true
       },
       skip: (page - 1) * limit,
       take: limit,
