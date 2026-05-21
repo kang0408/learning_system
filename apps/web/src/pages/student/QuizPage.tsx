@@ -210,55 +210,55 @@ export default function QuizPage() {
       </div>
 
       {/* Main Content - animate slide in */}
-      <div key={currentIndex} className="flex-1 max-w-2xl w-full mx-auto p-6 flex flex-col justify-center animate-in slide-in-from-right-8 fade-in duration-500 pb-32">
+      <div key={currentIndex} className="flex-1 max-w-3xl w-full mx-auto p-6 md:p-12 flex flex-col justify-center animate-in slide-in-from-right-8 fade-in duration-500 pb-32">
         {currentQuestion?.topic && (
-          <div className="mb-4">
-            <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-full uppercase tracking-wider">
+          <div className="mb-8 text-center">
+            <span className="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-700 text-sm font-bold rounded-full uppercase tracking-widest">
               {currentQuestion.topic}
             </span>
           </div>
         )}
         
-        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-8 leading-snug">{currentQuestion?.content}</h2>
+        <h2 className="text-3xl md:text-5xl font-black text-center text-slate-900 mb-12 leading-tight">{currentQuestion?.content}</h2>
         
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-2xl mx-auto w-full">
           {shuffledOptions.map((opt) => {
             const isSelected = opt.id === selectedOptionId;
-              const isCorrect = opt.id === correctAnswerId;
-              
-              let btnClass = 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 text-slate-700 bg-white';
-              let Icon = null;
-              
-              // Optimistic UI while submitting
-              if (submitting && !feedback && isSelected) {
-                btnClass = 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200';
+            const isCorrect = opt.id === correctAnswerId;
+            
+            let btnClass = 'border-slate-200 hover:border-indigo-500 hover:shadow-md text-slate-700 bg-white';
+            let Icon = null;
+            
+            // Optimistic UI while submitting
+            if (submitting && !feedback && isSelected) {
+              btnClass = 'border-indigo-500 bg-indigo-50 text-indigo-700 ring-4 ring-indigo-100 scale-[1.02]';
+            }
+            
+            // Feedback state
+            if (feedback) {
+              if (isCorrect) {
+                btnClass = 'border-green-500 bg-green-50 text-green-700 ring-4 ring-green-100 scale-[1.02] shadow-lg';
+                Icon = <CheckCircle className="w-6 h-6 text-green-600 shrink-0" />;
+              } else if (isSelected) {
+                btnClass = 'border-red-500 bg-red-50 text-red-700 ring-4 ring-red-100';
+                Icon = <XCircle className="w-6 h-6 text-red-600 shrink-0" />;
+              } else {
+                btnClass = 'border-slate-100 text-slate-400 opacity-60 bg-slate-50';
               }
-              
-              // Feedback state
-              if (feedback) {
-                if (isCorrect) {
-                  btnClass = 'border-green-500 bg-green-50 text-green-700 ring-2 ring-green-200 scale-[1.02]';
-                  Icon = <CheckCircle className="w-5 h-5 text-green-600 ml-auto" />;
-                } else if (isSelected) {
-                  btnClass = 'border-red-500 bg-red-50 text-red-700 ring-2 ring-red-200';
-                  Icon = <XCircle className="w-5 h-5 text-red-600 ml-auto" />;
-                } else {
-                  btnClass = 'border-slate-200 text-slate-400 opacity-50 bg-slate-50';
-                }
-              }
+            }
 
-              return (
-                <button
-                  key={opt.id}
-                  disabled={!!feedback || submitting}
-                  onClick={() => handleSelect(opt.id)}
-                  className={`w-full p-4 md:p-5 rounded-xl border-2 text-left font-medium text-lg transition-all flex items-center shadow-sm ${btnClass}`}
-                >
-                  <span>{opt.content}</span>
-                  {Icon}
-                </button>
-              );
-            })}
+            return (
+              <button
+                key={opt.id}
+                disabled={!!feedback || submitting}
+                onClick={() => handleSelect(opt.id)}
+                className={`w-full p-5 md:p-6 rounded-2xl border-2 text-left font-bold text-lg md:text-xl transition-all flex items-center justify-between gap-4 ${btnClass}`}
+              >
+                <span>{opt.content}</span>
+                {Icon}
+              </button>
+            );
+          })}
         </div>
       </div>
 
