@@ -8,6 +8,8 @@ export interface SM2Input {
   progress: SM2Progress | null;   
   is_correct: boolean;
   response_time_ms: number;
+  difficulty?: number;           // 1-5, mặc định trung bình
+  question_type?: 'multiple_choice' | 'true_false';
 }
 
 export interface SM2Result {
@@ -26,7 +28,7 @@ export const SM2_DEFAULTS: SM2Progress = {
 
 export const SM2_CONSTANTS = {
   EF_MIN: 1.3,
-  EF_MAX: 5.0,
+  EF_MAX: 5.0, // Vẫn giữ nguyên hằng số nhưng không còn áp dụng ceiling nhân tạo trong logic updateEasinessFactor (theo đúng SM-2 gốc)
   EF_DEFAULT: 2.5,
   RESPONSE_FAST_MS: 5_000,    
   RESPONSE_MEDIUM_MS: 15_000, 

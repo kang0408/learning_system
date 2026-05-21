@@ -87,12 +87,17 @@ model Topic {
   @@map("topics")
 }
 
+enum QuestionType {
+  multiple_choice
+  true_false
+}
+
 model Question {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_by      String    @db.Uuid
   topic_id        String?   @db.Uuid
   content         String    @db.Text
-  question_type   String    @db.VarChar(30)
+  question_type   QuestionType
   difficulty      Int       @default(3) @db.SmallInt
   explanation     String?   @db.Text
   audio_url       String?   @db.VarChar(500)
@@ -219,6 +224,7 @@ model QuizSession {
   finished_at   DateTime? @db.Timestamptz
   score         Decimal?  @db.Decimal(5, 2)
   total_q       Int       @default(0) @db.SmallInt
+  answered_q    Int       @default(0) @db.SmallInt
   correct_q     Int       @default(0) @db.SmallInt
   status        String    @default("in_progress") @db.VarChar(20)
 

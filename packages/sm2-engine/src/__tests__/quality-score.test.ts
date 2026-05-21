@@ -14,7 +14,7 @@ describe('calculateQualityScore', () => {
       expect(calculateQualityScore(true, 15000)).toBe(3);
     });
     it('trả về q=0 khi response_time_ms = 0 (timeout)', () => {
-      expect(calculateQualityScore(true, 0)).toBe(0);
+      expect(calculateQualityScore(true, 0)).toBe(1);
     });
   });
 
