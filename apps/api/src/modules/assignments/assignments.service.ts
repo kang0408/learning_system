@@ -79,17 +79,80 @@ export class AssignmentsService {
       where,
       include: {
         assigned_students: {
-          include: { student: { select: { id: true, full_name: true, email: true } } }
+          select: { student_id: true }
         },
-        quiz_sessions: true
+        class: {
+          select: {
+            _count: {
+              select: { members: { where: { is_active: true } } }
+            }
+          }
+        },
+        quiz_sessions: {
+          select: { student_id: true, status: true, score: true }
+        }
       },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: { created_at: 'desc' }
     });
+
+    const enrichedAssignments = assignments.map(assignment => {
+      const uniqueSubmissions = new Set(assignment.quiz_sessions.map(s => s.student_id));
+      const submittedCount = uniqueSubmissions.size;
+      const totalStudents = assignment.is_all_students 
+        ? (assignment.class?._count?.members || 1)
+        : (assignment.assigned_students.length || 1);
+      
+      const submissionRate = Math.min(100, Math.round((submittedCount / Math.max(1, totalStudents)) * 100));
+
+      const completedSessions = assignment.quiz_sessions.filter(s => s.status === 'completed');
+      const avgScore = completedSessions.length > 0 
+        ? Math.round(completedSessions.reduce((acc, s) => acc + Number(s.score || 0), 0) / completedSessions.length)
+        : 0;
+
+      const deadlineDate = assignment.deadline ? new Date(assignment.deadline) : null;
+      const isOverdue = deadlineDate ? deadlineDate < new Date() : false;
+      const isCompleted = submissionRate === 100;
+
+      let status = 'ongoing';
+      if (isCompleted) status = 'completed';
+      else if (isOverdue) status = 'overdue';
+
+      const { quiz_sessions, class: classData, assigned_students, ...rest } = assignment;
+      
+      const result: any = {
+        ...rest,
+        submission_rate: submissionRate,
+        submitted_count: submittedCount,
+        total_students: totalStudents,
+        avg_score: avgScore,
+        status: status
+      };
+
+      if (query.student_id) {
+        const studentSessions = quiz_sessions.filter(s => s.student_id === query.student_id);
+        if (studentSessions.length > 0) {
+          const completedSessions = studentSessions.filter(s => s.status === 'completed');
+          if (completedSessions.length > 0) {
+            result.student_status = 'completed';
+            // Lấy điểm cao nhất trong các lần làm
+            result.student_score = Math.max(...completedSessions.map(s => Number(s.score || 0)));
+          } else {
+            result.student_status = 'in_progress';
+            result.student_score = null;
+          }
+        } else {
+          result.student_status = 'pending';
+          result.student_score = null;
+        }
+      }
+
+      return result;
+    });
     
     const total = await prisma.assignment.count({ where });
-    return { assignments, meta: { page, limit, total } };
+    return { assignments: enrichedAssignments, meta: { page, limit, total } };
   }
 
   static async getAssignmentById(id: string, userId: string, role: string) {

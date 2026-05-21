@@ -11,6 +11,7 @@ import sessionsRoutes from './modules/sessions/sessions.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
 import parentRoutes from './modules/parent/parent.routes';
 import usersRoutes from './modules/users/users.routes';
+import sm2Routes from './modules/sm2/sm2.routes';
 const app = express();
 
 app.use(helmet());
@@ -29,6 +30,7 @@ app.use('/api/assignments', assignmentsRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/parents', parentRoutes);
+app.use('/api/sm2', sm2Routes);
 
 // Add error handler as the last middleware
 app.use(errorHandler);

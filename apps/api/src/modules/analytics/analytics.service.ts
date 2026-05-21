@@ -1,4 +1,5 @@
 import { prisma } from '../../lib/prisma';
+import { AnalyticsRepository } from './analytics.repository';
 
 export class AnalyticsService {
   // --- STUDENT DASHBOARD ---
@@ -9,12 +10,7 @@ export class AnalyticsService {
     const correctAnswers = await prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' }, is_correct: true } });
     const overallAccuracy = totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 0;
     
-    const activeDates = await prisma.$queryRaw<{date: string}[]>`
-      SELECT DISTINCT DATE(started_at)::text as date
-      FROM quiz_sessions
-      WHERE student_id = ${studentId}::uuid AND status = 'completed'
-      ORDER BY date DESC;
-    `;
+    const activeDates = await AnalyticsRepository.getActiveDates(studentId);
     
     let currentStreakDays = 0;
     let longestStreakDays = 0;
@@ -60,14 +56,7 @@ export class AnalyticsService {
     const newQuestions = sm2Progress.filter(p => p.repetition_count === 0).length;
     const learningQuestions = sm2Progress.length - masteredQuestions - newQuestions;
 
-    const weeklyActivity = await prisma.$queryRaw`
-      SELECT DATE(started_at)::text as date, COUNT(id)::int as sessions, SUM(total_q)::int as questions, 
-      (SUM(correct_q)::float / NULLIF(SUM(total_q), 0) * 100) as accuracy
-      FROM quiz_sessions
-      WHERE student_id = ${studentId}::uuid AND status = 'completed' AND started_at >= NOW() - INTERVAL '7 days'
-      GROUP BY DATE(started_at)
-      ORDER BY DATE(started_at) ASC;
-    `;
+    const weeklyActivity = await AnalyticsRepository.getWeeklyActivity(studentId);
 
     return {
       total_sessions: totalSessions,
@@ -84,22 +73,12 @@ export class AnalyticsService {
   }
 
   static async getStudentCalendar(studentId: string) {
-    return { calendar: [] };
+    const calendar = await AnalyticsRepository.getStudentCalendar(studentId);
+    return { calendar };
   }
 
   static async getStudentWeakTopics(studentId: string) {
-    const weakTopics = await prisma.$queryRaw`
-      SELECT COALESCE(t.name, 'General') as topic, COUNT(sa.id)::int as total_answers, 
-      (SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::float / NULLIF(COUNT(sa.id), 0) * 100) as accuracy_pct
-      FROM session_answers sa
-      JOIN quiz_sessions qs ON sa.session_id = qs.id
-      JOIN questions q ON sa.question_id = q.id
-      LEFT JOIN topics t ON q.topic_id = t.id
-      WHERE qs.student_id = ${studentId}::uuid AND qs.status = 'completed'
-      GROUP BY t.name
-      HAVING (SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::float / NULLIF(COUNT(sa.id), 0) * 100) < 60
-      ORDER BY accuracy_pct ASC;
-    `;
+    const weakTopics = await AnalyticsRepository.getStudentWeakTopics(studentId);
     return { weak_topics: weakTopics };
   }
 
@@ -111,41 +90,16 @@ export class AnalyticsService {
     const totalStudents = await prisma.classMember.count({ where: { class_id: classId, is_active: true } });
 
     // Current week active
-    const activeStudentsResult: any = await prisma.$queryRaw`
-      SELECT COUNT(DISTINCT qs.student_id)::int as active_count
-      FROM quiz_sessions qs
-      JOIN class_members cm ON qs.student_id = cm.student_id
-      WHERE cm.class_id = ${classId}::uuid AND qs.started_at >= NOW() - INTERVAL '7 days';
-    `;
+    const activeStudentsResult = await AnalyticsRepository.getTeacherClassActiveStudents(classId, 7);
     const currentActive = activeStudentsResult[0]?.active_count || 0;
 
     // Previous week active
-    const prevActiveStudentsResult: any = await prisma.$queryRaw`
-      SELECT COUNT(DISTINCT qs.student_id)::int as active_count
-      FROM quiz_sessions qs
-      JOIN class_members cm ON qs.student_id = cm.student_id
-      WHERE cm.class_id = ${classId}::uuid 
-        AND qs.started_at >= NOW() - INTERVAL '14 days'
-        AND qs.started_at < NOW() - INTERVAL '7 days';
-    `;
+    const prevActiveStudentsResult = await AnalyticsRepository.getTeacherClassActiveStudents(classId, 14, 7);
     const prevActive = prevActiveStudentsResult[0]?.active_count || 0;
 
     // Averages (current and previous)
-    const currentAvg: any = await prisma.$queryRaw`
-      SELECT COALESCE(AVG(score), 0)::float as avg_score
-      FROM quiz_sessions qs
-      JOIN assignments a ON a.id = qs.assignment_id
-      WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed' AND qs.started_at >= NOW() - INTERVAL '7 days';
-    `;
-
-    const prevAvg: any = await prisma.$queryRaw`
-      SELECT COALESCE(AVG(score), 0)::float as avg_score
-      FROM quiz_sessions qs
-      JOIN assignments a ON a.id = qs.assignment_id
-      WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed' 
-        AND qs.started_at >= NOW() - INTERVAL '14 days'
-        AND qs.started_at < NOW() - INTERVAL '7 days';
-    `;
+    const currentAvg = await AnalyticsRepository.getTeacherClassAverageScore(classId, 7);
+    const prevAvg = await AnalyticsRepository.getTeacherClassAverageScore(classId, 14, 7);
 
     // Completion Rate (assignments with at least one completed session)
     const totalAssignments = await prisma.assignment.count({ where: { class_id: classId, deleted_at: null } });
@@ -171,89 +125,18 @@ export class AnalyticsService {
   }
 
   static async getTeacherClassTopics(teacherId: string, classId: string) {
-    const topics = await prisma.$queryRaw`
-      SELECT
-          COALESCE(t.id::text, 'general') as topic_id,
-          COALESCE(t.name, 'General') as topic,
-          COUNT(sa.id)::int                                      AS total_answers,
-          SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::int    AS correct_answers,
-          ROUND(
-              SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)
-              * 100.0 / NULLIF(COUNT(sa.id), 0), 2
-          )                                                      AS accuracy_pct
-      FROM class_members cm
-      JOIN quiz_sessions qs   ON qs.student_id    = cm.student_id
-      JOIN assignments   a    ON a.id             = qs.assignment_id
-      JOIN session_answers sa ON sa.session_id   = qs.id
-      JOIN questions     q    ON q.id            = sa.question_id
-      LEFT JOIN topics t      ON q.topic_id      = t.id
-      WHERE
-          cm.class_id  = ${classId}::uuid
-          AND a.class_id = ${classId}::uuid
-          AND qs.status = 'completed'
-      GROUP BY t.id, t.name
-      ORDER BY accuracy_pct ASC;
-    `;
+    const topics = await AnalyticsRepository.getTeacherClassTopics(classId);
     return topics;
   }
 
   static async getTeacherClassStudents(teacherId: string, classId: string) {
-    const students = await prisma.$queryRaw`
-      WITH BestScores AS (
-        SELECT 
-          qs.student_id,
-          qs.assignment_id,
-          MAX(qs.score) as best_score,
-          COUNT(qs.id) as attempts,
-          MAX(qs.finished_at) as last_active,
-          SUM(qs.correct_q) as total_correct,
-          SUM(qs.total_q) as total_questions
-        FROM quiz_sessions qs
-        JOIN assignments a ON a.id = qs.assignment_id
-        WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed'
-        GROUP BY qs.student_id, qs.assignment_id
-      )
-      SELECT 
-        u.id as student_id,
-        u.full_name as name,
-        COALESCE(SUM(bs.best_score), 0)::int as score,
-        COALESCE(SUM(bs.attempts), 0)::int as sessions_count,
-        ROUND(COALESCE(SUM(bs.total_correct) * 100.0 / NULLIF(SUM(bs.total_questions), 0), 0), 2) as accuracy,
-        MAX(bs.last_active) as last_active_at
-      FROM class_members cm
-      JOIN users u ON cm.student_id = u.id
-      LEFT JOIN BestScores bs ON bs.student_id = cm.student_id
-      WHERE cm.class_id = ${classId}::uuid AND cm.is_active = true
-      GROUP BY u.id, u.full_name
-      ORDER BY score DESC
-    `;
+    const students = await AnalyticsRepository.getTeacherClassStudents(classId);
     return students;
   }
 
   static async getTeacherClassTopicStudents(teacherId: string, classId: string, topicId: string) {
     const isGeneral = topicId.toLowerCase() === 'general' || topicId.toLowerCase() === 'null';
-    const students = await prisma.$queryRaw`
-      SELECT 
-        u.id as student_id,
-        u.full_name as name,
-        COALESCE(SUM(qs.score), 0)::int as score,
-        ROUND(SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(sa.id), 0), 2) as accuracy_pct
-      FROM class_members cm
-      JOIN users u ON cm.student_id = u.id
-      JOIN quiz_sessions qs ON qs.student_id = cm.student_id
-      JOIN assignments a ON a.id = qs.assignment_id
-      JOIN session_answers sa ON sa.session_id = qs.id
-      JOIN questions q ON q.id = sa.question_id
-      WHERE cm.class_id = ${classId}::uuid 
-        AND a.class_id = ${classId}::uuid
-        AND qs.status = 'completed'
-        AND (
-          (${isGeneral} AND q.topic_id IS NULL)
-          OR (NOT ${isGeneral} AND q.topic_id = ${topicId}::uuid)
-        )
-      GROUP BY u.id, u.full_name
-      ORDER BY accuracy_pct ASC, score DESC
-    `;
+    const students = await AnalyticsRepository.getTeacherClassTopicStudents(classId, topicId, isGeneral);
     return students;
   }
 
@@ -285,30 +168,7 @@ export class AnalyticsService {
 
   // --- PARENT DASHBOARD ---
   static async getParentChildren(parentId: string) {
-    const children = await prisma.$queryRaw`
-      SELECT
-          u.full_name                                  AS student_name,
-          u.id                                         AS student_id,
-          COUNT(DISTINCT qs.id)::int                   AS total_sessions,
-          COUNT(sa.id)::int                            AS total_answers,
-          ROUND(
-              SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)
-              * 100.0 / NULLIF(COUNT(sa.id), 0), 2
-          )                                            AS overall_accuracy,
-          COUNT(DISTINCT CASE
-              WHEN qs.started_at >= NOW() - INTERVAL '7 days'
-              THEN DATE(qs.started_at)
-          END)::int                                    AS active_days_this_week
-      FROM users u
-      JOIN parent_student_links psl ON psl.student_id = u.id
-      JOIN quiz_sessions qs         ON qs.student_id  = u.id
-      JOIN session_answers sa       ON sa.session_id  = qs.id
-      WHERE
-          psl.parent_id = ${parentId}::uuid
-          AND psl.is_active = TRUE
-          AND qs.status = 'completed'
-      GROUP BY u.id, u.full_name;
-    `;
+    const children = await AnalyticsRepository.getParentChildrenStats(parentId);
     return children;
   }
 
