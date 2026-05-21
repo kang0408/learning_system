@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { X, CheckCircle, XCircle, Loader2, ArrowLeft, Lightbulb } from 'lucide-react';
 import api from '../../api/axios';
@@ -38,7 +38,6 @@ export default function QuizPage() {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-  const [fillText, setFillText] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [correctAnswerId, setCorrectAnswerId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -97,6 +96,18 @@ export default function QuizPage() {
     return () => clearInterval(timer);
   }, [timeLeft, submitting, feedback]);
 
+  const currentQuestion = questions[currentIndex];
+
+  const shuffledOptions = useMemo(() => {
+    if (!currentQuestion?.answer_options) return [];
+    // Shuffle only multiple choice questions to prevent position memorization
+    if (currentQuestion.question_type === 'multiple_choice') {
+      return [...currentQuestion.answer_options].sort(() => Math.random() - 0.5);
+    }
+    // Keep true/false in default order (Đúng first, Sai second)
+    return currentQuestion.answer_options;
+  }, [currentQuestion?.id]);
+
   if (loading) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-slate-50">
@@ -108,8 +119,6 @@ export default function QuizPage() {
 
   if (error) return <div className="h-screen flex items-center justify-center text-red-500 p-6 text-center">{error}</div>;
   if (questions.length === 0) return <div className="h-screen flex items-center justify-center text-gray-500">Không có câu hỏi nào cho bài tập này.</div>;
-
-  const currentQuestion = questions[currentIndex];
 
   const handleSelect = async (optId?: string, text?: string) => {
     if (feedback || submitting) return;
@@ -152,7 +161,6 @@ export default function QuizPage() {
       setCurrentIndex(prev => prev + 1);
       setFeedback(null);
       setSelectedOptionId(null);
-      setFillText('');
       setCorrectAnswerId(null);
       startTimeRef.current = Date.now();
     } else {
@@ -214,40 +222,8 @@ export default function QuizPage() {
         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-8 leading-snug">{currentQuestion?.content}</h2>
         
         <div className="space-y-4">
-          {currentQuestion?.question_type === 'fill_blank' ? (
-            <div className="mt-4">
-              <input
-                type="text"
-                value={fillText}
-                onChange={(e) => setFillText(e.target.value)}
-                disabled={!!feedback || submitting}
-                placeholder="Nhập câu trả lời của bạn..."
-                className={`w-full p-4 md:p-5 rounded-xl border-2 font-medium text-lg transition-all focus:outline-none focus:ring-0 ${
-                  feedback === 'correct' 
-                    ? 'border-green-500 bg-green-50 text-green-700' 
-                    : feedback === 'incorrect'
-                      ? 'border-red-500 bg-red-50 text-red-700'
-                      : 'border-slate-200 focus:border-indigo-500 text-slate-800'
-                }`}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && fillText.trim()) {
-                    handleSelect(undefined, fillText);
-                  }
-                }}
-              />
-              {!feedback && !submitting && (
-                <button
-                  onClick={() => handleSelect(undefined, fillText)}
-                  disabled={!fillText.trim()}
-                  className="mt-4 w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold rounded-xl transition-colors"
-                >
-                  Gửi đáp án
-                </button>
-              )}
-            </div>
-          ) : (
-            currentQuestion?.answer_options?.map((opt) => {
-              const isSelected = opt.id === selectedOptionId;
+          {shuffledOptions.map((opt) => {
+            const isSelected = opt.id === selectedOptionId;
               const isCorrect = opt.id === correctAnswerId;
               
               let btnClass = 'border-slate-200 hover:border-indigo-400 hover:bg-indigo-50 text-slate-700 bg-white';
@@ -282,8 +258,7 @@ export default function QuizPage() {
                   {Icon}
                 </button>
               );
-            })
-          )}
+            })}
         </div>
       </div>
 

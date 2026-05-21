@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 
 // Layouts
@@ -35,10 +35,45 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
   return <>{children}</>;
 };
 
+const RootRedirect = () => {
+  const { token, user } = useAuthStore();
+  if (!token) return <Navigate to="/login" replace />;
+  if (user?.role === 'teacher') return <Navigate to="/teacher" replace />;
+  if (user?.role === 'parent') return <Navigate to="/parent" replace />;
+  return <Navigate to="/student" replace />;
+};
+
+const NotFound = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 px-4">
+      <div className="text-center">
+        <h1 className="text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 drop-shadow-sm">404</h1>
+        <p className="mt-4 text-2xl font-bold text-gray-900 tracking-tight sm:text-4xl">Trang không tồn tại</p>
+        <p className="mt-4 text-gray-500 max-w-md mx-auto">Xin lỗi, đường dẫn bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.</p>
+        <div className="mt-8 flex justify-center gap-4">
+          <button 
+            onClick={() => navigate(-1)} 
+            className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-bold rounded-xl shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-all duration-300"
+          >
+            Quay lại
+          </button>
+          <Link 
+            to="/" 
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-xl shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition-all duration-300"
+          >
+            Về trang chủ
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
-  { path: '/', element: <Navigate to="/student" replace /> },
+  { path: '/', element: <RootRedirect /> },
   
   // Student Routes
   { 
@@ -64,7 +99,7 @@ export const router = createBrowserRouter([
     path: '/teacher',
     element: <ProtectedRoute role="teacher"><TeacherLayout /></ProtectedRoute>,
     children: [
-      { index: true, element: <TeacherDashboard /> },
+      { index: true, element: <Navigate to="classes" replace /> },
       { path: 'classes', element: <TeacherDashboard /> },
       { path: 'classes/:id', element: <TeacherClassDetail /> },
       { path: 'classes/:id/members', element: <TeacherClassMembers /> },
@@ -90,5 +125,5 @@ export const router = createBrowserRouter([
   
   // Global Routes
   { path: '/unauthorized', element: <div className="p-8 text-center text-red-600">Unauthorized</div> },
-  { path: '*', element: <Navigate to="/login" replace /> }
+  { path: '*', element: <NotFound /> }
 ]);

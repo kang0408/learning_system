@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  Loader2, ArrowLeft, Trophy, BarChart2, Users, FileText, Plus, 
-  ArrowUpRight, ArrowDownRight, Award, Calendar, CheckCircle2, 
-  AlertCircle, GraduationCap, Percent, BookOpen, X, Clock, ChevronRight
+import {
+  Loader2, ArrowLeft, Trophy, BarChart2, Users, FileText, Plus,
+  ArrowUpRight, ArrowDownRight, Award, Calendar, CheckCircle2,
+  AlertCircle, GraduationCap, Percent, BookOpen, X, Clock, ChevronRight, Edit, Trash2
 } from 'lucide-react';
 import api from '../../api/axios';
 import {
@@ -42,7 +42,7 @@ export default function TeacherClassDetail() {
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Tabs State
   const [activeTab, setActiveTab] = useState<'analytics' | 'students' | 'assignments'>('analytics');
 
@@ -65,21 +65,21 @@ export default function TeacherClassDetail() {
         ]);
         setClassDetails(classRes.data.data);
         setClassStats(statsRes.data.data);
-        
+
         const rawTopics = topicsRes.data.data || [];
         const topics = rawTopics.map((t: any) => ({
           topic_id: t.topic_id,
           topic: t.topic,
           accuracy: Number(t.accuracy_pct || 0)
         }));
-        
+
         const students = studentsRes.data.data || [];
-        
+
         setAnalytics({
           leaderboard: students,
           topic_accuracy: topics
         });
-        
+
         setMembers(membersRes.data.data || []);
         setAssignments(assignRes.data.data || []);
       } catch (err) {
@@ -117,6 +117,40 @@ export default function TeacherClassDetail() {
     });
   };
 
+  const handleDeleteAssignment = async (assignmentId: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bài tập này? Mọi dữ liệu làm bài của học sinh sẽ bị xóa.')) return;
+    try {
+      await api.delete(`/api/assignments/${assignmentId}`);
+      setAssignments(prev => prev.filter(a => a.id !== assignmentId));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Có lỗi xảy ra khi xóa bài tập');
+    }
+  };
+
+  const handleRemoveStudent = async (studentId: string, studentName: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa học sinh ${studentName} khỏi lớp?`)) return;
+    try {
+      await api.delete(`/api/classes/${id}/members/${studentId}`);
+      setAnalytics(prev => prev ? {
+        ...prev,
+        leaderboard: prev.leaderboard.filter(s => s.student_id !== studentId)
+      } : null);
+      setMembers(prev => prev.filter((m: any) => m.student_id !== studentId));
+      if (classStats) {
+        setClassStats((prev: any) => ({
+          ...prev,
+          total_students: Math.max(0, (prev.total_students || 1) - 1),
+          active_students: {
+             ...prev.active_students, 
+             current: Math.max(0, (prev.active_students?.current || 1) - 1) 
+          }
+        }));
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Có lỗi xảy ra khi xóa học sinh');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-[60vh] space-y-4">
@@ -146,15 +180,15 @@ export default function TeacherClassDetail() {
     datasets: [{
       label: 'Tỷ lệ chính xác (%)',
       data: sortedTopics.map(t => t.accuracy),
-      backgroundColor: sortedTopics.map(t => 
-        t.accuracy >= 70 ? 'rgba(16, 185, 129, 0.85)' : 
-        t.accuracy >= 40 ? 'rgba(245, 158, 11, 0.85)' : 
-        'rgba(239, 68, 68, 0.85)'
+      backgroundColor: sortedTopics.map(t =>
+        t.accuracy >= 70 ? 'rgba(16, 185, 129, 0.85)' :
+          t.accuracy >= 40 ? 'rgba(245, 158, 11, 0.85)' :
+            'rgba(239, 68, 68, 0.85)'
       ),
-      borderColor: sortedTopics.map(t => 
-        t.accuracy >= 70 ? 'rgb(16, 185, 129)' : 
-        t.accuracy >= 40 ? 'rgb(245, 158, 11)' : 
-        'rgb(239, 68, 68)'
+      borderColor: sortedTopics.map(t =>
+        t.accuracy >= 70 ? 'rgb(16, 185, 129)' :
+          t.accuracy >= 40 ? 'rgb(245, 158, 11)' :
+            'rgb(239, 68, 68)'
       ),
       borderWidth: 1.5,
       borderRadius: 6,
@@ -202,11 +236,11 @@ export default function TeacherClassDetail() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6">
-      
+
       {/* Header card with rich colors */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition duration-300">
         <div className="flex items-center mb-4 md:mb-0">
-          <Link to="/teacher" className="mr-4 p-2.5 rounded-xl hover:bg-gray-50 border border-gray-100 text-gray-500 hover:text-purple-600 transition shadow-sm">
+          <Link to="/teacher" className="mr-5 p-2 rounded-full hover:bg-purple-50 text-gray-400 hover:text-purple-600 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -217,19 +251,19 @@ export default function TeacherClassDetail() {
               </span>
             </div>
             <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
-              <span>Mã tham gia lớp học:</span> 
+              <span>Mã tham gia lớp học:</span>
               <span className="font-bold text-purple-600 bg-purple-50/50 px-2 py-0.5 rounded border border-purple-100/50 select-all cursor-pointer">
                 {classDetails?.join_code}
               </span>
             </p>
           </div>
         </div>
-        <Link 
+        {/* <Link 
           to={`/teacher/classes/${id}/assignments/new`}
           className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition duration-300 shadow-md shadow-purple-200"
         >
           <Plus className="w-5 h-5 mr-2" /> Giao bài tập mới
-        </Link>
+        </Link> */}
       </div>
 
       {/* Tabs Navigation */}
@@ -238,11 +272,10 @@ export default function TeacherClassDetail() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-semibold text-sm transition-all duration-300 flex-1 md:flex-initial ${
-              activeTab === tab 
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-100' 
+            className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-semibold text-sm transition-all duration-300 flex-1 md:flex-initial ${activeTab === tab
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-100'
                 : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
-            }`}
+              }`}
           >
             {tab === 'analytics' && <BarChart2 className="w-4 h-4" />}
             {tab === 'students' && <GraduationCap className="w-4 h-4" />}
@@ -275,9 +308,8 @@ export default function TeacherClassDetail() {
                 <div className="flex items-baseline gap-2 mt-2">
                   <h3 className="text-3xl font-extrabold text-gray-900">{classStats?.active_students?.current || 0}</h3>
                   {classStats?.active_students && (
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${
-                      classStats.active_students.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                    }`}>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${classStats.active_students.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                      }`}>
                       {classStats.active_students.trend === 'up' ? (
                         <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
                       ) : (
@@ -300,9 +332,8 @@ export default function TeacherClassDetail() {
                 <div className="flex items-baseline gap-2 mt-2">
                   <h3 className="text-3xl font-extrabold text-gray-900">{classStats?.completion_rate?.current || 0}%</h3>
                   {classStats?.completion_rate && (
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${
-                      classStats.completion_rate.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                    }`}>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${classStats.completion_rate.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                      }`}>
                       {classStats.completion_rate.trend === 'up' ? (
                         <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
                       ) : (
@@ -325,9 +356,8 @@ export default function TeacherClassDetail() {
                 <div className="flex items-baseline gap-2 mt-2">
                   <h3 className="text-3xl font-extrabold text-gray-900">{classStats?.average_score?.current || 0} pts</h3>
                   {classStats?.average_score && (
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${
-                      classStats.average_score.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                    }`}>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${classStats.average_score.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                      }`}>
                       {classStats.average_score.trend === 'up' ? (
                         <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" />
                       ) : (
@@ -392,7 +422,7 @@ export default function TeacherClassDetail() {
                     <th className="px-6 py-3.5 text-center">Số lượt làm bài</th>
                     <th className="px-6 py-3.5 text-center">Độ chính xác trung bình</th>
                     <th className="px-6 py-3.5 text-left">Hoạt động cuối cùng</th>
-                    <th className="px-6 py-3.5 text-center">Hành động</th>
+                    <th className="px-6 py-3.5 text-right w-32">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 text-gray-700 font-medium">
@@ -402,11 +432,10 @@ export default function TeacherClassDetail() {
                       <tr key={student.student_id} className="hover:bg-gray-50/80 transition duration-150">
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           {isTop3 ? (
-                            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
-                              index === 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
-                              index === 1 ? 'bg-slate-100 text-slate-700 border border-slate-200' :
-                              'bg-orange-100 text-orange-700 border border-orange-200'
-                            }`}>
+                            <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
+                                index === 1 ? 'bg-slate-100 text-slate-700 border border-slate-200' :
+                                  'bg-orange-100 text-orange-700 border border-orange-200'
+                              }`}>
                               {index + 1}
                             </span>
                           ) : (
@@ -428,24 +457,32 @@ export default function TeacherClassDetail() {
                           {student.sessions_count || 0} lượt
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                            (student.accuracy || 0) >= 75 ? 'bg-green-50 text-green-700 border-green-200' :
-                            (student.accuracy || 0) >= 50 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                            'bg-red-50 text-red-700 border-red-200'
-                          }`}>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${(student.accuracy || 0) >= 75 ? 'bg-green-50 text-green-700 border-green-200' :
+                              (student.accuracy || 0) >= 50 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                'bg-red-50 text-red-700 border-red-200'
+                            }`}>
                             {student.accuracy || 0}%
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
                           {formatDate(student.last_active_at)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <Link 
-                            to={`/teacher/students/${student.student_id}`}
-                            className="inline-flex items-center text-purple-600 hover:text-purple-700 hover:underline font-semibold"
-                          >
-                            Chi tiết <ChevronRight className="w-4 h-4" />
-                          </Link>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              to={`/teacher/classes/${id}/members/${student.student_id}`}
+                              className="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg transition font-semibold text-sm inline-flex items-center border border-purple-100"
+                            >
+                              Chi tiết
+                            </Link>
+                            <button
+                              onClick={() => handleRemoveStudent(student.student_id, student.name)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                              title={`Xóa ${student.name} khỏi lớp`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -470,7 +507,7 @@ export default function TeacherClassDetail() {
               </h2>
               <p className="text-sm text-gray-500 mt-1">Danh sách các bài tập đã giao, theo dõi tỷ lệ nộp bài, điểm số trung bình lớp và hạn chót.</p>
             </div>
-            <Link 
+            <Link
               to={`/teacher/classes/${id}/assignments/new`}
               className="inline-flex items-center px-4 py-2 border border-purple-200 text-purple-700 font-semibold rounded-xl hover:bg-purple-50 transition"
             >
@@ -489,24 +526,17 @@ export default function TeacherClassDetail() {
                     <th className="px-6 py-3.5 text-center">Điểm trung bình lớp</th>
                     <th className="px-6 py-3.5 text-left">Hạn chót</th>
                     <th className="px-6 py-3.5 text-center">Trạng thái</th>
+                    <th className="px-6 py-3.5 text-right w-24">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 text-gray-700 font-medium">
                   {assignments.map(assignment => {
-                    const quizSessions = assignment.quiz_sessions || [];
-                    const uniqueSubmissions = new Set(quizSessions.map((s: any) => s.student_id));
-                    const submittedCount = uniqueSubmissions.size;
-                    const totalStudents = classStats?.total_students || members.length || 1;
-                    const submissionRate = Math.min(100, Math.round((submittedCount / totalStudents) * 100));
-
-                    const completedSessions = quizSessions.filter((s: any) => s.status === 'completed');
-                    const avgScore = completedSessions.length > 0 
-                      ? Math.round(completedSessions.reduce((acc: number, s: any) => acc + s.score, 0) / completedSessions.length)
-                      : 0;
-
+                    const submittedCount = assignment.submitted_count || 0;
+                    const totalStudents = assignment.total_students || classStats?.total_students || members.length || 1;
+                    const submissionRate = assignment.submission_rate || 0;
+                    const avgScore = assignment.avg_score || 0;
+                    const status = assignment.status || 'ongoing';
                     const deadlineDate = assignment.deadline ? new Date(assignment.deadline) : null;
-                    const isOverdue = deadlineDate ? deadlineDate < new Date() : false;
-                    const isCompleted = submissionRate === 100;
 
                     return (
                       <tr key={assignment.id} className="hover:bg-gray-50/80 transition duration-150">
@@ -519,9 +549,8 @@ export default function TeacherClassDetail() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            assignment.mode === 'quiz' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
-                          }`}>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${assignment.mode === 'quiz' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
+                            }`}>
                             {assignment.mode === 'quiz' ? 'Luyện tập' : 'Thi cử'}
                           </span>
                         </td>
@@ -532,10 +561,9 @@ export default function TeacherClassDetail() {
                               <span>{submissionRate}%</span>
                             </div>
                             <div className="w-full bg-gray-100 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-500 ${
-                                  isCompleted ? 'bg-green-500' : 'bg-purple-500'
-                                }`} 
+                              <div
+                                className={`h-2 rounded-full transition-all duration-500 ${status === 'completed' ? 'bg-green-500' : 'bg-purple-500'
+                                  }`}
                                 style={{ width: `${submissionRate}%` }}
                               ></div>
                             </div>
@@ -561,11 +589,11 @@ export default function TeacherClassDetail() {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {isCompleted ? (
+                          {status === 'completed' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 text-xs font-bold rounded-full">
                               <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn thành
                             </span>
-                          ) : isOverdue ? (
+                          ) : status === 'overdue' ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 text-xs font-bold rounded-full">
                               <AlertCircle className="w-3.5 h-3.5" /> Quá hạn
                             </span>
@@ -574,6 +602,24 @@ export default function TeacherClassDetail() {
                               <Clock className="w-3.5 h-3.5" /> Đang diễn ra
                             </span>
                           )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link 
+                              to={`/teacher/classes/${id}/assignments/${assignment.id}/edit`}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                              title="Chỉnh sửa bài tập"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Link>
+                            <button 
+                              onClick={() => handleDeleteAssignment(assignment.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
+                              title="Xóa bài tập"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -598,7 +644,7 @@ export default function TeacherClassDetail() {
                 <h3 className="text-xl font-bold text-gray-900">Chi tiết học sinh - Chủ đề: {selectedTopic.name}</h3>
                 <p className="text-sm text-gray-500 mt-1">Danh sách học sinh học tập chủ đề này, xếp theo tỷ lệ chính xác từ thấp đến cao.</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowTopicModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-full text-gray-500 hover:text-gray-900 transition border border-transparent hover:border-gray-200"
               >
@@ -636,11 +682,10 @@ export default function TeacherClassDetail() {
                             {student.score} pts
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
-                              student.accuracy_pct >= 75 ? 'bg-green-50 text-green-700 border-green-200' :
-                              student.accuracy_pct >= 50 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                              'bg-red-50 text-red-700 border-red-200'
-                            }`}>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${student.accuracy_pct >= 75 ? 'bg-green-50 text-green-700 border-green-200' :
+                                student.accuracy_pct >= 50 ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                  'bg-red-50 text-red-700 border-red-200'
+                              }`}>
                               {student.accuracy_pct}%
                             </span>
                           </td>
@@ -656,7 +701,7 @@ export default function TeacherClassDetail() {
               )}
             </div>
             <div className="p-6 border-t bg-gray-50 flex justify-end">
-              <button 
+              <button
                 onClick={() => setShowTopicModal(false)}
                 className="px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-semibold transition duration-150 shadow-sm"
               >
