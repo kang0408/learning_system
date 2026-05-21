@@ -36,32 +36,37 @@ export default function StudentClassDetail() {
     if (id) fetchDetail();
   }, [id]);
 
-  if (loading) return <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>;
-  if (error) return <div className="text-red-500 p-4">{error}</div>;
-  if (!classData) return <div className="text-gray-500 p-4">Lớp học không tồn tại.</div>;
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>;
+  if (error) return <div className="text-red-500 p-4 font-medium">{error}</div>;
+  if (!classData) return <div className="text-gray-500 py-20 text-center font-medium">Lớp học không tồn tại.</div>;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center bg-white p-6 rounded-xl shadow-sm border">
-        <Link to="/student/classes" className="mr-4 p-2 rounded-full hover:bg-gray-100 text-gray-500">
-          <ArrowLeft className="w-5 h-5" />
+    <div className="max-w-4xl mx-auto space-y-12 py-8 px-4 sm:px-6 animate-in fade-in duration-500">
+      <div className="flex flex-col mb-12">
+        <Link to="/student/classes" className="inline-flex items-center text-gray-500 hover:text-gray-900 font-bold mb-8 text-sm w-fit transition-colors">
+          <ArrowLeft className="w-4 h-4 mr-2" /> Trở về danh sách lớp
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{classData.name}</h1>
-          <p className="text-sm text-gray-500 mt-1">{classData.description}</p>
-          <div className="mt-2 inline-flex items-center text-sm text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full font-medium">
-            Giáo viên: {classData.teacher?.full_name}
+        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight mb-4">{classData.name}</h1>
+        <p className="text-xl text-gray-500 max-w-2xl">{classData.description}</p>
+        
+        <div className="mt-8 flex items-center text-gray-600">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold mr-3">
+            {classData.teacher?.full_name?.charAt(0) || 'G'}
+          </div>
+          <div>
+            <span className="font-bold text-gray-900 block">{classData.teacher?.full_name}</span>
+            <span className="text-sm">Giáo viên phụ trách</span>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-          <BookOpen className="w-6 h-6 mr-2 text-indigo-500" /> Bài tập của lớp ({assignments.length})
+      <div className="space-y-6">
+        <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight border-b border-gray-100 pb-4">
+          Bài tập ({assignments.length})
         </h2>
         
         {assignments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-2 pt-2">
             {assignments.map(assignment => {
               const isOverdue = assignment.deadline ? new Date(assignment.deadline) < new Date() : false;
               const sessions = assignment.quiz_sessions || [];
@@ -74,66 +79,57 @@ export default function StudentClassDetail() {
               return (
                 <div 
                   key={assignment.id} 
-                  className={`flex flex-col bg-white rounded-xl shadow-sm border p-5 transition-all group ${isLocked ? 'opacity-80' : 'hover:border-indigo-400 hover:shadow-md'}`}
+                  className={`group flex items-start gap-4 sm:gap-6 p-4 sm:p-6 -mx-4 sm:-mx-6 rounded-2xl hover:bg-gray-50 transition-all ${isLocked ? 'opacity-70' : ''}`}
                 >
-                  <div className="flex justify-between items-start mb-3">
-                    <h4 className="font-bold text-gray-900 group-hover:text-indigo-700 line-clamp-2">{assignment.title}</h4>
-                    {isOverdue && <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 ml-2" />}
+                  <div className="mt-1 shrink-0">
+                    {bestScore !== null ? (
+                      <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" />
+                    ) : (
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 group-hover:border-blue-400 transition-colors" />
+                    )}
                   </div>
                   
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-grow">{assignment.description || 'Không có mô tả'}</p>
-                  
-                  <div className="flex items-center justify-between text-sm font-medium mt-auto pt-4 border-t border-gray-100">
-                    <div className="flex flex-col gap-1">
-                      {bestScore !== null ? (
-                        <Link to={`/session-result?id=${completedSessions[0].id}`} className="flex items-center hover:underline group-hover:text-green-700">
-                          <CheckCircle className="w-4 h-4 mr-1.5 text-green-500" />
-                          <span className="text-green-600 font-bold">Đã làm: {bestScore.toFixed(0)} điểm (Xem)</span>
-                        </Link>
-                      ) : (
-                        <div className="flex items-center">
-                          <Target className="w-4 h-4 mr-1.5 text-gray-400" />
-                          <span className="text-gray-600">Chưa làm</span>
-                        </div>
-                      )}
-                      {maxAttempts > 0 && (
-                        <span className="text-xs text-gray-500">{attemptsCount} / {maxAttempts} lượt</span>
-                      )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-2">
+                      <h4 className="text-xl font-bold text-gray-900 line-clamp-2">
+                        {assignment.title}
+                        {isOverdue && <span className="ml-3 text-xs text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded-full inline-block align-middle">Quá hạn</span>}
+                      </h4>
+                      <div className="shrink-0 text-sm font-bold text-gray-500">
+                        {assignment.deadline ? new Date(assignment.deadline).toLocaleDateString() : 'Không hạn'}
+                      </div>
                     </div>
                     
-                    <div className="flex items-center">
-                      <Clock className="w-4 h-4 mr-1.5 text-gray-400" />
-                      <span className={isOverdue ? 'text-red-600' : 'text-gray-600'}>
-                        {assignment.deadline 
-                          ? new Date(assignment.deadline).toLocaleDateString()
-                          : 'Không hạn'
-                        }
-                      </span>
+                    <p className="text-gray-500 mt-1 mb-4 line-clamp-2">{assignment.description || 'Không có mô tả chi tiết'}</p>
+                    
+                    <div className="flex flex-wrap items-center gap-4 text-sm font-bold">
+                      {isLocked ? (
+                        <span className="text-gray-400">Đã nộp</span>
+                      ) : (
+                        <Link to={`/quiz?assignment=${assignment.id}`} className="text-blue-600 hover:text-blue-800 transition-colors">
+                          {bestScore !== null ? 'Làm lại →' : 'Bắt đầu làm →'}
+                        </Link>
+                      )}
+                      
+                      {bestScore !== null && (
+                        <Link to={`/session-result?id=${completedSessions[0].id}`} className="text-gray-500 hover:text-gray-900 transition-colors bg-gray-100 px-3 py-1 rounded-lg">
+                          Điểm cao nhất: {bestScore.toFixed(0)} (Xem kết quả)
+                        </Link>
+                      )}
+                      
+                      {maxAttempts > 0 && (
+                        <span className="text-gray-400 ml-auto">{attemptsCount} / {maxAttempts} lượt</span>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="mt-4 flex gap-2">
-                    {isLocked ? (
-                      <button disabled className="w-full py-2 bg-gray-100 text-gray-500 font-bold rounded-lg cursor-not-allowed">
-                        Hết lượt làm bài
-                      </button>
-                    ) : (
-                      <Link 
-                        to={`/quiz?assignment=${assignment.id}`}
-                        className="w-full text-center py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold rounded-lg transition-colors"
-                      >
-                        {bestScore !== null ? 'Làm lại' : 'Bắt đầu làm'}
-                      </Link>
-                    )}
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-xl border border-dashed">
-            <CheckCircle className="w-12 h-12 text-emerald-400 mb-3 mx-auto" />
-            <p className="text-lg font-medium text-gray-700 mb-1">Chưa có bài tập nào!</p>
+          <div className="text-center py-20 text-gray-400">
+            <CheckCircle className="w-16 h-16 text-gray-300 mb-4 mx-auto opacity-50" />
+            <p className="text-xl font-bold text-gray-500 mb-2">Chưa có bài tập nào!</p>
             <p>Giáo viên chưa giao bài tập nào cho lớp này.</p>
           </div>
         )}

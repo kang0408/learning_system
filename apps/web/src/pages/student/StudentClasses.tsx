@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Users, Search, Plus, BookOpen } from 'lucide-react';
+import { Loader2, Users, Search, Plus, BookOpen, CheckCircle } from 'lucide-react';
 import api from '../../api/axios';
 
 interface ClassItem {
@@ -58,83 +58,82 @@ export default function StudentClasses() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-          <BookOpen className="mr-3 text-indigo-600" /> Lớp học của tôi
+    <div className="max-w-4xl mx-auto space-y-12 py-8 px-4 sm:px-6 animate-in fade-in duration-500">
+      <div className="flex justify-between items-end border-b border-gray-100 pb-4">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+          Lớp học của tôi
         </h1>
         <button
           onClick={() => setShowJoinModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-colors"
+          className="inline-flex items-center text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors"
         >
-          <Plus className="w-5 h-5 mr-1" /> Nhập mã lớp
+          <Plus className="w-5 h-5 mr-1" /> Tham gia lớp
         </button>
       </div>
 
       {/* Success Toast / Error at the top level */}
       {successMsg && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center shadow-sm">
+        <div className="bg-green-50 text-green-700 px-4 py-3 rounded-xl font-medium flex items-center">
+          <CheckCircle className="w-5 h-5 mr-2" />
           {successMsg}
         </div>
       )}
 
       {/* Class List */}
-      <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-        <div className="p-4 border-b bg-gray-50 flex items-center">
-          <Users className="w-5 h-5 text-gray-500 mr-2" />
-          <h3 className="font-medium text-gray-700">Enrolled Classes</h3>
-        </div>
-
+      <div>
         {loading ? (
-          <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>
+          <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /></div>
         ) : classes.length > 0 ? (
-          <ul className="divide-y divide-gray-200">
+          <div className="space-y-2">
             {classes.map((cls) => (
-              <Link key={cls.id} to={`/student/classes/${cls.class_id}`} className="block p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
+              <Link key={cls.id} to={`/student/classes/${cls.class_id}`} className="block group p-4 sm:p-6 -mx-4 sm:-mx-6 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h4 className="text-lg font-medium text-indigo-600">{cls.class?.name || cls.name}</h4>
-                    <p className="text-sm text-gray-500 mt-1">{cls.class?.description || cls.description}</p>
+                    <h4 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{cls.class?.name || cls.name}</h4>
+                    <p className="text-gray-500 mt-1 line-clamp-1">{cls.class?.description || cls.description}</p>
                   </div>
-                  <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                    Giáo viên: <span className="font-medium text-gray-900">{cls.class?.teacher?.full_name || cls.teacher_name}</span>
+                  <div className="shrink-0 flex items-center text-sm font-medium text-gray-500">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mr-2">
+                      {(cls.class?.teacher?.full_name || cls.teacher_name || 'G').charAt(0)}
+                    </div>
+                    <span>{cls.class?.teacher?.full_name || cls.teacher_name}</span>
                   </div>
                 </div>
               </Link>
             ))}
-          </ul>
+          </div>
         ) : (
-          <div className="p-12 text-center text-gray-500">
-            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-lg font-medium text-gray-900 mb-1">Chưa tham gia lớp nào</p>
-            <p>Nhấn "Nhập mã lớp" ở góc trên để tham gia một lớp học do giáo viên cung cấp.</p>
+          <div className="py-20 text-center text-gray-400">
+            <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p className="text-xl font-bold text-gray-500 mb-2">Chưa tham gia lớp nào</p>
+            <p>Nhấn "Tham gia lớp" ở góc trên để bắt đầu.</p>
           </div>
         )}
       </div>
 
       {/* Join Class Modal */}
       {showJoinModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Nhập mã lớp</h3>
-            <p className="text-sm text-gray-500 mb-6">Mã lớp gồm 6 ký tự do giáo viên cung cấp. Ví dụ: ENG8A2.</p>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-200">
+            <h3 className="text-2xl font-extrabold text-gray-900 mb-2">Tham gia lớp học</h3>
+            <p className="text-gray-500 mb-8">Nhập mã 6 ký tự do giáo viên cung cấp. Ví dụ: ENG8A2.</p>
 
-            <form onSubmit={handleJoinClass} className="space-y-4">
+            <form onSubmit={handleJoinClass} className="space-y-6">
               <div>
                 <input
                   type="text"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  placeholder="Nhập mã 6 ký tự"
+                  placeholder="MÃ LỚP"
                   maxLength={6}
-                  className="focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 px-4 border uppercase text-center tracking-[0.2em] font-bold text-lg"
+                  className="w-full bg-gray-50 border-0 rounded-2xl py-4 px-6 text-center tracking-[0.3em] font-black text-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none uppercase"
                   autoFocus
                 />
               </div>
 
-              {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+              {error && <p className="text-sm text-red-600 font-medium text-center">{error}</p>}
 
-              <div className="flex justify-end gap-3 mt-8">
+              <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -142,14 +141,14 @@ export default function StudentClasses() {
                     setError('');
                     setJoinCode('');
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="flex-1 py-3 text-gray-600 font-bold rounded-xl hover:bg-gray-100 transition-colors"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={joining || joinCode.trim().length === 0}
-                  className="inline-flex justify-center items-center py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 min-w-[120px]"
+                  className="flex-1 flex justify-center items-center py-3 text-white bg-blue-600 font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
                 >
                   {joining ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Tham gia'}
                 </button>
