@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { ApiError } from '../../lib/ApiError';
 import { UsersRepository } from './users.repository';
+import { sendOTP } from '../../lib/mailer';
 
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
@@ -38,23 +39,7 @@ export class UsersService {
     return user;
   }
 
-  async updatePassword(userId: string, data: any) {
-    const user = await this.usersRepository.findUserById(userId);
-    if (!user) {
-      throw new ApiError(404, 'User not found');
-    }
 
-    const isValid = await bcrypt.compare(data.old_password, user.password_hash);
-    if (!isValid) {
-      throw new ApiError(401, 'Mật khẩu cũ không chính xác');
-    }
-
-    const password_hash = await bcrypt.hash(data.new_password, 10);
-
-    await this.usersRepository.updateUser(userId, { password_hash });
-
-    return { success: true };
-  }
 
   async uploadAvatar(userId: string, avatar_url: string) {
     const user = await this.usersRepository.updateUser(userId, { avatar_url }, {

@@ -10,7 +10,6 @@ export class UsersController extends BaseController {
     super();
     this.getMe = this.getMe.bind(this);
     this.updateMe = this.updateMe.bind(this);
-    this.updatePassword = this.updatePassword.bind(this);
     this.uploadAvatar = this.uploadAvatar.bind(this);
   }
 
@@ -54,17 +53,7 @@ export class UsersController extends BaseController {
     this.handleSuccess(res, user);
   }
 
-  async updatePassword(req: AuthRequest, res: Response) {
-    if (!req.user) throw new ApiError(401, 'Unauthorized');
 
-    const parseResult = updatePasswordSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      throw new ApiError(400, 'Dữ liệu không hợp lệ');
-    }
-
-    await this.usersService.updatePassword(req.user.userId, parseResult.data);
-    this.handleSuccess(res, {});
-  }
 
   async uploadAvatar(req: AuthRequest, res: Response) {
     if (!req.user) throw new ApiError(401, 'Unauthorized');

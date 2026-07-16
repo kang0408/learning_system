@@ -5,6 +5,7 @@ import { useProfileUpdate } from './hooks/useProfileUpdate';
 import { ProfileHeader } from './components/ProfileHeader';
 import { AvatarUpload } from './components/AvatarUpload';
 import { ProfileForm } from './components/ProfileForm';
+import { ChangePasswordForm } from './components/ChangePasswordForm';
 
 export const StudentProfileFeature: React.FC = () => {
   const { user, token, login } = useAuthStore();
@@ -72,6 +73,8 @@ export const StudentProfileFeature: React.FC = () => {
           onChange={handleChange}
         />
       </form>
+
+      <ChangePasswordForm />
     </div>
   );
 };

@@ -10,6 +10,7 @@ import ParentLayout from './layouts/ParentLayout';
 // Pages
 import Register from './pages/auth/Register';
 import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentProfile from './pages/student/StudentProfile';
 import StudentClasses from './pages/student/StudentClasses';
@@ -73,6 +74,7 @@ const NotFound = () => {
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
+  { path: '/forgot-password', element: <ForgotPassword /> },
   { path: '/', element: <RootRedirect /> },
 
   // Student Routes

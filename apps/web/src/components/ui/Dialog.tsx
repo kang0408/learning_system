@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DialogProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface DialogProps {
 
 export function Dialog({ isOpen, onClose, title, description, children }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -52,7 +54,7 @@ export function Dialog({ isOpen, onClose, title, description, children }: Dialog
           </div>
           <button
             onClick={onClose}
-            aria-label="Đóng"
+            aria-label={t('common.ui.close')}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X className="w-5 h-5" />
@@ -72,8 +74,8 @@ export function ConfirmDialog({
   onConfirm,
   title,
   description,
-  confirmText = "Xác nhận",
-  cancelText = "Hủy",
+  confirmText,
+  cancelText,
   isDanger = false,
   isLoading = false,
 }: Omit<DialogProps, 'children'> & {
@@ -83,6 +85,8 @@ export function ConfirmDialog({
   isDanger?: boolean;
   isLoading?: boolean;
 }) {
+  const { t } = useTranslation();
+  
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title={title} description={description}>
       <div className="flex justify-end gap-3 mt-4">
@@ -91,7 +95,7 @@ export function ConfirmDialog({
           disabled={isLoading}
           className="px-4 py-2 font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
         >
-          {cancelText}
+          {cancelText || t('common.ui.cancel')}
         </button>
         <button
           onClick={onConfirm}
@@ -101,7 +105,7 @@ export function ConfirmDialog({
           } disabled:opacity-50`}
         >
           {isLoading && <span className="w-4 h-4 border-2 border-white/30 border-t-transparent animate-spin rounded-full mr-2" />}
-          {confirmText}
+          {confirmText || t('common.ui.confirm')}
         </button>
       </div>
     </Dialog>

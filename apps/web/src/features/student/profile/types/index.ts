@@ -12,3 +12,18 @@ export interface ProfileUpdateResponse {
     message: string;
   };
 }
+
+export interface ChangePasswordPayload {
+  old_password: string;
+  new_password: string;
+  code: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  data?: {
+    message: string;
+  };
+  error?: string;
+  message?: string; // Fallback from axios interceptor
+}

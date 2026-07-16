@@ -17,7 +17,6 @@ router.use(requireAuth);
 
 router.get('/me', asyncWrapper(usersController.getMe));
 router.patch('/me', uploadAvatarMiddleware.single('avatar'), asyncWrapper(usersController.updateMe));
-router.patch('/me/password', asyncWrapper(usersController.updatePassword));
 router.post('/me/avatar', asyncWrapper(usersController.uploadAvatar));
 
 export default router;
