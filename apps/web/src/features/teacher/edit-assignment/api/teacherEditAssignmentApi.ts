@@ -4,7 +4,7 @@ import type { Assignment, Topic, Question, ClassMember, UpdateAssignmentPayload 
 export const teacherEditAssignmentApi = {
   getInitialData: async (classId: string, assignmentId: string) => {
     const [topicsRes, assignRes, membersRes] = await Promise.all([
-      api.get('/api/questions/topics'),
+      api.get('/api/topics'),
       api.get(`/api/assignments/${assignmentId}`),
       api.get(`/api/classes/${classId}/members?limit=1000`)
     ]);
@@ -17,7 +17,7 @@ export const teacherEditAssignmentApi = {
   },
 
   getTopicQuestions: async (topicId: string): Promise<Question[]> => {
-    const res = await api.get(`/api/questions/topics/${topicId}`);
+    const res = await api.get(`/api/topics/${topicId}`);
     return res.data.data.questions || [];
   },
 

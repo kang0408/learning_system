@@ -3,12 +3,12 @@ import type { Topic, Question, UpdateTopicPayload, SaveQuestionPayload } from '.
 
 export const teacherTopicDetailApi = {
   getTopic: async (topicId: string): Promise<Topic> => {
-    const res = await api.get(`/api/questions/topics/${topicId}`);
+    const res = await api.get(`/api/topics/${topicId}`);
     return res.data.data;
   },
 
   getAllTopics: async (): Promise<Topic[]> => {
-    const res = await api.get('/api/questions/topics?limit=1000');
+    const res = await api.get('/api/topics?limit=1000');
     return res.data.data || [];
   },
 
@@ -18,11 +18,11 @@ export const teacherTopicDetailApi = {
   },
 
   updateTopic: async (topicId: string, payload: UpdateTopicPayload): Promise<void> => {
-    await api.put(`/api/questions/topics/${topicId}`, payload);
+    await api.put(`/api/topics/${topicId}`, payload);
   },
 
   deleteTopic: async (topicId: string): Promise<void> => {
-    await api.delete(`/api/questions/topics/${topicId}`);
+    await api.delete(`/api/topics/${topicId}`);
   },
 
   createQuestion: async (payload: SaveQuestionPayload): Promise<void> => {

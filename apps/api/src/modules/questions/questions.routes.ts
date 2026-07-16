@@ -19,12 +19,7 @@ router.post('/', requireAuth, requireRole(['teacher']), asyncWrapper(questionsCo
 router.get('/', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.getQuestions));
 // Note: topics endpoint removed since we use /topics now
 router.post('/import', requireAuth, requireRole(['teacher']), upload.single('file'), asyncWrapper(questionsController.importCSV));
-// Topic routes
-router.post('/topics', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.createTopic));
-router.get('/topics', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.getTopics));
-router.get('/topics/:id', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.getTopicById));
-router.put('/topics/:id', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.updateTopic));
-router.delete('/topics/:id', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.deleteTopic));
+// Topic routes removed (moved to topics module)
 
 // Question routes
 router.get('/:id', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.getQuestionById));

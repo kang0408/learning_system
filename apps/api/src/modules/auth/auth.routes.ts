@@ -15,8 +15,6 @@ const authController = new AuthController(authService);
 router.post('/register', asyncWrapper(authController.register));
 router.post('/login', asyncWrapper(authController.login));
 
-router.get('/me', requireAuth, (req: any, res) => {
-  res.json({ success: true, data: { user: req.user } });
-});
+
 
 export default router;

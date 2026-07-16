@@ -3,12 +3,12 @@ import type { Topic, CreateTopicPayload, CreateQuestionPayload, ImportCsvResult 
 
 export const teacherQuestionBankApi = {
   getTopics: async (searchTerm: string): Promise<Topic[]> => {
-    const res = await api.get(`/api/questions/topics?limit=1000&search=${encodeURIComponent(searchTerm)}`);
+    const res = await api.get(`/api/topics?limit=1000&search=${encodeURIComponent(searchTerm)}`);
     return (res.data.data || []) as Topic[];
   },
 
   createTopic: async (payload: CreateTopicPayload): Promise<void> => {
-    await api.post('/api/questions/topics', payload);
+    await api.post('/api/topics', payload);
   },
 
   createQuestion: async (payload: CreateQuestionPayload): Promise<void> => {
