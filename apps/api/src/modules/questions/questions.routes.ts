@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import { QuestionsController } from './questions.controller';
 import { requireAuth, requireRole } from '../../middlewares/auth.middleware';
+import multer from 'multer';
 
+const upload = multer({ storage: multer.memoryStorage() });
 const router = Router();
 
 // Teacher routes
 router.post('/', requireAuth, requireRole(['teacher']), QuestionsController.createQuestion);
 router.get('/', requireAuth, requireRole(['teacher']), QuestionsController.getQuestions);
 // Note: topics endpoint removed since we use /topics now
-router.post('/import', requireAuth, requireRole(['teacher']), QuestionsController.importCSV);
+router.post('/import', requireAuth, requireRole(['teacher']), upload.single('file'), QuestionsController.importCSV);
 // Topic routes
 router.post('/topics', requireAuth, requireRole(['teacher']), QuestionsController.createTopic);
 router.get('/topics', requireAuth, requireRole(['teacher']), QuestionsController.getTopics);

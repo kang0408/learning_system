@@ -24,7 +24,28 @@ export class UsersController {
     }
 
     try {
-      const user = await UsersService.updateMe(req.user.userId, parseResult.data);
+      const updateData: any = { ...parseResult.data };
+      
+      if (req.file) {
+        updateData.avatar_url = `/public/uploads/avatars/${req.file.filename}`;
+        
+        // Delete old avatar if it exists
+        const currentUser = await UsersService.getMe(req.user.userId);
+        if (currentUser.avatar_url && currentUser.avatar_url.startsWith('/public/uploads/')) {
+          const fs = require('fs');
+          const path = require('path');
+          const oldPath = path.join(process.cwd(), currentUser.avatar_url);
+          if (fs.existsSync(oldPath)) {
+            try {
+              fs.unlinkSync(oldPath);
+            } catch (e) {
+              console.error('Failed to delete old avatar:', e);
+            }
+          }
+        }
+      }
+
+      const user = await UsersService.updateMe(req.user.userId, updateData);
       res.json({ success: true, data: user });
     } catch (err: any) {
       res.status(err.status || 500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: err.message } });

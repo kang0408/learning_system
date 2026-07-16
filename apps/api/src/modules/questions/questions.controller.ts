@@ -38,9 +38,16 @@ export class QuestionsController {
   }
 
   static async importCSV(req: any, res: Response) {
-    // Assuming multer is configured in routes for file upload
-    const result = await QuestionsService.importCSV("mock_data", req.user.userId);
-    res.json({ success: true, data: result });
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+    try {
+      const csvData = req.file.buffer.toString('utf-8');
+      const result = await QuestionsService.importCSV(csvData, req.user.userId);
+      res.json({ success: true, data: result });
+    } catch (e: any) {
+      res.status(500).json({ success: false, message: e.message || 'Error processing CSV' });
+    }
   }
 
   // Topic methods

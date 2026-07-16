@@ -34,7 +34,7 @@ export class SessionsService {
       if (!assignment || !assignment.is_published) throw { status: 404, message: 'Assignment not found or not published' };
 
       // Check attempts
-      if (assignment.max_attempts > 0) {
+      if (assignment.max_attempts > 0 && assignment.mode !== 'adaptive') {
         const attempts = await prisma.quizSession.count({
           where: { student_id: studentId, assignment_id: assignmentId, status: 'completed' }
         });
@@ -130,8 +130,23 @@ export class SessionsService {
       if (!cacheStr) throw { status: 404, message: 'Session expired or not found in cache' };
       const cacheState = JSON.parse(cacheStr);
 
-      const session = await prisma.quizSession.findUnique({ where: { id: sessionId } });
+      const session = await prisma.quizSession.findUnique({ 
+        where: { id: sessionId },
+        include: { assignment: true }
+      });
       if (!session || session.status !== 'in_progress') throw { status: 400, message: 'Session not active' };
+
+      // [Best Practice Security]: Kiểm tra tính hợp lệ của thời gian làm bài (Anti-cheat bypass time limit)
+      if (session.assignment && session.assignment.time_limit) {
+        const elapsedMs = Date.now() - session.started_at.getTime();
+        const limitMs = session.assignment.time_limit * 60 * 1000;
+        // Cho phép trễ 15 giây (grace period) để đền bù mạng lag
+        if (elapsedMs > limitMs + 15000) {
+          // Bắt buộc nộp bài nếu cố tình trả lời khi quá giờ
+          await this.finishSession(studentId, sessionId);
+          throw { status: 403, message: 'Đã hết thời gian làm bài. Hệ thống từ chối nhận thêm câu trả lời.' };
+        }
+      }
 
       // Get question difficulty from cache
       const currentQuestion = cacheState.questions.find((q: any) => q.id === question_id);
@@ -236,6 +251,7 @@ export class SessionsService {
       return {
         is_correct: isCorrect,
         correct_option_id: correctOpt?.id,
+        explanation: currentQuestion?.explanation || null,
         sm2_quality: sm2Result ? sm2Result.q : -1,
         next_review_in_days: sm2Result ? sm2Result.new_interval : (progress ? progress.interval_days : 1),
         next_question: nextQuestion,

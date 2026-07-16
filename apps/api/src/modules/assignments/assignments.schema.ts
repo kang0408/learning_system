@@ -4,7 +4,7 @@ export const createAssignmentSchema = z.object({
   class_id: z.string().uuid(),
   title: z.string().min(1),
   description: z.string().optional(),
-  mode: z.enum(['adaptive', 'fixed']).default('adaptive'),
+  mode: z.enum(['adaptive', 'standard', 'exam']).default('adaptive'),
   deadline: z.string().datetime().optional().nullable(),
   max_attempts: z.number().int().min(0).default(0),
   time_limit: z.number().int().min(0).optional().nullable(),
@@ -16,7 +16,7 @@ export const createAssignmentSchema = z.object({
 export const updateAssignmentSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().optional(),
-  mode: z.enum(['adaptive', 'fixed']).optional(),
+  mode: z.enum(['adaptive', 'standard', 'exam']).optional(),
   deadline: z.string().datetime().optional().nullable(),
   max_attempts: z.number().int().min(0).optional(),
   time_limit: z.number().int().min(0).optional().nullable(),

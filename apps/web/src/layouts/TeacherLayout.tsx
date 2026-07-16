@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { Users, FileText, LogOut, Menu, X, GraduationCap, Sparkles } from 'lucide-react';
+import { Users, FileText, LogOut, Menu, X, GraduationCap, Sparkles, User as UserIcon } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function TeacherLayout() {
@@ -16,19 +16,20 @@ export default function TeacherLayout() {
   const navItems = [
     { to: '/teacher/classes', icon: Users, label: 'Lớp học', end: true },
     { to: '/teacher/questions', icon: FileText, label: 'Ngân hàng câu hỏi' },
+    { to: '/teacher/profile', icon: UserIcon, label: 'Hồ sơ cá nhân' },
   ];
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
       {/* Mobile Menu Button */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-purple-100 flex items-center justify-between px-4 z-50 shadow-sm">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-50 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-1.5 rounded-lg">
+          <div className="bg-slate-900 p-1.5 rounded-lg">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
-          <span className="font-extrabold text-lg bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">SM2 Learn</span>
+          <span className="font-bold tracking-tight text-lg bg-clip-text text-transparent bg-slate-900">SM2 Learn</span>
         </div>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 bg-slate-100 text-slate-900 rounded-lg">
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
@@ -43,33 +44,41 @@ export default function TeacherLayout() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-72 bg-white shadow-xl shadow-purple-900/5 border-r border-gray-100 transform transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        fixed inset-y-0 left-0 z-40 w-72 bg-white shadow-xl shadow-slate-900/5 border-r border-gray-100 transform transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
         md:relative md:translate-x-0 pt-16 md:pt-0 flex flex-col
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Logo Area */}
         <div className="hidden md:flex h-20 items-center px-8 border-b border-gray-50 bg-white">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2 rounded-xl shadow-md shadow-purple-200">
+            <div className="bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-900">
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600">SM2 Learn</span>
+              <span className="font-bold tracking-tight text-2xl tracking-tight bg-clip-text text-transparent bg-slate-900">SM2 Learn</span>
             </div>
           </div>
         </div>
 
         {/* User Info */}
         <div className="p-6">
-          <div className="bg-purple-50/50 rounded-2xl p-4 border border-purple-100/50 flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-sm">
-              {user?.email?.charAt(0).toUpperCase() || 'T'}
-            </div>
+          <div className="bg-slate-100/50 rounded-xl p-4 border border-slate-200/50 flex items-center gap-3 mb-2">
+            {user?.avatar_url ? (
+              <img 
+                src={`http://localhost:5000${user.avatar_url}`} 
+                alt="Avatar" 
+                className="w-10 h-10 flex-shrink-0 rounded-full object-cover shadow-sm border border-slate-200"
+              />
+            ) : (
+              <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold shadow-sm">
+                {(user?.full_name?.charAt(0) || user?.email?.charAt(0) || 'T').toUpperCase()}
+              </div>
+            )}
             <div className="overflow-hidden">
-              <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-0.5 flex items-center gap-1">
+              <p className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-0.5 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" /> Teacher
               </p>
-              <p className="font-semibold text-gray-900 truncate text-sm">{user?.email}</p>
+              <p className="font-semibold text-gray-900 truncate text-sm">{user?.full_name || user?.email}</p>
             </div>
           </div>
         </div>
@@ -88,14 +97,14 @@ export default function TeacherLayout() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group ${isActive
-                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-200 translate-x-1'
-                      : 'text-gray-600 hover:bg-purple-50 hover:text-purple-700'
+                      ? 'bg-slate-900 text-white shadow-sm border border-slate-900 translate-x-1'
+                      : 'text-gray-600 hover:bg-slate-100 hover:text-slate-900'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      <Icon className={`w-5 h-5 mr-3 transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-purple-600'}`} />
+                      <Icon className={`w-5 h-5 mr-3 transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-slate-900'}`} />
                       {item.label}
                     </>
                   )}
@@ -119,7 +128,7 @@ export default function TeacherLayout() {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pt-16 md:pt-0 relative">
-        <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-purple-50 to-transparent -z-10 pointer-events-none" />
+        <div className="absolute top-0 left-0 w-full h-64 bg-slate-50 -z-10 pointer-events-none" />
         <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto min-h-full">
           <Outlet />
         </div>

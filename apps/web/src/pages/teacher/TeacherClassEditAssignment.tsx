@@ -6,7 +6,7 @@ import api from '../../api/axios';
 export default function TeacherClassEditAssignment() {
   const { id, assignmentId } = useParams<{ id: string, assignmentId: string }>();
   const navigate = useNavigate();
-  
+
 
   const [assignForm, setAssignForm] = useState({
     title: '',
@@ -33,9 +33,9 @@ export default function TeacherClassEditAssignment() {
       setExpandedTopics(prev => prev.filter(id => id !== topicId));
       return;
     }
-    
+
     setExpandedTopics(prev => [...prev, topicId]);
-    
+
     if (!topicQuestionsCache[topicId]) {
       setLoadingTopics(prev => ({ ...prev, [topicId]: true }));
       try {
@@ -60,49 +60,49 @@ export default function TeacherClassEditAssignment() {
           api.get(`/api/assignments/${assignmentId}`),
           api.get(`/api/classes/${id}/members?limit=1000`)
         ]);
-        
+
         setAvailableTopics(topicsRes.data.data || []);
         setClassMembers(membersRes.data.data || []);
-        
+
         const currentData = assignRes.data.data;
         const assignedQs = currentData.assignment_questions || [];
-        
+
         const topicCounts: Record<string, number> = {};
         const allQuestionIds: string[] = [];
         const questionIdToTopicId: Record<string, string> = {};
-        
+
         assignedQs.forEach((aq: any) => {
-           allQuestionIds.push(aq.question_id);
-           if (aq.question && aq.question.topic_id) {
-               const tId = aq.question.topic_id;
-               topicCounts[tId] = (topicCounts[tId] || 0) + 1;
-               questionIdToTopicId[aq.question_id] = tId;
-           }
+          allQuestionIds.push(aq.question_id);
+          if (aq.question && aq.question.topic_id) {
+            const tId = aq.question.topic_id;
+            topicCounts[tId] = (topicCounts[tId] || 0) + 1;
+            questionIdToTopicId[aq.question_id] = tId;
+          }
         });
 
         const initialTopicIds: string[] = [];
         const initialQuestionIds: string[] = [];
 
         const topicsData = topicsRes.data.data || [];
-        
+
         topicsData.forEach((topic: any) => {
-            const assignedCount = topicCounts[topic.id] || 0;
-            const totalCount = topic._count?.questions || 0;
-            
-            if (totalCount > 0 && assignedCount === totalCount) {
-                initialTopicIds.push(topic.id);
-            }
+          const assignedCount = topicCounts[topic.id] || 0;
+          const totalCount = topic._count?.questions || 0;
+
+          if (totalCount > 0 && assignedCount === totalCount) {
+            initialTopicIds.push(topic.id);
+          }
         });
 
         allQuestionIds.forEach(qId => {
-            const tId = questionIdToTopicId[qId];
-            if (tId && initialTopicIds.includes(tId)) {
-               // covered by topic
-            } else {
-               initialQuestionIds.push(qId);
-            }
+          const tId = questionIdToTopicId[qId];
+          if (tId && initialTopicIds.includes(tId)) {
+            // covered by topic
+          } else {
+            initialQuestionIds.push(qId);
+          }
         });
-        
+
         setAssignForm({
           title: currentData.title || '',
           description: currentData.description || '',
@@ -127,7 +127,7 @@ export default function TeacherClassEditAssignment() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const payload_topic_ids: string[] = [...assignForm.topic_ids];
     const payload_question_ids: string[] = [...(assignForm.question_ids || [])];
 
@@ -152,7 +152,7 @@ export default function TeacherClassEditAssignment() {
       };
 
       await api.patch(`/api/assignments/${assignmentId}`, payload);
-      navigate(`/teacher/classes/${id}/assignments`);
+      navigate(`/teacher/classes/${id}`);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài tập');
     } finally {
@@ -163,15 +163,15 @@ export default function TeacherClassEditAssignment() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6">
       {/* Header card with rich colors */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition duration-300">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition duration-300">
         <div className="flex items-center mb-4 md:mb-0">
-          <button onClick={() => navigate(-1)} className="mr-5 p-2 rounded-full hover:bg-purple-50 text-gray-400 hover:text-purple-600 transition-colors">
+          <button onClick={() => navigate(-1)} className="mr-5 p-2 rounded-full hover:bg-slate-100 text-gray-400 hover:text-slate-900 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Chỉnh sửa bài tập</h1>
-              <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 tracking-tight">Chỉnh sửa bài tập</h1>
+              <span className="px-2.5 py-1 bg-slate-100 text-slate-900 text-xs font-semibold rounded-full border border-slate-200">
                 Sửa bài
               </span>
             </div>
@@ -180,29 +180,29 @@ export default function TeacherClassEditAssignment() {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
         {loading ? (
-          <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>
+          <div className="flex justify-center py-8"><Loader2 className="w-8 h-8 animate-spin text-slate-700" /></div>
         ) : (
           <form onSubmit={handleUpdate} className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Tiêu đề *</label>
-              <input 
+              <input
                 required
-                type="text" 
+                type="text"
                 value={assignForm.title}
-                onChange={e => setAssignForm({...assignForm, title: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-colors"
+                onChange={e => setAssignForm({ ...assignForm, title: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-colors"
                 placeholder="Nhập tiêu đề bài tập..."
               />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Mô tả</label>
-              <textarea 
+              <textarea
                 value={assignForm.description}
-                onChange={e => setAssignForm({...assignForm, description: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-colors"
+                onChange={e => setAssignForm({ ...assignForm, description: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-colors"
                 placeholder="Mô tả chi tiết bài tập (không bắt buộc)"
                 rows={3}
               />
@@ -211,10 +211,10 @@ export default function TeacherClassEditAssignment() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Chế độ làm bài</label>
-                <select 
+                <select
                   value={assignForm.mode}
-                  onChange={e => setAssignForm({...assignForm, mode: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-colors"
+                  onChange={e => setAssignForm({ ...assignForm, mode: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-colors"
                 >
                   <option value="adaptive">Thích ứng (Adaptive/SM-2)</option>
                   <option value="standard">Tiêu chuẩn (Standard)</option>
@@ -224,12 +224,12 @@ export default function TeacherClassEditAssignment() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Số lần tối đa</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   min="0"
                   value={assignForm.max_attempts}
-                  onChange={e => setAssignForm({...assignForm, max_attempts: parseInt(e.target.value) || 0})}
-                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-colors"
+                  onChange={e => setAssignForm({ ...assignForm, max_attempts: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-colors"
                   placeholder="0 = Không giới hạn"
                 />
                 <p className="text-xs text-gray-500 mt-1.5 font-medium">Nhập 0 để không giới hạn</p>
@@ -237,12 +237,12 @@ export default function TeacherClassEditAssignment() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Giới hạn thời gian (Phút)</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   min="0"
                   value={assignForm.time_limit}
-                  onChange={e => setAssignForm({...assignForm, time_limit: parseInt(e.target.value) || 0})}
-                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-colors"
+                  onChange={e => setAssignForm({ ...assignForm, time_limit: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-colors"
                   placeholder="0 = Không giới hạn"
                 />
                 <p className="text-xs text-gray-500 mt-1.5 font-medium">Nhập 0 để không giới hạn</p>
@@ -252,23 +252,23 @@ export default function TeacherClassEditAssignment() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Hạn chót nộp bài</label>
-                <input 
-                  type="datetime-local" 
+                <input
+                  type="datetime-local"
                   value={assignForm.deadline}
-                  onChange={e => setAssignForm({...assignForm, deadline: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-colors"
+                  onChange={e => setAssignForm({ ...assignForm, deadline: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-colors"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Đối tượng giao bài</label>
-                <select 
+                <select
                   value={assignForm.assignToAll ? 'all' : 'specific'}
                   onChange={e => {
                     const isAll = e.target.value === 'all';
-                    setAssignForm({...assignForm, assignToAll: isAll, student_ids: isAll ? [] : assignForm.student_ids});
+                    setAssignForm({ ...assignForm, assignToAll: isAll, student_ids: isAll ? [] : assignForm.student_ids });
                   }}
-                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 border border-gray-200 bg-gray-50 focus:bg-white rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 focus:outline-none transition-colors"
                 >
                   <option value="all">Tất cả học sinh trong lớp</option>
                   <option value="specific">Chọn học sinh cụ thể</option>
@@ -277,15 +277,15 @@ export default function TeacherClassEditAssignment() {
             </div>
 
             {!assignForm.assignToAll && (
-              <div className="bg-purple-50/50 p-5 rounded-2xl border border-purple-100">
+              <div className="bg-slate-100/50 p-5 rounded-xl border border-slate-200">
                 <label className="block text-sm font-bold text-purple-900 mb-3">Chọn học sinh ({assignForm.student_ids.length}/{classMembers.length})</label>
-                <div className="border border-purple-100 rounded-xl p-3 bg-white max-h-[220px] overflow-y-auto space-y-2 shadow-sm">
+                <div className="border border-slate-200 rounded-xl p-3 bg-white max-h-[220px] overflow-y-auto space-y-2 shadow-sm">
                   {classMembers.length === 0 ? (
                     <p className="text-sm text-gray-500 text-center p-4">Lớp chưa có học sinh nào.</p>
                   ) : (
                     classMembers.map((member: any) => (
-                      <label key={member.student.id} className="flex items-center p-3 bg-white rounded-lg border border-transparent hover:border-purple-200 hover:bg-purple-50 cursor-pointer transition-colors">
-                        <input 
+                      <label key={member.student.id} className="flex items-center p-3 bg-white rounded-lg border border-transparent hover:border-slate-300 hover:bg-slate-100 cursor-pointer transition-colors">
+                        <input
                           type="checkbox"
                           checked={assignForm.student_ids.includes(member.student.id)}
                           onChange={(e) => {
@@ -301,10 +301,10 @@ export default function TeacherClassEditAssignment() {
                               }));
                             }
                           }}
-                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 mr-4 border-gray-300"
+                          className="w-4 h-4 text-slate-900 rounded focus:ring-slate-900 mr-4 border-gray-300"
                         />
                         <div className="flex items-center">
-                          <div className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold mr-3 border border-purple-200">
+                          <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-900 flex items-center justify-center font-bold mr-3 border border-slate-300">
                             {member.student.full_name.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -326,12 +326,12 @@ export default function TeacherClassEditAssignment() {
               </p>
               <div className="space-y-3 border border-gray-200 rounded-xl p-4 bg-gray-50 max-h-[500px] overflow-y-auto">
                 {availableTopics.map(topic => (
-                  <div key={topic.id} className="border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm transition hover:border-purple-200 hover:shadow-md">
-                    <div className="flex items-center p-3 hover:bg-purple-50 transition-colors">
+                  <div key={topic.id} className="border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm transition hover:border-slate-300 hover:shadow-md">
+                    <div className="flex items-center p-3 hover:bg-slate-100 transition-colors">
                       <div className="mr-3" onClick={(e) => e.stopPropagation()}>
-                        <input 
-                          type="checkbox" 
-                          className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900"
                           checked={assignForm.topic_ids.includes(topic.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
@@ -343,15 +343,15 @@ export default function TeacherClassEditAssignment() {
                                 return { ...prev, topic_ids: newTopicIds, question_ids: newQIds };
                               });
                             } else {
-                              setAssignForm(prev => ({ 
-                                ...prev, 
-                                topic_ids: prev.topic_ids.filter(tid => tid !== topic.id) 
+                              setAssignForm(prev => ({
+                                ...prev,
+                                topic_ids: prev.topic_ids.filter(tid => tid !== topic.id)
                               }));
                             }
                           }}
                         />
                       </div>
-                      <div 
+                      <div
                         className="flex-1 cursor-pointer flex justify-between items-center"
                         onClick={() => toggleTopicExpand(topic.id)}
                       >
@@ -360,33 +360,33 @@ export default function TeacherClassEditAssignment() {
                           <div className="text-xs text-gray-500 mt-0.5">{topic._count?.questions || 0} câu hỏi</div>
                         </div>
                         <div className="text-gray-400">
-                          {expandedTopics.includes(topic.id) ? <ChevronUp className="w-5 h-5"/> : <ChevronDown className="w-5 h-5"/>}
+                          {expandedTopics.includes(topic.id) ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                         </div>
                       </div>
                     </div>
-                    
+
                     {expandedTopics.includes(topic.id) && (
                       <div className="border-t bg-gray-50 p-3 space-y-3">
                         {loadingTopics[topic.id] ? (
-                          <div className="flex items-center text-sm text-gray-500"><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Đang tải...</div>
+                          <div className="flex items-center text-sm text-gray-500"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Đang tải...</div>
                         ) : topicQuestionsCache[topic.id]?.map(q => {
                           const isTopicChecked = assignForm.topic_ids.includes(topic.id);
                           const isIndividuallyChecked = assignForm.question_ids?.includes(q.id);
-                          
+
                           const isChecked = isTopicChecked || isIndividuallyChecked;
 
                           return (
                             <label key={q.id} className="flex items-start cursor-pointer text-sm">
-                              <input 
+                              <input
                                 type="checkbox"
-                                className="mt-1 mr-2 w-3.5 h-3.5 rounded text-purple-600 focus:ring-purple-500"
+                                className="mt-1 mr-2 w-3.5 h-3.5 rounded text-slate-900 focus:ring-slate-900"
                                 checked={isChecked}
                                 onChange={(e) => {
                                   const checked = e.target.checked;
                                   setAssignForm(prev => {
                                     let newTopicIds = [...prev.topic_ids];
                                     let newQIds = [...(prev.question_ids || [])];
-                                    
+
                                     const allTopicQIds = topicQuestionsCache[topic.id]?.map(tq => tq.id) || [];
 
                                     if (isTopicChecked) {
@@ -403,8 +403,8 @@ export default function TeacherClassEditAssignment() {
                                         // Check if now all questions are selected
                                         const allChecked = allTopicQIds.length > 0 && allTopicQIds.every(id => newQIds.includes(id));
                                         if (allChecked) {
-                                           newTopicIds.push(topic.id);
-                                           newQIds = newQIds.filter(id => !allTopicQIds.includes(id));
+                                          newTopicIds.push(topic.id);
+                                          newQIds = newQIds.filter(id => !allTopicQIds.includes(id));
                                         }
                                       } else {
                                         newQIds = newQIds.filter(id => id !== q.id);
@@ -422,9 +422,8 @@ export default function TeacherClassEditAssignment() {
                               <div className="flex-1 mt-0.5">
                                 <span className="text-gray-800 block mb-1">{q.content}</span>
                                 <div className="flex flex-wrap gap-2 text-[11px]">
-                                  <span className={`px-2 py-0.5 rounded border ${
-                                    q.question_type === 'multiple_choice' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-pink-50 text-pink-700 border-pink-200'
-                                  }`}>
+                                  <span className={`px-2 py-0.5 rounded border ${q.question_type === 'multiple_choice' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-pink-50 text-pink-700 border-pink-200'
+                                    }`}>
                                     Loại: <span className="font-medium">{q.question_type === 'multiple_choice' ? 'Trắc nghiệm' : 'Đúng/Sai'}</span>
                                   </span>
                                   {topic.name && (
@@ -460,17 +459,17 @@ export default function TeacherClassEditAssignment() {
             </div>
 
             <div className="flex justify-end pt-6 border-t border-gray-100">
-              <button 
+              <button
                 type="button"
                 onClick={() => navigate(-1)}
                 className="px-6 py-2.5 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-semibold transition mr-3"
               >
                 Hủy
               </button>
-              <button 
+              <button
                 type="submit"
                 disabled={submitting}
-                className="px-8 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:from-purple-700 hover:to-indigo-700 transition duration-300 disabled:opacity-50 flex items-center shadow-md font-bold"
+                className="px-8 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition duration-300 disabled:opacity-50 flex items-center shadow-md font-bold"
               >
                 {submitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
                 Lưu thay đổi

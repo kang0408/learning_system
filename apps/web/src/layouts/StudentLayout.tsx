@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { Home, BookOpen, Brain, LogOut, Menu, X } from 'lucide-react';
+import { Home, BookOpen, Brain, LogOut, Menu, X, User } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 export default function StudentLayout() {
@@ -18,57 +18,48 @@ export default function StudentLayout() {
     { to: '/student', icon: Home, label: 'Dashboard', end: true },
     { to: '/student/classes', icon: BookOpen, label: 'My Classes' },
     { to: '/quiz', icon: Brain, label: 'Practice' },
+    { to: '/student/profile', icon: User, label: 'Profile' },
   ];
 
   const isImmersiveMode = location.pathname.includes('/quiz') || location.pathname.includes('/session-result');
 
   if (isImmersiveMode) {
     return (
-      <div className="min-h-screen bg-white">
-        <button 
-          onClick={() => navigate('/student')}
-          className="absolute top-4 left-4 p-2 rounded-full hover:bg-gray-100 transition-colors z-50 text-gray-500 hover:text-gray-900"
-        >
-          <X className="w-6 h-6" />
-        </button>
+      <div className="min-h-screen bg-[#FDFBF7] font-sans text-zinc-900">
         <Outlet />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sticky Topbar */}
-      <header className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <span className="font-bold text-xl text-blue-600 tracking-tight">SM2 Learn</span>
+    <div className="min-h-screen bg-[#FDFBF7] font-sans text-zinc-900 selection:bg-indigo-600 selection:text-white">
+      {/* Brutalist / Minimal Header */}
+      <header className="sticky top-0 z-40 w-full bg-[#FDFBF7] border-b-2 border-zinc-900">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <span className="font-black text-2xl tracking-tighter uppercase">SM2 <span className="text-indigo-600">Learn.</span></span>
           <button 
             onClick={() => setIsMenuOpen(true)}
-            className="p-2 -mr-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-2 font-bold uppercase tracking-widest text-sm hover:text-indigo-600 transition-colors"
           >
-            <Menu className="w-6 h-6 text-gray-700" />
+            Menu <Menu className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      {/* Fullscreen Menu Overlay */}
+      {/* Fullscreen Menu Overlay - High Impact Brand Color */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col">
-          <div className="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between border-b border-gray-100">
-            <span className="font-bold text-xl text-blue-600 tracking-tight">SM2 Learn</span>
+        <div className="fixed inset-0 z-50 bg-indigo-600 text-white flex flex-col animate-in fade-in duration-300">
+          <div className="px-6 h-20 flex items-center justify-between border-b border-indigo-500">
+            <span className="font-black text-2xl tracking-tighter uppercase">SM2 Learn.</span>
             <button 
               onClick={() => setIsMenuOpen(false)}
-              className="p-2 -mr-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 font-bold uppercase tracking-widest text-sm hover:text-indigo-200 transition-colors"
             >
-              <X className="w-6 h-6 text-gray-700" />
+              Close <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-center space-y-8">
-            <div className="text-center mb-8">
-              <p className="text-sm text-gray-500 mb-1">Signed in as</p>
-              <p className="font-medium text-lg text-gray-900">{user?.email}</p>
-            </div>
-            <nav className="flex flex-col space-y-4 w-full max-w-sm">
+          <div className="flex-1 overflow-y-auto px-6 py-12 flex flex-col justify-between max-w-7xl mx-auto w-full">
+            <nav className="flex flex-col gap-6">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -78,35 +69,38 @@ export default function StudentLayout() {
                     end={item.end}
                     onClick={() => setIsMenuOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center px-6 py-4 text-lg font-medium rounded-2xl transition-all ${
+                      `group flex items-center gap-6 text-4xl sm:text-6xl font-black tracking-tighter transition-all ${
                         isActive
-                          ? 'bg-blue-50 text-blue-700 scale-105'
-                          : 'text-gray-700 hover:bg-gray-50 hover:scale-105'
+                          ? 'text-white translate-x-4'
+                          : 'text-indigo-200 hover:text-white hover:translate-x-2'
                       }`
                     }
                   >
-                    <Icon className="w-6 h-6 mr-4" />
+                    <Icon className={`w-8 h-8 sm:w-12 sm:h-12 ${item.to === location.pathname ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'} transition-opacity`} />
                     {item.label}
                   </NavLink>
                 );
               })}
+            </nav>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-8 border-t border-indigo-500 pt-8 mt-12">
+              <div>
+                <p className="text-indigo-200 font-bold uppercase tracking-widest text-xs mb-2">Current User</p>
+                <p className="font-medium text-xl">{user?.email}</p>
+              </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center px-6 py-4 text-lg font-medium text-gray-700 rounded-2xl hover:bg-red-50 hover:text-red-700 transition-all hover:scale-105"
+                className="flex items-center gap-3 font-bold uppercase tracking-widest text-sm text-indigo-200 hover:text-white transition-colors"
               >
-                <LogOut className="w-6 h-6 mr-4" />
-                Logout
+                Logout <LogOut className="w-5 h-5" />
               </button>
-            </nav>
+            </div>
           </div>
         </div>
       )}
 
       {/* Main Content */}
-      <main>
-        <div className="pb-12 pt-6">
-          <Outlet />
-        </div>
+      <main className="max-w-7xl mx-auto w-full px-6 py-12">
+        <Outlet />
       </main>
     </div>
   );

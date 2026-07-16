@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Calendar, Clock, Trophy, Loader2, ArrowRight, Flame, Target, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import api from '../../api/axios';
 
 interface Analytics {
@@ -9,6 +9,13 @@ interface Analytics {
   overall_accuracy: number;
   current_streak_days: number;
   weekly_activity: { date: string; sessions: number }[];
+  sm2_summary?: {
+    total_questions: number;
+    new: { count: number; pct: number };
+    learning: { count: number; pct: number; at_risk: number; in_progress: number };
+    mastered: { count: number; pct: number };
+    due_today: number;
+  };
 }
 
 interface Assignment {
@@ -22,7 +29,7 @@ export default function StudentDashboard() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [weakTopics, setWeakTopics] = useState<any[]>([]);
-  const [calendarData, setCalendarData] = useState<any[]>([]);
+  const [, setCalendarData] = useState<any[]>([]);
   const [dailySchedule, setDailySchedule] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,13 +47,10 @@ export default function StudentDashboard() {
 
         setAnalytics(analyticsRes.data.data || analyticsRes.data);
         setAssignments(assignmentsRes.data.data || assignmentsRes.data);
-
         const weakData = weakTopicsRes.data.data || weakTopicsRes.data;
         setWeakTopics(weakData.weak_topics || []);
-
         const calData = calendarRes.data.data || calendarRes.data;
         setCalendarData(calData.calendar || []);
-
         setDailySchedule(scheduleRes.data.data || []);
       } catch (err) {
         setError('Failed to load dashboard data');
@@ -59,174 +63,210 @@ export default function StudentDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-64 space-y-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-        <p className="text-gray-500 animate-pulse">Đang tải lộ trình học...</p>
+      <div className="h-64 flex flex-col justify-center items-start">
+        <div className="text-4xl font-black tracking-tighter uppercase animate-pulse text-indigo-600">Loading...</div>
       </div>
     );
   }
 
-  if (error) return <div className="text-red-500 p-4">{error}</div>;
+  if (error) return <div className="text-red-600 font-bold border-2 border-red-600 p-4">{error}</div>;
 
-  const dueToday = analytics?.questions_due_today || 0;
-
-  // Create 7-day dot calendar
-  const today = new Date();
-  const last7Days = Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() - (6 - i));
-    return d.toISOString().split('T')[0];
-  });
-
-  const activityMap = new Map(analytics?.weekly_activity?.map(a => [a.date, a.sessions]) || []);
+  const dueToday = analytics?.sm2_summary?.due_today ?? analytics?.questions_due_today ?? 0;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-16 animate-in fade-in duration-500">
+    <div className="space-y-24 animate-in fade-in duration-700">
       
-      {/* 1. Hero / Greeting */}
-      <section className="pt-8 sm:pt-12">
-        <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight mb-6">
-          Hôm nay học gì?
+      {/* Hero / Greeting - Editorial Style */}
+      <section className="border-b-4 border-zinc-900 pb-12">
+        <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.9] mb-8">
+          Today's <br /> <span className="text-indigo-600">Agenda.</span>
         </h1>
-        <div className="text-xl sm:text-2xl text-gray-500 font-medium">
+        <div className="text-2xl md:text-4xl font-medium tracking-tight max-w-3xl">
           {dueToday > 0 ? (
-            <p>Bạn có <span className="text-blue-600 font-bold">{dueToday} câu hỏi</span> cần ôn tập. Hãy hoàn thành để duy trì chuỗi học tập!</p>
+            <p>You have <span className="font-black bg-indigo-600 text-white px-2 py-1">{dueToday} reviews</span> pending today. Consistency builds mastery.</p>
           ) : (
-            <p>Tuyệt vời! Bạn đã hoàn thành mục tiêu ôn tập hôm nay.</p>
+            <p>All clear. <span className="text-zinc-500">You've completed your daily goals.</span></p>
           )}
         </div>
       </section>
 
-      {/* 2. SM-2 Schedule & Assignments Feed */}
-      <section className="space-y-6">
-        <div className="flex justify-between items-baseline border-b border-gray-100 pb-4">
-          <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Đường dẫn học tập</h2>
-          <Link to="/student/classes" className="text-blue-600 text-sm font-bold hover:underline flex items-center">
-            Tất cả lớp <ArrowRight className="w-4 h-4 ml-1" />
-          </Link>
-        </div>
+      {/* Grid Layout breaking symmetry */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        
+        {/* Left Column: Tasks */}
+        <section className="lg:col-span-7 space-y-12">
+          <div className="flex justify-between items-end border-b-2 border-zinc-900 pb-2">
+            <h2 className="text-3xl font-black tracking-tighter uppercase">Action Items</h2>
+            <Link to="/student/classes" className="font-bold text-sm uppercase tracking-widest text-indigo-600 hover:underline flex items-center">
+              All Classes <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </div>
 
-        <div className="space-y-2">
-          {/* Daily Schedule (SM-2) */}
-          {dailySchedule.map((cls, idx) => (
-            <div key={`sm2-${idx}`} className="group p-4 -mx-4 rounded-2xl hover:bg-white hover:shadow-sm transition-all cursor-default border border-transparent hover:border-gray-100">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xl font-bold text-gray-900">{cls.class_name} <span className="text-gray-400 font-medium text-base ml-2">Ôn tập</span></h3>
-                <span className="text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-sm font-bold">{cls.total_due} câu</span>
-              </div>
-              <div className="space-y-1 pl-4 border-l-2 border-gray-200 mt-2">
-                {cls.assignments.map((ass: any) => (
-                  <div key={ass.assignment_id} className="flex justify-between items-center group/item hover:translate-x-1 transition-transform py-2">
-                    <span className="text-gray-700 text-lg">{ass.title}</span>
+          <div className="space-y-6">
+            {/* Daily Schedule (SM-2) */}
+            {dailySchedule.map((cls, idx) => (
+              <div key={`sm2-${idx}`} className="border-2 border-zinc-900 p-6 hover:bg-indigo-600 hover:border-indigo-600 hover:text-white transition-colors group">
+                <div className="flex justify-between items-start mb-6">
+                  <h4 className="text-2xl font-black tracking-tighter uppercase">{cls.class_name}</h4>
+                  <span className="font-bold text-lg border-2 border-current px-3 py-1">{cls.total_due} DUE</span>
+                </div>
+                <div className="space-y-4">
+                  {cls.assignments.map((ass: any) => (
                     <Link
+                      key={ass.assignment_id}
                       to={ass.assignment_id !== 'general' ? `/quiz?assignment=${ass.assignment_id}` : '#'}
-                      className="text-sm font-bold text-blue-600 hover:text-blue-800 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center"
+                      className="flex justify-between items-center group/item border-t border-current pt-4 font-medium text-lg hover:italic"
                     >
-                      Bắt đầu <ArrowRight className="w-4 h-4 ml-1" />
+                      <span>{ass.title}</span>
+                      <ArrowUpRight className="w-6 h-6 opacity-0 group-hover/item:opacity-100 transition-opacity" />
                     </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Assignments */}
+            {(() => {
+              const pendingAssignments = assignments.filter(a => {
+                for (const cls of dailySchedule) {
+                  if (cls.assignments.some((ass: any) => ass.assignment_id === a.id)) return false;
+                }
+                return true;
+              });
+
+              if (pendingAssignments.length === 0 && dailySchedule.length === 0) {
+                return (
+                  <div className="p-12 border-2 border-dashed border-zinc-300 text-center font-bold text-zinc-400 uppercase tracking-widest text-xl">
+                    No pending tasks
+                  </div>
+                );
+              }
+
+              return pendingAssignments.map(assignment => {
+                const isOverdue = assignment.deadline ? new Date(assignment.deadline) < new Date() : false;
+                const sessions = (assignment as any).quiz_sessions || [];
+                const completedSessions = sessions.filter((s: any) => s.status === 'completed');
+                const attemptsCount = completedSessions.length;
+                const maxAttempts = (assignment as any).max_attempts || 0;
+                const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
+
+                return (
+                  <div key={`ass-${assignment.id}`} className={`border-2 border-zinc-900 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 transition-all ${isLocked ? 'opacity-50 bg-zinc-100' : 'hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#4f46e5] hover:border-indigo-600 bg-white'}`}>
+                    <div>
+                      <h4 className="text-2xl font-black tracking-tighter uppercase flex items-center gap-3">
+                        {assignment.title}
+                        {isOverdue && <span className="bg-red-600 text-white text-xs px-2 py-1 tracking-widest">OVERDUE</span>}
+                      </h4>
+                      <p className="font-medium text-zinc-500 mt-2">
+                        {assignment.deadline ? `DEADLINE: ${new Date(assignment.deadline).toLocaleDateString()}` : 'NO DEADLINE'}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                      {isLocked ? (
+                        <span className="font-bold border-2 border-zinc-900 px-4 py-2 w-full md:w-auto text-center">SUBMITTED</span>
+                      ) : (
+                        <Link
+                          to={`/quiz?assignment=${assignment.id}`}
+                          className="font-bold bg-zinc-900 text-white border-2 border-zinc-900 px-6 py-2 w-full md:w-auto text-center hover:bg-indigo-600 hover:border-indigo-600 transition-colors uppercase tracking-widest"
+                        >
+                          {attemptsCount > 0 ? 'Retry' : 'Start'}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </section>
+
+        {/* Right Column: Stats & Weaknesses */}
+        <section className="lg:col-span-5 space-y-12">
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="border-2 border-zinc-900 p-6 flex flex-col justify-between aspect-square bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0_0_rgba(24,24,27,1)] transition-transform">
+              <p className="font-bold uppercase tracking-widest text-sm text-zinc-500">Streak</p>
+              <p className="text-6xl font-black tracking-tighter text-indigo-600">{analytics?.current_streak_days || 0}</p>
+            </div>
+            <div className="border-2 border-indigo-600 p-6 flex flex-col justify-between aspect-square bg-indigo-600 text-white hover:-translate-y-1 hover:shadow-[4px_4px_0_0_rgba(24,24,27,1)] transition-transform">
+              <p className="font-bold uppercase tracking-widest text-sm text-indigo-200">Accuracy</p>
+              <p className="text-6xl font-black tracking-tighter">{Math.round(analytics?.overall_accuracy || 0)}%</p>
+            </div>
+            <div className="border-2 border-zinc-900 p-6 flex flex-col justify-between aspect-[2/1] col-span-2 bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#4f46e5] transition-transform">
+              <p className="font-bold uppercase tracking-widest text-sm text-zinc-500">Total Answered</p>
+              <p className="text-8xl md:text-9xl font-black tracking-tighter leading-none">{analytics?.total_questions_answered || 0}</p>
+            </div>
+            
+            {/* Memory Engine Stats */}
+            {analytics?.sm2_summary && (
+              <div className="border-2 border-zinc-900 p-6 flex flex-col gap-4 bg-white col-span-2 hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#4f46e5] transition-transform">
+                <h3 className="font-black uppercase tracking-tighter text-2xl border-b-2 border-zinc-900 pb-2">Memory Engine</h3>
+                
+                <div className="grid grid-cols-3 gap-2 text-center mt-2">
+                  <div className="border-r-2 border-zinc-900 pr-2 flex flex-col items-center">
+                    <span className="font-bold uppercase tracking-widest text-xs text-zinc-500">New</span>
+                    <span className="text-3xl font-black tracking-tighter">{analytics.sm2_summary.new.count}</span>
+                  </div>
+                  <div className="border-r-2 border-zinc-900 px-2 flex flex-col items-center">
+                    <span className="font-bold uppercase tracking-widest text-xs text-zinc-500">Learning</span>
+                    <span className="text-3xl font-black tracking-tighter">{analytics.sm2_summary.learning.count}</span>
+                  </div>
+                  <div className="pl-2 flex flex-col items-center">
+                    <span className="font-bold uppercase tracking-widest text-xs text-zinc-500">Mastered</span>
+                    <span className="text-3xl font-black tracking-tighter text-indigo-600">{analytics.sm2_summary.mastered.count}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 text-sm font-bold uppercase tracking-widest mt-4">
+                  {analytics.sm2_summary.learning.at_risk > 0 && (
+                    <span className="bg-red-600 text-white px-2 py-1 flex-1 text-center border-2 border-red-600">
+                      {analytics.sm2_summary.learning.at_risk} AT RISK
+                    </span>
+                  )}
+                  {analytics.sm2_summary.learning.in_progress > 0 && (
+                    <span className="bg-indigo-100 text-indigo-800 px-2 py-1 flex-1 text-center border-2 border-indigo-600">
+                      {analytics.sm2_summary.learning.in_progress} IN PROGRESS
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {weakTopics && weakTopics.length > 0 && (
+            <div>
+              <h3 className="text-2xl font-black tracking-tighter uppercase mb-6 border-b-2 border-zinc-900 pb-2">Focus Areas</h3>
+              <div className="space-y-4">
+                {weakTopics.slice(0, 5).map((topic, i) => (
+                  <div key={i} className="flex flex-col border-2 border-zinc-900 p-4 bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#4f46e5] transition-transform">
+                    <div className="flex justify-between items-start border-b-2 border-zinc-200 pb-2 mb-2">
+                      <span className="font-black text-xl tracking-tighter uppercase">{topic.topic}</span>
+                      <span className={`font-bold px-2 py-1 text-xs tracking-widest uppercase text-white ${
+                        topic.trend === 'improving' ? 'bg-indigo-600' : 
+                        topic.trend === 'declining' ? 'bg-red-600' : 'bg-zinc-500'
+                      }`}>
+                        {topic.trend}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-end text-sm font-bold uppercase tracking-widest">
+                      <div className="flex flex-col sm:flex-row gap-1 sm:gap-4">
+                        <span className="text-red-600">{topic.weak_questions} HARD Qs</span>
+                        <span className="text-amber-600">{topic.overdue_questions} OVERDUE</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="block text-zinc-500 text-[10px]">MEMORY SCORE</span>
+                        <span className="text-lg font-black">{topic.avg_ef}</span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          ))}
-
-          {/* Assignments */}
-          {assignments.map(assignment => {
-            const isOverdue = assignment.deadline ? new Date(assignment.deadline) < new Date() : false;
-            const sessions = (assignment as any).quiz_sessions || [];
-            const completedSessions = sessions.filter((s: any) => s.status === 'completed');
-            const attemptsCount = completedSessions.length;
-            const maxAttempts = (assignment as any).max_attempts || 0;
-            const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
-
-            return (
-              <div key={`ass-${assignment.id}`} className={`group p-4 -mx-4 rounded-2xl hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100 transition-all hover:translate-x-1 ${isLocked ? 'opacity-50' : ''}`}>
-                <div className="flex justify-between items-center gap-4">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                      {assignment.title}
-                      {isOverdue && <span className="ml-3 px-2 py-0.5 bg-red-50 text-red-600 text-xs rounded-full font-bold">Quá hạn</span>}
-                    </h3>
-                    <div className="flex items-center text-sm text-gray-500 mt-1">
-                      <Clock className="w-4 h-4 mr-1.5 opacity-70" />
-                      {assignment.deadline ? `Hạn: ${new Date(assignment.deadline).toLocaleDateString()}` : 'Không có hạn'}
-                    </div>
-                  </div>
-                  <div className="shrink-0">
-                    {isLocked ? (
-                      <Link to={`/session-result?id=${completedSessions[0].id}`} className="text-sm font-bold text-gray-400 hover:text-gray-600">
-                        Đã nộp
-                      </Link>
-                    ) : (
-                      <Link
-                        to={`/quiz?assignment=${assignment.id}`}
-                        className="inline-flex items-center text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        {attemptsCount > 0 ? 'Làm lại' : 'Làm bài'} <ArrowRight className="w-4 h-4 ml-1" />
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {dailySchedule.length === 0 && assignments.length === 0 && (
-            <div className="py-16 text-center text-gray-400">
-              <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg">Không có nhiệm vụ nào trong hàng chờ.</p>
-            </div>
           )}
-        </div>
-      </section>
 
-      {/* 3. Progress & Statistics */}
-      <section className="border-t border-gray-100 pt-12 pb-24 space-y-12">
-        <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Tiến độ của bạn</h2>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="space-y-2">
-            <p className="text-gray-500 text-sm font-medium">Chuỗi học tập</p>
-            <p className="text-4xl font-black text-gray-900 flex items-center">
-              {analytics?.current_streak_days || 0} <Flame className="w-6 h-6 text-orange-500 ml-2" />
-            </p>
-          </div>
-          <div className="space-y-2">
-            <p className="text-gray-500 text-sm font-medium">Độ chính xác</p>
-            <p className="text-4xl font-black text-gray-900">
-              {Math.round(analytics?.overall_accuracy || 0)}<span className="text-2xl text-gray-400 ml-1">%</span>
-            </p>
-          </div>
-          <div className="space-y-2">
-            <p className="text-gray-500 text-sm font-medium">Đã trả lời</p>
-            <p className="text-4xl font-black text-gray-900">{analytics?.total_questions_answered || 0}</p>
-          </div>
-          <div className="space-y-2">
-            <p className="text-gray-500 text-sm font-medium">Số phiên học</p>
-            <p className="text-4xl font-black text-gray-900">{analytics?.total_questions_answered ? Math.ceil(analytics.total_questions_answered / 10) : 0}</p>
-          </div>
-        </div>
-
-        {/* Activity dots */}
-        <div className="space-y-4 pt-4">
-          <p className="text-gray-500 text-sm font-medium">Hoạt động 7 ngày qua</p>
-          <div className="flex gap-3">
-            {last7Days.map((date, idx) => {
-              const isActive = (activityMap.get(date) || 0) > 0;
-              return (
-                <div
-                  key={date}
-                  title={date}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all ${isActive ? 'bg-blue-600 text-white shadow-md transform -translate-y-1' : 'bg-gray-100 text-gray-400'}`}
-                >
-                  {new Date(date).getDate()}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
+        </section>
+      </div>
     </div>
   );
 }

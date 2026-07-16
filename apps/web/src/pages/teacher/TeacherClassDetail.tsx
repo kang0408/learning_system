@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  Loader2, ArrowLeft, Trophy, BarChart2, Users, FileText, Plus,
+  Loader2, ArrowLeft, Trophy, BarChart2, Users, Plus,
   ArrowUpRight, ArrowDownRight, Award, Calendar, CheckCircle2,
-  AlertCircle, GraduationCap, Percent, BookOpen, X, Clock, ChevronRight, Edit, Trash2
+  AlertCircle, GraduationCap, Percent, BookOpen, X, Clock, Edit, Trash2, Send, EyeOff
 } from 'lucide-react';
 import api from '../../api/axios';
 import {
@@ -127,6 +127,21 @@ export default function TeacherClassDetail() {
     }
   };
 
+  const handleTogglePublish = async (assignmentId: string, isPublished: boolean) => {
+    try {
+      if (isPublished) {
+        await api.post(`/api/assignments/${assignmentId}/unpublish`);
+      } else {
+        await api.post(`/api/assignments/${assignmentId}/publish`);
+      }
+      setAssignments(prev => prev.map(a => 
+        a.id === assignmentId ? { ...a, is_published: !isPublished } : a
+      ));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật trạng thái phát hành');
+    }
+  };
+
   const handleRemoveStudent = async (studentId: string, studentName: string) => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa học sinh ${studentName} khỏi lớp?`)) return;
     try {
@@ -154,7 +169,7 @@ export default function TeacherClassDetail() {
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-[60vh] space-y-4">
-        <Loader2 className="w-12 h-12 animate-spin text-purple-600" />
+        <Loader2 className="w-12 h-12 animate-spin text-slate-900" />
         <p className="text-gray-500 font-medium animate-pulse">Đang tải dữ liệu lớp học...</p>
       </div>
     );
@@ -162,7 +177,7 @@ export default function TeacherClassDetail() {
 
   if (error) {
     return (
-      <div className="max-w-md mx-auto my-12 bg-red-50 border border-red-200 rounded-2xl p-6 text-center shadow-sm">
+      <div className="max-w-md mx-auto my-12 bg-red-50 border border-red-200 rounded-xl p-6 text-center shadow-sm">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-bold text-red-800 mb-2">Đã xảy ra lỗi</h3>
         <p className="text-red-600 mb-4">{error}</p>
@@ -225,7 +240,7 @@ export default function TeacherClassDetail() {
         ticks: { font: { family: 'Inter', size: 12, weight: 'bold' as const }, color: '#374151' }
       }
     },
-    onClick: (event: any, elements: any[]) => {
+    onClick: (_event: any, elements: any[]) => {
       if (elements.length > 0) {
         const index = elements[0].index;
         const topic = sortedTopics[index];
@@ -238,21 +253,21 @@ export default function TeacherClassDetail() {
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6">
 
       {/* Header card with rich colors */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition duration-300">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition duration-300">
         <div className="flex items-center mb-4 md:mb-0">
-          <Link to="/teacher" className="mr-5 p-2 rounded-full hover:bg-purple-50 text-gray-400 hover:text-purple-600 transition-colors">
+          <Link to="/teacher" className="mr-5 p-2 rounded-full hover:bg-slate-100 text-gray-400 hover:text-slate-900 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{classDetails?.name}</h1>
-              <span className="px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-100">
+              <span className="px-2.5 py-1 bg-slate-100 text-slate-900 text-xs font-semibold rounded-full border border-slate-200">
                 {classDetails?.subject}
               </span>
             </div>
             <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
               <span>Mã tham gia lớp học:</span>
-              <span className="font-bold text-purple-600 bg-purple-50/50 px-2 py-0.5 rounded border border-purple-100/50 select-all cursor-pointer">
+              <span className="font-bold text-slate-900 bg-slate-100/50 px-2 py-0.5 rounded border border-slate-200/50 select-all cursor-pointer">
                 {classDetails?.join_code}
               </span>
             </p>
@@ -260,20 +275,20 @@ export default function TeacherClassDetail() {
         </div>
         {/* <Link 
           to={`/teacher/classes/${id}/assignments/new`}
-          className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition duration-300 shadow-md shadow-purple-200"
+          className="flex items-center justify-center px-5 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition duration-300 shadow-sm border border-slate-900"
         >
           <Plus className="w-5 h-5 mr-2" /> Giao bài tập mới
         </Link> */}
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex border-b border-gray-200 bg-white p-2 rounded-2xl shadow-sm border border-gray-100 gap-1.5">
+      <div className="flex border-b border-gray-200 bg-white p-2 rounded-xl shadow-sm border border-gray-100 gap-1.5">
         {(['analytics', 'students', 'assignments'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-semibold text-sm transition-all duration-300 flex-1 md:flex-initial ${activeTab === tab
-                ? 'bg-purple-600 text-white shadow-md shadow-purple-100'
+                ? 'bg-purple-600 text-white shadow-md shadow-slate-100'
                 : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
               }`}
           >
@@ -291,10 +306,10 @@ export default function TeacherClassDetail() {
           {/* Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Total Students Card */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-gray-500">Tổng số học sinh</p>
-                <h3 className="text-3xl font-extrabold text-gray-900 mt-2">{classStats?.total_students || 0}</h3>
+                <h3 className="text-3xl font-bold tracking-tight text-gray-900 mt-2">{classStats?.total_students || 0}</h3>
               </div>
               <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
                 <Users className="w-6 h-6" />
@@ -302,11 +317,11 @@ export default function TeacherClassDetail() {
             </div>
 
             {/* Active Students Card */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-gray-500">Hoạt động tuần này</p>
                 <div className="flex items-baseline gap-2 mt-2">
-                  <h3 className="text-3xl font-extrabold text-gray-900">{classStats?.active_students?.current || 0}</h3>
+                  <h3 className="text-3xl font-bold tracking-tight text-gray-900">{classStats?.active_students?.current || 0}</h3>
                   {classStats?.active_students && (
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${classStats.active_students.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
                       }`}>
@@ -320,17 +335,17 @@ export default function TeacherClassDetail() {
                   )}
                 </div>
               </div>
-              <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <div className="p-3 bg-slate-100 text-slate-900 rounded-xl">
                 <Trophy className="w-6 h-6" />
               </div>
             </div>
 
             {/* Completion Rate Card */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-gray-500">Tỷ lệ nộp bài</p>
                 <div className="flex items-baseline gap-2 mt-2">
-                  <h3 className="text-3xl font-extrabold text-gray-900">{classStats?.completion_rate?.current || 0}%</h3>
+                  <h3 className="text-3xl font-bold tracking-tight text-gray-900">{classStats?.completion_rate?.current || 0}%</h3>
                   {classStats?.completion_rate && (
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${classStats.completion_rate.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
                       }`}>
@@ -350,11 +365,11 @@ export default function TeacherClassDetail() {
             </div>
 
             {/* Average Score Card */}
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
+            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-gray-500">Điểm trung bình</p>
                 <div className="flex items-baseline gap-2 mt-2">
-                  <h3 className="text-3xl font-extrabold text-gray-900">{classStats?.average_score?.current || 0} pts</h3>
+                  <h3 className="text-3xl font-bold tracking-tight text-gray-900">{classStats?.average_score?.current || 0} pts</h3>
                   {classStats?.average_score && (
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${classStats.average_score.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
                       }`}>
@@ -374,11 +389,80 @@ export default function TeacherClassDetail() {
             </div>
           </div>
 
+          {/* SM2 Memory Status Overview */}
+          {classStats?.sm2_summary && (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+              <div className="mb-6 flex justify-between items-end">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <BarChart2 className="w-5 h-5 text-purple-600" /> Trạng thái trí nhớ SM2 của lớp
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Tổng quan quá trình ghi nhớ kiến thức của toàn bộ học sinh trong lớp (tổng {classStats.sm2_summary.total_questions} lượt hỏi).
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold text-gray-500">Cần ôn tập hôm nay</div>
+                  <div className="text-2xl font-bold text-red-600">{classStats.sm2_summary.due_today} câu</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Mastered */}
+                <div className="p-5 rounded-xl bg-emerald-50/50 border border-emerald-100">
+                  <div className="text-emerald-700 text-sm font-bold flex items-center gap-2 mb-2">
+                    <CheckCircle2 className="w-4 h-4" /> Đã thành thạo (Mastered)
+                  </div>
+                  <div className="text-3xl font-extrabold text-emerald-900 mb-1">
+                    {Math.round(classStats.sm2_summary.mastered.pct)}%
+                  </div>
+                  <div className="text-sm text-emerald-600 font-medium">
+                    {classStats.sm2_summary.mastered.count} câu hỏi
+                  </div>
+                </div>
+
+                {/* Learning */}
+                <div className="p-5 rounded-xl bg-blue-50/50 border border-blue-100">
+                  <div className="text-blue-700 text-sm font-bold flex items-center gap-2 mb-2">
+                    <BookOpen className="w-4 h-4" /> Đang học (Learning)
+                  </div>
+                  <div className="text-3xl font-extrabold text-blue-900 mb-1">
+                    {Math.round(classStats.sm2_summary.learning.pct)}%
+                  </div>
+                  <div className="text-sm text-blue-600 font-medium flex justify-between">
+                    <span>Tổng: {classStats.sm2_summary.learning.count}</span>
+                    <span className="text-red-500 font-bold" title="Sắp quên">Nguy cơ: {classStats.sm2_summary.learning.at_risk}</span>
+                  </div>
+                </div>
+
+                {/* New */}
+                <div className="p-5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="text-slate-600 text-sm font-bold flex items-center gap-2 mb-2">
+                    <Plus className="w-4 h-4" /> Kiến thức mới (New)
+                  </div>
+                  <div className="text-3xl font-extrabold text-slate-800 mb-1">
+                    {Math.round(classStats.sm2_summary.new.pct)}%
+                  </div>
+                  <div className="text-sm text-slate-500 font-medium">
+                    {classStats.sm2_summary.new.count} câu hỏi
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-6 w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                <div className="h-full bg-emerald-500" style={{ width: `${classStats.sm2_summary.mastered.pct}%` }} title={`Thành thạo: ${Math.round(classStats.sm2_summary.mastered.pct)}%`}></div>
+                <div className="h-full bg-blue-500" style={{ width: `${classStats.sm2_summary.learning.pct}%` }} title={`Đang học: ${Math.round(classStats.sm2_summary.learning.pct)}%`}></div>
+                <div className="h-full bg-slate-300" style={{ width: `${classStats.sm2_summary.new.pct}%` }} title={`Mới: ${Math.round(classStats.sm2_summary.new.pct)}%`}></div>
+              </div>
+            </div>
+          )}
+
           {/* Chart Section */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <div className="mb-4">
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-purple-600" /> Tỷ lệ chính xác theo chủ đề
+                <BarChart2 className="w-5 h-5 text-slate-900" /> Tỷ lệ chính xác theo chủ đề
               </h2>
               <p className="text-sm text-gray-500 mt-1">
                 Biểu thị tỷ lệ trả lời đúng trung bình của lớp học theo các chủ đề. Click vào thanh biểu đồ để xem chi tiết học sinh.
@@ -398,15 +482,15 @@ export default function TeacherClassDetail() {
       )}
 
       {activeTab === 'students' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-purple-600" /> Danh sách học tập và xếp hạng
+                <GraduationCap className="w-5 h-5 text-slate-900" /> Danh sách học tập và xếp hạng
               </h2>
               <p className="text-sm text-gray-500 mt-1">Thống kê điểm số tích lũy, số lượt nộp bài, tỷ lệ chính xác và thời gian hoạt động của học sinh.</p>
             </div>
-            <span className="px-3 py-1 bg-purple-50 text-purple-700 text-sm font-semibold rounded-full border border-purple-100">
+            <span className="px-3 py-1 bg-slate-100 text-slate-900 text-sm font-semibold rounded-full border border-slate-200">
               Tổng số: {members.length} học sinh
             </span>
           </div>
@@ -419,14 +503,14 @@ export default function TeacherClassDetail() {
                     <th className="px-6 py-3.5 text-center w-16">Thứ hạng</th>
                     <th className="px-6 py-3.5 text-left">Học sinh</th>
                     <th className="px-6 py-3.5 text-left">Điểm tích lũy</th>
-                    <th className="px-6 py-3.5 text-center">Số lượt làm bài</th>
-                    <th className="px-6 py-3.5 text-center">Độ chính xác trung bình</th>
+                    <th className="px-6 py-3.5 text-center">Độ chính xác</th>
+                    <th className="px-6 py-3.5 text-center">Tiến độ SM2</th>
                     <th className="px-6 py-3.5 text-left">Hoạt động cuối cùng</th>
                     <th className="px-6 py-3.5 text-right w-32">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100 text-gray-700 font-medium">
-                  {analytics.leaderboard.map((student, index) => {
+                  {analytics.leaderboard.map((student: any, index) => {
                     const isTop3 = index < 3;
                     return (
                       <tr key={student.student_id} className="hover:bg-gray-50/80 transition duration-150">
@@ -444,7 +528,7 @@ export default function TeacherClassDetail() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center font-bold mr-3">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-900 border border-slate-200 flex items-center justify-center font-bold mr-3">
                               {student.name.charAt(0).toUpperCase()}
                             </div>
                             <span className="font-semibold text-gray-900">{student.name}</span>
@@ -452,9 +536,6 @@ export default function TeacherClassDetail() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-bold flex items-center gap-1 mt-1">
                           <Trophy className="w-4 h-4 text-amber-500" /> {student.score} pts
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-gray-600 font-semibold">
-                          {student.sessions_count || 0} lượt
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${(student.accuracy || 0) >= 75 ? 'bg-green-50 text-green-700 border-green-200' :
@@ -464,6 +545,18 @@ export default function TeacherClassDetail() {
                             {student.accuracy || 0}%
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center text-xs">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-semibold text-gray-900" title="Đã thành thạo / Tổng số câu đã học">
+                              {student.sm2_mastered_q || 0} / {student.sm2_total_q || 0} câu
+                            </span>
+                            {student.sm2_avg_ef && (
+                              <span className="text-gray-500 font-medium" title="Độ trôi chảy (Avg Easiness Factor)">
+                                EF: {Number(student.sm2_avg_ef).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
                           {formatDate(student.last_active_at)}
                         </td>
@@ -471,7 +564,7 @@ export default function TeacherClassDetail() {
                           <div className="flex items-center justify-end gap-2">
                             <Link
                               to={`/teacher/classes/${id}/members/${student.student_id}`}
-                              className="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-lg transition font-semibold text-sm inline-flex items-center border border-purple-100"
+                              className="px-3 py-1.5 bg-slate-100 text-slate-900 hover:bg-slate-200 rounded-lg transition font-semibold text-sm inline-flex items-center border border-slate-200"
                             >
                               Chi tiết
                             </Link>
@@ -499,17 +592,17 @@ export default function TeacherClassDetail() {
       )}
 
       {activeTab === 'assignments' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-purple-600" /> Quản lý bài tập giao cho lớp
+                <BookOpen className="w-5 h-5 text-slate-900" /> Quản lý bài tập giao cho lớp
               </h2>
               <p className="text-sm text-gray-500 mt-1">Danh sách các bài tập đã giao, theo dõi tỷ lệ nộp bài, điểm số trung bình lớp và hạn chót.</p>
             </div>
             <Link
               to={`/teacher/classes/${id}/assignments/new`}
-              className="inline-flex items-center px-4 py-2 border border-purple-200 text-purple-700 font-semibold rounded-xl hover:bg-purple-50 transition"
+              className="inline-flex items-center px-4 py-2 border border-slate-300 text-slate-900 font-semibold rounded-xl hover:bg-slate-100 transition"
             >
               <Plus className="w-4 h-4 mr-1.5" /> Tạo bài tập mới
             </Link>
@@ -549,9 +642,12 @@ export default function TeacherClassDetail() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${assignment.mode === 'quiz' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
-                            }`}>
-                            {assignment.mode === 'quiz' ? 'Luyện tập' : 'Thi cử'}
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            assignment.mode === 'standard' ? 'bg-slate-100 text-slate-900 border-slate-200' : 
+                            assignment.mode === 'adaptive' ? 'bg-purple-50 text-purple-700 border-purple-200' : 
+                            'bg-amber-50 text-amber-700 border-amber-100'
+                          }`}>
+                            {assignment.mode === 'standard' ? 'Luyện tập' : assignment.mode === 'adaptive' ? 'Thích ứng' : 'Thi cử'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -562,7 +658,7 @@ export default function TeacherClassDetail() {
                             </div>
                             <div className="w-full bg-gray-100 rounded-full h-2">
                               <div
-                                className={`h-2 rounded-full transition-all duration-500 ${status === 'completed' ? 'bg-green-500' : 'bg-purple-500'
+                                className={`h-2 rounded-full transition-all duration-500 ${status === 'completed' ? 'bg-green-500' : 'bg-slate-1000'
                                   }`}
                                 style={{ width: `${submissionRate}%` }}
                               ></div>
@@ -572,7 +668,7 @@ export default function TeacherClassDetail() {
                         <td className="px-6 py-4 whitespace-nowrap text-center text-gray-950 font-bold">
                           {avgScore > 0 ? (
                             <span className="flex items-center justify-center gap-1">
-                              <Award className="w-4 h-4 text-purple-600" /> {avgScore} pts
+                              <Award className="w-4 h-4 text-slate-900" /> {avgScore} pts
                             </span>
                           ) : (
                             <span className="text-gray-400 font-normal">--</span>
@@ -588,23 +684,47 @@ export default function TeacherClassDetail() {
                             <span className="text-gray-400">Không có hạn</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          {status === 'completed' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 text-xs font-bold rounded-full">
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn thành
-                            </span>
-                          ) : status === 'overdue' ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 text-xs font-bold rounded-full">
-                              <AlertCircle className="w-3.5 h-3.5" /> Quá hạn
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200 text-xs font-bold rounded-full">
-                              <Clock className="w-3.5 h-3.5" /> Đang diễn ra
-                            </span>
-                          )}
+                        <td className="px-6 py-4 whitespace-nowrap text-center flex flex-col items-center gap-1">
+                          <div>
+                            {status === 'completed' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 text-xs font-bold rounded-full">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn thành
+                              </span>
+                            ) : status === 'overdue' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 text-xs font-bold rounded-full">
+                                <AlertCircle className="w-3.5 h-3.5" /> Quá hạn
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-900 border border-slate-300 text-xs font-bold rounded-full">
+                                <Clock className="w-3.5 h-3.5" /> Đang diễn ra
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            {assignment.is_published ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold rounded-full">
+                                <Send className="w-3.5 h-3.5" /> Đã phát hành
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-50 text-gray-700 border border-gray-200 text-xs font-bold rounded-full">
+                                <EyeOff className="w-3.5 h-3.5" /> Bản nháp
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleTogglePublish(assignment.id, assignment.is_published)}
+                              className={`p-2 rounded-lg transition-colors border border-transparent ${
+                                assignment.is_published 
+                                  ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-100'
+                                  : 'text-blue-500 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-100'
+                              }`}
+                              title={assignment.is_published ? "Hủy phát hành" : "Phát hành cho học sinh"}
+                            >
+                              {assignment.is_published ? <EyeOff className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                            </button>
                             <Link 
                               to={`/teacher/classes/${id}/assignments/${assignment.id}/edit`}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100"
@@ -638,8 +758,8 @@ export default function TeacherClassDetail() {
       {/* Drill-down Modal for topic weaknesses */}
       {showTopicModal && selectedTopic && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl border max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-slideUp">
-            <div className="p-6 border-b flex justify-between items-center bg-purple-50/30">
+          <div className="bg-white rounded-xl shadow-xl border max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-slideUp">
+            <div className="p-6 border-b flex justify-between items-center bg-slate-100/30">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">Chi tiết học sinh - Chủ đề: {selectedTopic.name}</h3>
                 <p className="text-sm text-gray-500 mt-1">Danh sách học sinh học tập chủ đề này, xếp theo tỷ lệ chính xác từ thấp đến cao.</p>
@@ -654,7 +774,7 @@ export default function TeacherClassDetail() {
             <div className="p-6 overflow-y-auto flex-1">
               {modalLoading ? (
                 <div className="flex flex-col justify-center items-center py-12 space-y-3">
-                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                  <Loader2 className="w-8 h-8 animate-spin text-slate-900" />
                   <p className="text-sm text-gray-500">Đang lấy dữ liệu chi tiết...</p>
                 </div>
               ) : topicStudents.length > 0 ? (
@@ -672,7 +792,7 @@ export default function TeacherClassDetail() {
                         <tr key={student.student_id} className="hover:bg-gray-50/50 transition">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold mr-3 border border-purple-200">
+                              <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-900 flex items-center justify-center font-bold mr-3 border border-slate-300">
                                 {student.name.charAt(0).toUpperCase()}
                               </div>
                               <span className="font-semibold text-gray-900">{student.name}</span>

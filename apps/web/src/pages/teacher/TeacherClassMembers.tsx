@@ -56,7 +56,7 @@ export default function TeacherClassMembers() {
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         {loading && members.length === 0 ? (
-          <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>
+          <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-slate-700" /></div>
         ) : error ? (
           <div className="text-red-500 p-4 text-center">{error}</div>
         ) : (
@@ -76,7 +76,7 @@ export default function TeacherClassMembers() {
                       <td className="p-4 flex items-center">
                         <Link 
                           to={`/teacher/classes/${id}/members/${m.student?.id}`}
-                          className="flex items-center hover:text-purple-600 transition"
+                          className="flex items-center hover:text-slate-900 transition"
                         >
                           <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold mr-4">
                             {m.student?.full_name?.charAt(0) || '?'}

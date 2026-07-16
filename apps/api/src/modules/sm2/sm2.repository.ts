@@ -6,7 +6,7 @@ export class SM2Repository {
     
     if (assignmentId) {
       return await prisma.$queryRawUnsafe<any[]>(`
-        SELECT q.id, q.content, q.question_type, q.topic_id, q.difficulty,
+        SELECT q.id, q.content, q.explanation, q.question_type, q.topic_id, q.difficulty,
                sp.easiness_factor, sp.repetition_count, sp.next_review_date
         FROM sm2_progress sp
         JOIN questions q ON q.id = sp.question_id
@@ -73,7 +73,7 @@ export class SM2Repository {
   static async getNewQuestions(studentId: string, assignmentId?: string, limit?: number): Promise<any[]> {
     if (assignmentId) {
       return await prisma.$queryRawUnsafe<any[]>(`
-        SELECT q.id, q.content, q.question_type, q.topic_id, q.difficulty
+        SELECT q.id, q.content, q.explanation, q.question_type, q.topic_id, q.difficulty
         FROM assignment_questions aq
         JOIN questions q ON q.id = aq.question_id
         LEFT JOIN sm2_progress sp ON sp.question_id = q.id AND sp.student_id = $1::uuid
@@ -141,7 +141,7 @@ export class SM2Repository {
 
   static async getEarlyReviewQuestions(studentId: string, assignmentId: string): Promise<any[]> {
     return await prisma.$queryRawUnsafe<any[]>(`
-      SELECT q.id, q.content, q.question_type, q.topic_id, q.difficulty,
+      SELECT q.id, q.content, q.explanation, q.question_type, q.topic_id, q.difficulty,
              sp.easiness_factor, sp.repetition_count, sp.next_review_date
       FROM sm2_progress sp
       JOIN questions q ON q.id = sp.question_id

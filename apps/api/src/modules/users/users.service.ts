@@ -9,6 +9,8 @@ export class UsersService {
         id: true,
         email: true,
         full_name: true,
+        phone: true,
+        address: true,
         role: true,
         avatar_url: true,
         is_active: true,
@@ -21,7 +23,7 @@ export class UsersService {
     return user;
   }
 
-  static async updateMe(userId: string, data: { full_name?: string }) {
+  static async updateMe(userId: string, data: { full_name?: string; phone?: string; address?: string; avatar_url?: string }) {
     const user = await prisma.user.update({
       where: { id: userId },
       data,
@@ -29,6 +31,8 @@ export class UsersService {
         id: true,
         email: true,
         full_name: true,
+        phone: true,
+        address: true,
         role: true,
         avatar_url: true,
         is_active: true,

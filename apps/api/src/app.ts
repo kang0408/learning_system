@@ -14,9 +14,12 @@ import usersRoutes from './modules/users/users.routes';
 import sm2Routes from './modules/sm2/sm2.routes';
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false, // allow serving images cross-origin if needed
+}));
 app.use(cors());
 app.use(express.json());
+app.use('/public', express.static('public')); // Serve static files
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

@@ -6,25 +6,25 @@ export class AnalyticsService {
   static async getStudentDashboard(studentId: string) {
     const totalSessions = await prisma.quizSession.count({ where: { student_id: studentId, status: 'completed' } });
     const totalAnswers = await prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' } } });
-    
+
     const correctAnswers = await prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' }, is_correct: true } });
     const overallAccuracy = totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 0;
-    
+
     const activeDates = await AnalyticsRepository.getActiveDates(studentId);
-    
+
     let currentStreakDays = 0;
     let longestStreakDays = 0;
 
     if (activeDates.length > 0) {
       const dates = activeDates.map(d => new Date(d.date));
       const today = new Date();
-      today.setHours(0,0,0,0);
+      today.setHours(0, 0, 0, 0);
 
       // Calculate longest streak
       let currentLen = 1;
       longestStreakDays = 1;
       for (let i = 0; i < dates.length - 1; i++) {
-        const diff = Math.floor((dates[i].getTime() - dates[i+1].getTime()) / (1000 * 3600 * 24));
+        const diff = Math.floor((dates[i].getTime() - dates[i + 1].getTime()) / (1000 * 3600 * 24));
         if (diff === 1) {
           currentLen++;
           if (currentLen > longestStreakDays) longestStreakDays = currentLen;
@@ -38,7 +38,7 @@ export class AnalyticsService {
       if (diffFirst <= 1) {
         currentStreakDays = 1;
         for (let i = 0; i < dates.length - 1; i++) {
-          const diff = Math.floor((dates[i].getTime() - dates[i+1].getTime()) / (1000 * 3600 * 24));
+          const diff = Math.floor((dates[i].getTime() - dates[i + 1].getTime()) / (1000 * 3600 * 24));
           if (diff === 1) {
             currentStreakDays++;
           } else {
@@ -48,13 +48,26 @@ export class AnalyticsService {
       }
     }
 
-    const sm2Progress = await prisma.sm2Progress.findMany({ where: { student_id: studentId } });
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const questionsDueToday = sm2Progress.filter(p => p.next_review_date <= today).length;
-    const masteredQuestions = sm2Progress.filter(p => Number(p.easiness_factor) >= 3.0 && p.repetition_count > 3).length;
-    const newQuestions = sm2Progress.filter(p => p.repetition_count === 0).length;
-    const learningQuestions = sm2Progress.length - masteredQuestions - newQuestions;
+    const sm2SummaryData = await AnalyticsRepository.getSM2Summary(studentId);
+    const totalQ = sm2SummaryData?.total_questions || 0;
+    const sm2_summary = {
+      total_questions: totalQ,
+      new: {
+        count: sm2SummaryData?.new_count || 0,
+        pct: totalQ > 0 ? ((sm2SummaryData?.new_count || 0) / totalQ) * 100 : 0
+      },
+      learning: {
+        count: sm2SummaryData?.learning_count || 0,
+        pct: totalQ > 0 ? ((sm2SummaryData?.learning_count || 0) / totalQ) * 100 : 0,
+        at_risk: sm2SummaryData?.learning_at_risk || 0,
+        in_progress: sm2SummaryData?.learning_in_progress || 0
+      },
+      mastered: {
+        count: sm2SummaryData?.mastered_count || 0,
+        pct: totalQ > 0 ? ((sm2SummaryData?.mastered_count || 0) / totalQ) * 100 : 0
+      },
+      due_today: sm2SummaryData?.due_today || 0
+    };
 
     const weeklyActivity = await AnalyticsRepository.getWeeklyActivity(studentId);
 
@@ -64,10 +77,7 @@ export class AnalyticsService {
       overall_accuracy: overallAccuracy,
       current_streak_days: currentStreakDays,
       longest_streak_days: longestStreakDays,
-      questions_due_today: questionsDueToday,
-      mastered_questions: masteredQuestions,
-      learning_questions: learningQuestions,
-      new_questions: newQuestions,
+      sm2_summary,
       weekly_activity: weeklyActivity
     };
   }
@@ -78,8 +88,29 @@ export class AnalyticsService {
   }
 
   static async getStudentWeakTopics(studentId: string) {
-    const weakTopics = await AnalyticsRepository.getStudentWeakTopics(studentId);
-    return { weak_topics: weakTopics };
+    const weakTopics = await AnalyticsRepository.getWeakTopicsBySM2(studentId);
+    const recentAcc = await AnalyticsRepository.getRecentTopicAccuracy(studentId, 30);
+    
+    const recentAccMap = new Map(recentAcc.map(r => [r.topic, r.recent_accuracy_pct]));
+
+    const merged = weakTopics.map(wt => {
+      const recent_accuracy_pct = Math.round((recentAccMap.get(wt.topic) || 0) * 10) / 10;
+      let trend = 'stable';
+      
+      if (recent_accuracy_pct > wt.accuracy_pct + 5) {
+        trend = 'improving';
+      } else if (recent_accuracy_pct < wt.accuracy_pct - 5) {
+        trend = 'declining';
+      }
+
+      return {
+        ...wt,
+        recent_accuracy_pct,
+        trend
+      };
+    });
+
+    return { weak_topics: merged };
   }
 
   // --- TEACHER DASHBOARD ---
@@ -103,8 +134,29 @@ export class AnalyticsService {
 
     // Completion Rate (assignments with at least one completed session)
     const totalAssignments = await prisma.assignment.count({ where: { class_id: classId, deleted_at: null } });
-    const completionRate = totalStudents > 0 ? Math.round((currentActive / totalStudents) * 100) : 0; 
+    const completionRate = totalStudents > 0 ? Math.round((currentActive / totalStudents) * 100) : 0;
     const prevCompletionRate = totalStudents > 0 ? Math.round((prevActive / totalStudents) * 100) : 0;
+
+    const sm2SummaryData = await AnalyticsRepository.getTeacherClassSM2Summary(classId);
+    const totalQ = sm2SummaryData?.total_questions || 0;
+    const sm2_summary = {
+      total_questions: totalQ,
+      new: {
+        count: sm2SummaryData?.new_count || 0,
+        pct: totalQ > 0 ? ((sm2SummaryData?.new_count || 0) / totalQ) * 100 : 0
+      },
+      learning: {
+        count: sm2SummaryData?.learning_count || 0,
+        pct: totalQ > 0 ? ((sm2SummaryData?.learning_count || 0) / totalQ) * 100 : 0,
+        at_risk: sm2SummaryData?.learning_at_risk || 0,
+        in_progress: sm2SummaryData?.learning_in_progress || 0
+      },
+      mastered: {
+        count: sm2SummaryData?.mastered_count || 0,
+        pct: totalQ > 0 ? ((sm2SummaryData?.mastered_count || 0) / totalQ) * 100 : 0
+      },
+      due_today: sm2SummaryData?.due_today || 0
+    };
 
     return {
       class_name: classData.name,
@@ -120,7 +172,8 @@ export class AnalyticsService {
       average_score: {
         current: Math.round(currentAvg[0]?.avg_score || 0),
         trend: (currentAvg[0]?.avg_score || 0) >= (prevAvg[0]?.avg_score || 0) ? 'up' : 'down'
-      }
+      },
+      sm2_summary
     };
   }
 
@@ -173,6 +226,6 @@ export class AnalyticsService {
   }
 
   static async getParentChildWeekly(parentId: string, studentId: string) {
-    return { weekly_report: "Report data" };
+    throw { status: 501, message: 'Chưa implement' };
   }
 }

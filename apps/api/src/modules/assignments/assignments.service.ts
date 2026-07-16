@@ -107,8 +107,19 @@ export class AssignmentsService {
       const submissionRate = Math.min(100, Math.round((submittedCount / Math.max(1, totalStudents)) * 100));
 
       const completedSessions = assignment.quiz_sessions.filter(s => s.status === 'completed');
-      const avgScore = completedSessions.length > 0 
-        ? Math.round(completedSessions.reduce((acc, s) => acc + Number(s.score || 0), 0) / completedSessions.length)
+      
+      // Lấy điểm cao nhất của mỗi học sinh
+      const highestScoresByStudent = new Map<string, number>();
+      for (const session of completedSessions) {
+        const score = Number(session.score || 0);
+        const currentMax = highestScoresByStudent.get(session.student_id) ?? -1;
+        if (score > currentMax) {
+          highestScoresByStudent.set(session.student_id, score);
+        }
+      }
+
+      const avgScore = highestScoresByStudent.size > 0 
+        ? Math.round(Array.from(highestScoresByStudent.values()).reduce((acc, score) => acc + score, 0) / highestScoresByStudent.size)
         : 0;
 
       const deadlineDate = assignment.deadline ? new Date(assignment.deadline) : null;
@@ -284,7 +295,7 @@ export class AssignmentsService {
   static async getMyAssignments(studentId: string, query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
-    const status = query.status || 'pending';
+    const status = query.status || 'all';
 
     const memberClasses = await prisma.classMember.findMany({
       where: { student_id: studentId, is_active: true },

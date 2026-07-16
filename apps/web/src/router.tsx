@@ -11,6 +11,7 @@ import ParentLayout from './layouts/ParentLayout';
 import Register from './pages/auth/Register';
 import Login from './pages/auth/Login';
 import StudentDashboard from './pages/student/StudentDashboard';
+import StudentProfile from './pages/student/StudentProfile';
 import StudentClasses from './pages/student/StudentClasses';
 import StudentClassDetail from './pages/student/StudentClassDetail';
 import QuizPage from './pages/student/QuizPage';
@@ -20,12 +21,11 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherClassDetail from './pages/teacher/TeacherClassDetail';
 import TeacherClassMembers from './pages/teacher/TeacherClassMembers';
 import TeacherStudentDetail from './pages/teacher/TeacherStudentDetail';
-import TeacherClassAssignments from './pages/teacher/TeacherClassAssignments';
 import TeacherClassNewAssignment from './pages/teacher/TeacherClassNewAssignment';
 import TeacherClassEditAssignment from './pages/teacher/TeacherClassEditAssignment';
 import QuestionBank from './pages/teacher/QuestionBank';
 import TeacherTopicDetail from './pages/teacher/TeacherTopicDetail';
-import AssignmentWizard from './pages/teacher/AssignmentWizard';
+import TeacherProfile from './pages/teacher/TeacherProfile';
 import ParentDashboard from './pages/parent/ParentDashboard';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
@@ -52,14 +52,14 @@ const NotFound = () => {
         <p className="mt-4 text-2xl font-bold text-gray-900 tracking-tight sm:text-4xl">Trang không tồn tại</p>
         <p className="mt-4 text-gray-500 max-w-md mx-auto">Xin lỗi, đường dẫn bạn đang tìm kiếm không tồn tại hoặc bạn không có quyền truy cập.</p>
         <div className="mt-8 flex justify-center gap-4">
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-bold rounded-xl shadow-sm text-gray-700 bg-white hover:bg-gray-50 transition-all duration-300"
           >
             Quay lại
           </button>
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-xl shadow-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 transition-all duration-300"
           >
             Về trang chủ
@@ -74,26 +74,27 @@ export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
   { path: '/', element: <RootRedirect /> },
-  
+
   // Student Routes
-  { 
-    path: '/student', 
+  {
+    path: '/student',
     element: <ProtectedRoute role="student"><StudentLayout /></ProtectedRoute>,
     children: [
       { index: true, element: <StudentDashboard /> },
+      { path: 'profile', element: <StudentProfile /> },
       { path: 'classes', element: <StudentClasses /> },
       { path: 'classes/:id', element: <StudentClassDetail /> }
     ]
   },
-  { 
-    path: '/quiz', 
-    element: <ProtectedRoute role="student"><QuizPage /></ProtectedRoute> 
+  {
+    path: '/quiz',
+    element: <ProtectedRoute role="student"><QuizPage /></ProtectedRoute>
   },
-  { 
-    path: '/session-result', 
-    element: <ProtectedRoute role="student"><SessionResult /></ProtectedRoute> 
+  {
+    path: '/session-result',
+    element: <ProtectedRoute role="student"><SessionResult /></ProtectedRoute>
   },
-  
+
   // Teacher Routes
   {
     path: '/teacher',
@@ -104,16 +105,14 @@ export const router = createBrowserRouter([
       { path: 'classes/:id', element: <TeacherClassDetail /> },
       { path: 'classes/:id/members', element: <TeacherClassMembers /> },
       { path: 'classes/:id/members/:studentId', element: <TeacherStudentDetail /> },
-      { path: 'classes/:id/assignments', element: <TeacherClassAssignments /> },
       { path: 'classes/:id/assignments/new', element: <TeacherClassNewAssignment /> },
       { path: 'classes/:id/assignments/:assignmentId/edit', element: <TeacherClassEditAssignment /> },
       { path: 'questions', element: <QuestionBank /> },
       { path: 'questions/topics/:topicId', element: <TeacherTopicDetail /> },
-      { path: 'assignments', element: <AssignmentWizard /> },
-      { path: 'assignments/new', element: <AssignmentWizard /> },
+      { path: 'profile', element: <TeacherProfile /> },
     ]
   },
-  
+
   // Parent Routes
   {
     path: '/parent',
@@ -122,8 +121,8 @@ export const router = createBrowserRouter([
       { index: true, element: <ParentDashboard /> },
     ]
   },
-  
+
   // Global Routes
-  { path: '/unauthorized', element: <div className="p-8 text-center text-red-600">Unauthorized</div> },
+  { path: '/unauthorized', element: <NotFound /> },
   { path: '*', element: <NotFound /> }
 ]);
