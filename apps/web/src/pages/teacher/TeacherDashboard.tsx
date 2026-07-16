@@ -101,7 +101,7 @@ export default function TeacherDashboard() {
             </div>
             <Link
               to={`/teacher/classes/${cls.id}`}
-              className="mt-auto w-full inline-flex justify-center items-center px-4 py-2.5 font-bold rounded-xl text-slate-900 bg-slate-100 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300"
+              className="mt-auto w-full inline-flex justify-center items-center px-4 py-2.5 font-bold rounded-xl text-slate-900 bg-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300"
             >
               Xem chi tiết <ArrowRight className="w-4 h-4 ml-2" />
             </Link>

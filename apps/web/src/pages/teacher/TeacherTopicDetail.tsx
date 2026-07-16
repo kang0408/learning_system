@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Loader2, Save, ArrowLeft, Trash2, Edit, Star } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
+import { ConfirmDialog } from '../../components/ui/Dialog';
 
 export default function TeacherTopicDetail() {
   const { topicId } = useParams<{ topicId: string }>();
@@ -21,6 +22,10 @@ export default function TeacherTopicDetail() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
   const [error, setError] = useState('');
+  
+  const [deleteQuestionId, setDeleteQuestionId] = useState<string | null>(null);
+  const [showDeleteTopicConfirm, setShowDeleteTopicConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   
   // Modals state
   const [showQuestionModal, setShowQuestionModal] = useState(false);
@@ -149,24 +154,30 @@ export default function TeacherTopicDetail() {
     setNewOptions(opts);
   };
 
-  const handleDeleteQuestion = async (id: string) => {
-    if(!confirm('Bạn có chắc muốn xóa câu hỏi này?')) return;
+  const handleDeleteQuestion = async () => {
+    if(!deleteQuestionId) return;
+    setDeleting(true);
     try {
-      await api.delete(`/api/questions/${id}`);
+      await api.delete(`/api/questions/${deleteQuestionId}`);
+      setDeleteQuestionId(null);
       fetchDetail();
     } catch (e) {
       alert('Không thể xóa câu hỏi');
+    } finally {
+      setDeleting(false);
     }
   }
 
 
   const handleDeleteSet = async () => {
-    if(!confirm('Bạn có chắc muốn xóa TOÀN BỘ chủ đề này không?')) return;
+    setDeleting(true);
     try {
       await api.delete(`/api/questions/topics/${topicId}`);
       navigate('/teacher/questions');
     } catch (e) {
       alert('Không thể xóa chủ đề');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -249,7 +260,7 @@ export default function TeacherTopicDetail() {
             <Edit className="w-4 h-4 mr-2" /> Sửa chủ đề
           </button>
           <button
-            onClick={handleDeleteSet}
+            onClick={() => setShowDeleteTopicConfirm(true)}
             className="flex items-center justify-center px-5 py-2.5 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition duration-300 shadow-sm border border-red-100"
           >
             <Trash2 className="w-4 h-4 mr-2" /> Xóa
@@ -327,7 +338,7 @@ export default function TeacherTopicDetail() {
                         <Edit className="w-5 h-5" />
                       </button>
                       <button 
-                        onClick={() => handleDeleteQuestion(q.id)}
+                        onClick={() => setDeleteQuestionId(q.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
                         title="Xóa"
                       >
@@ -518,6 +529,28 @@ export default function TeacherTopicDetail() {
         </div>
       )}
 
+      <ConfirmDialog
+        isOpen={!!deleteQuestionId}
+        onClose={() => setDeleteQuestionId(null)}
+        onConfirm={handleDeleteQuestion}
+        title="Xóa câu hỏi"
+        description="Bạn có chắc muốn xóa câu hỏi này? Dữ liệu không thể khôi phục."
+        confirmText="Xóa câu hỏi"
+        isDanger={true}
+        isLoading={deleting}
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteTopicConfirm}
+        onClose={() => setShowDeleteTopicConfirm(false)}
+        onConfirm={handleDeleteSet}
+        title="Xóa chủ đề"
+        description="Bạn có chắc muốn xóa TOÀN BỘ chủ đề này không? Các bài tập liên kết sẽ bị ảnh hưởng."
+        confirmText="Xóa chủ đề"
+        isDanger={true}
+        isLoading={deleting}
+      />
+
       {/* Modal: Edit Topic */}
       {showEditTopicModal && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all">
@@ -560,7 +593,7 @@ export default function TeacherTopicDetail() {
                       checked={enableEditCustomCode}
                       onChange={(e) => setEnableEditCustomCode(e.target.checked)}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
                   </label>
                 </div>
                 

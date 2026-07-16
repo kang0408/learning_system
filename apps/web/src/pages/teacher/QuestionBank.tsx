@@ -233,7 +233,7 @@ export default function QuestionBank() {
                 <Link to={`/teacher/questions/topics/${topic.id}`} className="block p-5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
-                      <div className="p-3.5 bg-slate-200 text-slate-900 rounded-xl mr-5 border border-slate-300 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300 shadow-sm">
+                      <div className="p-3.5 bg-slate-200 text-slate-900 rounded-xl mr-5 border border-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300 shadow-sm">
                         <Folder className="w-6 h-6" />
                       </div>
                       <div>
@@ -321,7 +321,7 @@ export default function QuestionBank() {
                       checked={enableCustomCode}
                       onChange={(e) => setEnableCustomCode(e.target.checked)}
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
                   </label>
                 </div>
                 

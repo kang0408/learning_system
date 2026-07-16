@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { Upload, Camera, Save, X, Loader2, Award, Briefcase, Mail, Phone, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
+import api from '../../api/axios';
 
 export default function TeacherProfile() {
   const { user, token, login } = useAuthStore();
@@ -53,24 +54,17 @@ export default function TeacherProfile() {
       if (formData.address) data.append('address', formData.address);
       if (avatarFile) data.append('avatar', avatarFile);
 
-      const res = await fetch('http://localhost:5000/api/users/me', {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: data
+      const res = await api.patch('/api/users/me', data, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      const result = await res.json();
-      if (result.success) {
+      if (res.data.success) {
         // Update global user state
-        login(token!, result.data);
+        login(token!, res.data.data);
         setMessage({ type: 'success', text: 'Cập nhật thông tin thành công.' });
-      } else {
-        setMessage({ type: 'error', text: result.error?.message || 'Có lỗi xảy ra khi cập nhật.' });
       }
-    } catch (err) {
-      setMessage({ type: 'error', text: 'Lỗi kết nối mạng.' });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.response?.data?.message || err.response?.data?.error?.message || 'Có lỗi xảy ra khi cập nhật.' });
     } finally {
       setIsSubmitting(false);
     }
