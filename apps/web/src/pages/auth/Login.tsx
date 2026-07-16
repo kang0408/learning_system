@@ -28,7 +28,7 @@ export default function Login() {
     setLoading(true);
     try {
       const response = await api.post('/api/auth/login', { email, password });
-      const { token, user } = response.data;
+      const { token, user } = response.data.data;
       login(token, user);
       
       // Redirect based on role
@@ -36,7 +36,7 @@ export default function Login() {
       else if (user.role === 'parent') navigate('/parent');
       else navigate('/student');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || err.response?.data?.message || 'Failed to login. Please check your credentials.';
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Failed to login. Please check your credentials.';
       setError(errorMessage);
     } finally {
       setLoading(false);

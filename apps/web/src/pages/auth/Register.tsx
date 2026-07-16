@@ -46,7 +46,7 @@ export default function Register() {
       await api.post('/api/auth/register', { full_name: name, email, password, role });
       navigate('/login?registered=true');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error?.message || err.response?.data?.message || 'Failed to register. Please try again.';
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Failed to register. Please try again.';
       setError(errorMessage);
     } finally {
       setLoading(false);
