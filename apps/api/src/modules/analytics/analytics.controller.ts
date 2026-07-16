@@ -1,60 +1,74 @@
 import { Response } from 'express';
 import { AnalyticsService } from './analytics.service';
+import { BaseController } from '../../controllers/BaseController';
 
-export class AnalyticsController {
-  static async getStudentStats(req: any, res: Response) {
-    const stats = await AnalyticsService.getStudentDashboard(req.user.userId);
-    res.json({ success: true, data: stats });
+export class AnalyticsController extends BaseController {
+  constructor(private readonly analyticsService: AnalyticsService) {
+    super();
+    this.getStudentStats = this.getStudentStats.bind(this);
+    this.getStudentCalendar = this.getStudentCalendar.bind(this);
+    this.getStudentWeakTopics = this.getStudentWeakTopics.bind(this);
+    this.getTeacherClassStats = this.getTeacherClassStats.bind(this);
+    this.getTeacherClassTopics = this.getTeacherClassTopics.bind(this);
+    this.getTeacherClassStudents = this.getTeacherClassStudents.bind(this);
+    this.getTeacherClassTopicStudents = this.getTeacherClassTopicStudents.bind(this);
+    this.getTeacherStudentStats = this.getTeacherStudentStats.bind(this);
+    this.getParentChildren = this.getParentChildren.bind(this);
+    this.getParentChildWeekly = this.getParentChildWeekly.bind(this);
+  }
+  async getStudentStats(req: any, res: Response) {
+    const stats = await this.analyticsService.getStudentDashboard(req.user.userId);
+    this.handleSuccess(res, stats);
   }
 
-  static async getStudentCalendar(req: any, res: Response) {
-    const data = await AnalyticsService.getStudentCalendar(req.user.userId);
-    res.json({ success: true, data });
+  async getStudentCalendar(req: any, res: Response) {
+    const data = await this.analyticsService.getStudentCalendar(req.user.userId);
+    this.handleSuccess(res, data);
   }
 
-  static async getStudentWeakTopics(req: any, res: Response) {
-    const data = await AnalyticsService.getStudentWeakTopics(req.user.userId);
-    res.json({ success: true, data });
+  async getStudentWeakTopics(req: any, res: Response) {
+    const data = await this.analyticsService.getStudentWeakTopics(req.user.userId);
+    this.handleSuccess(res, data);
   }
 
-  static async getTeacherClassStats(req: any, res: Response) {
+  async getTeacherClassStats(req: any, res: Response) {
     const { classId } = req.params;
-    const stats = await AnalyticsService.getTeacherClassStats(req.user.userId, classId);
-    res.json({ success: true, data: stats });
+    const stats = await this.analyticsService.getTeacherClassStats(req.user.userId, classId);
+    this.handleSuccess(res, stats);
   }
 
-  static async getTeacherClassTopics(req: any, res: Response) {
+  async getTeacherClassTopics(req: any, res: Response) {
     const { classId } = req.params;
-    const topics = await AnalyticsService.getTeacherClassTopics(req.user.userId, classId);
-    res.json({ success: true, data: topics });
+    const topics = await this.analyticsService.getTeacherClassTopics(req.user.userId, classId);
+    this.handleSuccess(res, topics);
   }
 
-  static async getTeacherClassStudents(req: any, res: Response) {
+  async getTeacherClassStudents(req: any, res: Response) {
     const { classId } = req.params;
-    const students = await AnalyticsService.getTeacherClassStudents(req.user.userId, classId);
-    res.json({ success: true, data: students });
+    const students = await this.analyticsService.getTeacherClassStudents(req.user.userId, classId);
+    this.handleSuccess(res, students);
   }
 
-  static async getTeacherClassTopicStudents(req: any, res: Response) {
+  async getTeacherClassTopicStudents(req: any, res: Response) {
     const { classId, topicId } = req.params;
-    const students = await AnalyticsService.getTeacherClassTopicStudents(req.user.userId, classId, topicId);
-    res.json({ success: true, data: students });
+    const students = await this.analyticsService.getTeacherClassTopicStudents(req.user.userId, classId, topicId);
+    this.handleSuccess(res, students);
   }
 
-  static async getTeacherStudentStats(req: any, res: Response) {
+  async getTeacherStudentStats(req: any, res: Response) {
     const { studentId } = req.params;
-    const stats = await AnalyticsService.getTeacherStudentStats(req.user.userId, studentId);
-    res.json({ success: true, data: stats });
+    const stats = await this.analyticsService.getTeacherStudentStats(req.user.userId, studentId);
+    this.handleSuccess(res, stats);
   }
 
-  static async getParentChildren(req: any, res: Response) {
-    const data = await AnalyticsService.getParentChildren(req.user.userId);
-    res.json({ success: true, data });
+  async getParentChildren(req: any, res: Response) {
+    const data = await this.analyticsService.getParentChildren(req.user.userId);
+    this.handleSuccess(res, data);
   }
 
-  static async getParentChildWeekly(req: any, res: Response) {
+  async getParentChildWeekly(req: any, res: Response) {
     const { studentId } = req.params;
-    const data = await AnalyticsService.getParentChildWeekly(req.user.userId, studentId);
-    res.json({ success: true, data });
+    const data = await this.analyticsService.getParentChildWeekly(req.user.userId, studentId);
+    this.handleSuccess(res, data);
   }
 }

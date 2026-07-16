@@ -1,29 +1,30 @@
 import { Response } from 'express';
 import { ParentService } from './parent.service';
+import { BaseController } from '../../controllers/BaseController';
+import { AuthRequest } from '../../middlewares/auth.middleware';
 
-export class ParentController {
-  static async linkStudent(req: any, res: Response) {
+export class ParentController extends BaseController {
+  constructor(private readonly parentService: ParentService) {
+    super();
+    this.linkStudent = this.linkStudent.bind(this);
+    this.getChildren = this.getChildren.bind(this);
+    this.unlinkStudent = this.unlinkStudent.bind(this);
+  }
+
+  async linkStudent(req: AuthRequest, res: Response) {
     const { studentEmail } = req.body;
-    const link = await ParentService.linkStudent(req.user.userId, studentEmail);
+    const link = await this.parentService.linkStudent(req.user!.userId, studentEmail);
     res.status(201).json({ success: true, data: link });
   }
 
-  static async getChildren(req: any, res: Response) {
-    try {
-      const children = await ParentService.getChildren(req.user.userId);
-      res.json({ success: true, data: children });
-    } catch (err: any) {
-      res.status(err.status || 500).json({ success: false, error: err.message });
-    }
+  async getChildren(req: AuthRequest, res: Response) {
+    const children = await this.parentService.getChildren(req.user!.userId);
+    this.handleSuccess(res, children);
   }
 
-  static async unlinkStudent(req: any, res: Response) {
-    try {
-      const { studentId } = req.params;
-      await ParentService.unlinkStudent(req.user.userId, studentId);
-      res.json({ success: true, data: null });
-    } catch (err: any) {
-      res.status(err.status || 500).json({ success: false, error: err.message });
-    }
+  async unlinkStudent(req: AuthRequest, res: Response) {
+    const studentId = req.params.studentId as string;
+    await this.parentService.unlinkStudent(req.user!.userId, studentId);
+    this.handleSuccess(res, null);
   }
 }

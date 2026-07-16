@@ -1,3 +1,4 @@
+import './instrument'; // Must be the first import
 import app from './app';
 import dotenv from 'dotenv';
 import { startCronJobs } from './jobs/scheduler';

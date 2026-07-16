@@ -1,11 +1,12 @@
-import { prisma } from '../../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 
 export class SM2Repository {
-  static async getDueQuestions(studentId: string, assignmentId?: string, limit?: number): Promise<any[]> {
+  constructor(private readonly prisma: PrismaClient) {}
+  async getDueQuestions(studentId: string, assignmentId?: string, limit?: number): Promise<any[]> {
     const limitClause = limit ? `LIMIT ${limit}` : '';
     
     if (assignmentId) {
-      return await prisma.$queryRawUnsafe<any[]>(`
+      return await this.prisma.$queryRawUnsafe<any[]>(`
         SELECT q.id, q.content, q.explanation, q.question_type, q.topic_id, q.difficulty,
                sp.easiness_factor, sp.repetition_count, sp.next_review_date
         FROM sm2_progress sp
@@ -21,7 +22,7 @@ export class SM2Repository {
     }
     
     // For daily schedule
-    return await prisma.$queryRaw<any[]>`
+    return await this.prisma.$queryRaw<any[]>`
       WITH RankedDue AS (
         SELECT 
           q.id as question_id, 
@@ -70,9 +71,9 @@ export class SM2Repository {
     `;
   }
 
-  static async getNewQuestions(studentId: string, assignmentId?: string, limit?: number): Promise<any[]> {
+  async getNewQuestions(studentId: string, assignmentId?: string, limit?: number): Promise<any[]> {
     if (assignmentId) {
-      return await prisma.$queryRawUnsafe<any[]>(`
+      return await this.prisma.$queryRawUnsafe<any[]>(`
         SELECT q.id, q.content, q.explanation, q.question_type, q.topic_id, q.difficulty
         FROM assignment_questions aq
         JOIN questions q ON q.id = aq.question_id
@@ -85,7 +86,7 @@ export class SM2Repository {
     }
 
     // For daily schedule
-    return await prisma.$queryRaw<any[]>`
+    return await this.prisma.$queryRaw<any[]>`
       WITH RankedQuestions AS (
         SELECT 
           q.id as question_id, 
@@ -139,8 +140,8 @@ export class SM2Repository {
     `;
   }
 
-  static async getEarlyReviewQuestions(studentId: string, assignmentId: string): Promise<any[]> {
-    return await prisma.$queryRawUnsafe<any[]>(`
+  async getEarlyReviewQuestions(studentId: string, assignmentId: string): Promise<any[]> {
+    return await this.prisma.$queryRawUnsafe<any[]>(`
       SELECT q.id, q.content, q.explanation, q.question_type, q.topic_id, q.difficulty,
              sp.easiness_factor, sp.repetition_count, sp.next_review_date
       FROM sm2_progress sp

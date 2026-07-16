@@ -1,13 +1,14 @@
 import { SM2Repository } from './sm2.repository';
 
 export class SM2Service {
-  static async getDailySchedule(studentId: string) {
+  constructor(private readonly sm2Repository: SM2Repository) {}
+  async getDailySchedule(studentId: string) {
     // Lấy danh sách câu hỏi cần ôn tập hôm nay (M05)
     // Join với assignment, class để trả về thông tin ngữ cảnh giúp sinh viên biết cần ôn môn nào
-    const dueQuestions: any[] = await SM2Repository.getDueQuestions(studentId);
+    const dueQuestions: any[] = await this.sm2Repository.getDueQuestions(studentId);
 
     // 2. Lấy danh sách câu hỏi mới (chưa có trong sm2_progress) từ các bài tập Adaptive đang Active
-    const newQuestions: any[] = await SM2Repository.getNewQuestions(studentId);
+    const newQuestions: any[] = await this.sm2Repository.getNewQuestions(studentId);
 
     const allQuestions = [...dueQuestions, ...newQuestions];
 

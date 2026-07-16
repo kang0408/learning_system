@@ -1,9 +1,10 @@
-import { prisma } from '../../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 
 export class AnalyticsRepository {
+  constructor(private readonly prisma: PrismaClient) {}
   // --- STUDENT ---
-  static async getActiveDates(studentId: string): Promise<{date: string}[]> {
-    return prisma.$queryRaw<{date: string}[]>`
+  async getActiveDates(studentId: string): Promise<{date: string}[]> {
+    return this.prisma.$queryRaw<{date: string}[]>`
       SELECT DISTINCT DATE(started_at)::text as date
       FROM quiz_sessions
       WHERE student_id = ${studentId}::uuid AND status = 'completed'
@@ -11,8 +12,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getWeeklyActivity(studentId: string): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getWeeklyActivity(studentId: string): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       SELECT DATE(started_at)::text as date, COUNT(id)::int as sessions, SUM(total_q)::int as questions, 
       (SUM(correct_q)::float / NULLIF(SUM(total_q), 0) * 100) as accuracy
       FROM quiz_sessions
@@ -22,8 +23,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getStudentCalendar(studentId: string): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getStudentCalendar(studentId: string): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       SELECT 
         DATE(qs.started_at)::text as date,
         EXTRACT(DAY FROM qs.started_at)::int as day,
@@ -39,8 +40,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getRecentTopicAccuracy(studentId: string, days: number = 30): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getRecentTopicAccuracy(studentId: string, days: number = 30): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       SELECT COALESCE(t.name, 'General') as topic,
       (SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)::float / NULLIF(COUNT(sa.id), 0) * 100) as recent_accuracy_pct
       FROM session_answers sa
@@ -52,8 +53,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getWeakTopicsBySM2(studentId: string): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getWeakTopicsBySM2(studentId: string): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       SELECT 
         COALESCE(t.name, 'General') as topic,
         COUNT(p.id)::int as total_questions,
@@ -72,8 +73,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getSM2Summary(studentId: string): Promise<any> {
-    const rawResult = await prisma.$queryRaw<any[]>`
+  async getSM2Summary(studentId: string): Promise<any> {
+    const rawResult = await this.prisma.$queryRaw<any[]>`
       WITH sm2_data AS (
         SELECT 
           easiness_factor::float,
@@ -119,8 +120,8 @@ export class AnalyticsRepository {
   }
 
   // --- TEACHER ---
-  static async getTeacherClassActiveStudents(classId: string, daysAgoStart: number, daysAgoEnd: number = 0): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getTeacherClassActiveStudents(classId: string, daysAgoStart: number, daysAgoEnd: number = 0): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       SELECT COUNT(DISTINCT qs.student_id)::int as active_count
       FROM quiz_sessions qs
       JOIN class_members cm ON qs.student_id = cm.student_id
@@ -130,8 +131,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getTeacherClassAverageScore(classId: string, daysAgoStart: number, daysAgoEnd: number = 0): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getTeacherClassAverageScore(classId: string, daysAgoStart: number, daysAgoEnd: number = 0): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       SELECT COALESCE(AVG(score), 0)::float as avg_score
       FROM quiz_sessions qs
       JOIN assignments a ON a.id = qs.assignment_id
@@ -141,8 +142,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getTeacherClassSM2Summary(classId: string): Promise<any> {
-    const rawResult = await prisma.$queryRaw<any[]>`
+  async getTeacherClassSM2Summary(classId: string): Promise<any> {
+    const rawResult = await this.prisma.$queryRaw<any[]>`
       WITH class_students AS (
         SELECT student_id FROM class_members WHERE class_id = ${classId}::uuid AND is_active = true
       ),
@@ -190,8 +191,8 @@ export class AnalyticsRepository {
     return rawResult[0] || null;
   }
 
-  static async getTeacherClassTopics(classId: string): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getTeacherClassTopics(classId: string): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       WITH class_students AS (
         SELECT student_id FROM class_members WHERE class_id = ${classId}::uuid AND is_active = true
       )
@@ -213,8 +214,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getTeacherClassStudents(classId: string): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getTeacherClassStudents(classId: string): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       WITH sm2_stats AS (
         SELECT 
           sp.student_id,
@@ -260,8 +261,8 @@ export class AnalyticsRepository {
     `;
   }
 
-  static async getTeacherClassTopicStudents(classId: string, topicId: string, isGeneral: boolean): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getTeacherClassTopicStudents(classId: string, topicId: string, isGeneral: boolean): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       WITH sm2_topic_stats AS (
         SELECT 
           sp.student_id,
@@ -325,8 +326,8 @@ export class AnalyticsRepository {
   }
 
   // --- PARENT ---
-  static async getParentChildrenStats(parentId: string): Promise<any[]> {
-    return prisma.$queryRaw<any[]>`
+  async getParentChildrenStats(parentId: string): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
       SELECT
           u.full_name                                  AS student_name,
           u.id                                         AS student_id,
@@ -350,5 +351,38 @@ export class AnalyticsRepository {
           AND qs.status = 'completed'
       GROUP BY u.id, u.full_name;
     `;
+  }
+  async countCompletedSessions(studentId: string): Promise<number> {
+    return this.prisma.quizSession.count({ where: { student_id: studentId, status: 'completed' } });
+  }
+  
+  async countTotalAnswers(studentId: string): Promise<number> {
+    return this.prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' } } });
+  }
+
+  async countCorrectAnswers(studentId: string): Promise<number> {
+    return this.prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' }, is_correct: true } });
+  }
+
+  async findTeacherClass(teacherId: string, classId: string) {
+    return this.prisma.class.findFirst({ where: { id: classId, teacher_id: teacherId } });
+  }
+
+  async countActiveClassMembers(classId: string): Promise<number> {
+    return this.prisma.classMember.count({ where: { class_id: classId, is_active: true } });
+  }
+
+  async countClassAssignments(classId: string): Promise<number> {
+    return this.prisma.assignment.count({ where: { class_id: classId, deleted_at: null } });
+  }
+
+  async findStudentInTeacherClasses(teacherId: string, studentId: string) {
+    return this.prisma.classMember.findFirst({
+      where: {
+        student_id: studentId,
+        is_active: true,
+        class: { teacher_id: teacherId, deleted_at: null }
+      }
+    });
   }
 }

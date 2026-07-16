@@ -1,11 +1,13 @@
-import { prisma } from '../../lib/prisma';
+import { ApiError } from '../../lib/ApiError';
+import { AssignmentsRepository } from './assignments.repository';
 
 export class AssignmentsService {
-  static async createAssignment(data: any, teacherId: string) {
+  constructor(private readonly assignmentsRepository: AssignmentsRepository) {}
+  async createAssignment(data: any, teacherId: string) {
     // Verify class ownership
-    const classData = await prisma.class.findUnique({ where: { id: data.class_id } });
+    const classData = await this.assignmentsRepository.findClassById(data.class_id);
     if (!classData || classData.teacher_id !== teacherId) {
-      throw { status: 403, message: 'Forbidden: Class does not belong to you' };
+      throw new ApiError(403, 'Forbidden: Class does not belong to you');
     }
 
     let allQuestionIds: string[] = [];
@@ -15,11 +17,7 @@ export class AssignmentsService {
     }
 
     if (data.topic_ids && data.topic_ids.length > 0) {
-      const setQuestions = await prisma.question.findMany({
-        where: { topic_id: { in: data.topic_ids }, deleted_at: null },
-        select: { id: true },
-        orderBy: { created_at: 'asc' }
-      });
+      const setQuestions = await this.assignmentsRepository.findQuestionsByTopicIds(data.topic_ids);
       allQuestionIds.push(...setQuestions.map(q => q.id));
     }
 
@@ -27,13 +25,12 @@ export class AssignmentsService {
     allQuestionIds = [...new Set(allQuestionIds)];
 
     if (allQuestionIds.length === 0) {
-      throw { status: 400, message: 'Phải chọn ít nhất một câu hỏi hoặc bộ câu hỏi có chứa câu hỏi' };
+      throw new ApiError(400, 'Phải chọn ít nhất một câu hỏi hoặc bộ câu hỏi có chứa câu hỏi');
     }
 
     const isAllStudents = !data.student_ids || data.student_ids.length === 0;
 
-    return prisma.assignment.create({
-      data: {
+    return this.assignmentsRepository.createAssignment({
         class_id: data.class_id,
         created_by: teacherId,
         title: data.title,
@@ -54,12 +51,10 @@ export class AssignmentsService {
             create: data.student_ids.map((sId: string) => ({ student_id: sId }))
           }
         })
-      },
-      include: { assignment_questions: true, assigned_students: true }
-    });
+      });
   }
 
-  static async getAssignments(teacherId: string, query: any) {
+  async getAssignments(teacherId: string, query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
 
@@ -75,27 +70,7 @@ export class AssignmentsService {
       ];
     }
 
-    const assignments = await prisma.assignment.findMany({
-      where,
-      include: {
-        assigned_students: {
-          select: { student_id: true }
-        },
-        class: {
-          select: {
-            _count: {
-              select: { members: { where: { is_active: true } } }
-            }
-          }
-        },
-        quiz_sessions: {
-          select: { student_id: true, status: true, score: true }
-        }
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { created_at: 'desc' }
-    });
+    const assignments = await this.assignmentsRepository.findAssignments(where, (page - 1) * limit, limit);
 
     const enrichedAssignments = assignments.map(assignment => {
       const uniqueSubmissions = new Set(assignment.quiz_sessions.map(s => s.student_id));
@@ -162,45 +137,34 @@ export class AssignmentsService {
       return result;
     });
     
-    const total = await prisma.assignment.count({ where });
+    const total = await this.assignmentsRepository.countAssignments(where);
     return { assignments: enrichedAssignments, meta: { page, limit, total } };
   }
 
-  static async getAssignmentById(id: string, userId: string, role: string) {
-    const assignment = await prisma.assignment.findUnique({
-      where: { id, deleted_at: null },
-      include: {
-        assignment_questions: { include: { question: true } },
-        class: true,
-        assigned_students: {
-          include: { student: { select: { id: true, full_name: true, email: true } } }
-        }
-      }
-    });
+  async getAssignmentById(id: string, userId: string, role: string) {
+    const assignment = await this.assignmentsRepository.findAssignmentById(id);
 
-    if (!assignment) throw { status: 404, message: 'Assignment not found' };
+    if (!assignment) throw new ApiError(404, 'Assignment not found');
 
     if (role === 'teacher' && assignment.created_by !== userId) {
-      throw { status: 403, message: 'Forbidden' };
+      throw new ApiError(403, 'Forbidden');
     }
 
     if (role === 'student') {
-      const isMember = await prisma.classMember.findUnique({
-        where: { class_id_student_id: { class_id: assignment.class_id, student_id: userId } }
-      });
-      if (!isMember || !isMember.is_active) throw { status: 403, message: 'Forbidden' };
-      if (!assignment.is_published) throw { status: 403, message: 'Assignment not published' };
+      const isMember = await this.assignmentsRepository.checkClassMembership(assignment.class_id, userId);
+      if (!isMember || !isMember.is_active) throw new ApiError(403, 'Forbidden');
+      if (!assignment.is_published) throw new ApiError(403, 'Assignment not published');
       
       if (!assignment.is_all_students) {
         const isAssigned = assignment.assigned_students.some(s => s.student_id === userId);
-        if (!isAssigned) throw { status: 403, message: 'Assignment is not assigned to you' };
+        if (!isAssigned) throw new ApiError(403, 'Assignment is not assigned to you');
       }
     }
 
     return assignment;
   }
 
-  static async updateAssignment(id: string, teacherId: string, data: any) {
+  async updateAssignment(id: string, teacherId: string, data: any) {
     const assignment = await this.getAssignmentById(id, teacherId, 'teacher');
     
     let questionsToAssignIds: string[] | undefined = undefined;
@@ -212,35 +176,29 @@ export class AssignmentsService {
       }
 
       if (data.topic_ids && data.topic_ids.length > 0) {
-        const setQuestions = await prisma.question.findMany({
-          where: { topic_id: { in: data.topic_ids }, deleted_at: null },
-          select: { id: true },
-          orderBy: { created_at: 'asc' }
-        });
+        const setQuestions = await this.assignmentsRepository.findQuestionsByTopicIds(data.topic_ids);
         questionsToAssignIds.push(...setQuestions.map(q => q.id));
       }
 
       questionsToAssignIds = [...new Set(questionsToAssignIds)];
 
       if (questionsToAssignIds.length === 0) {
-        throw { status: 400, message: 'Phải chọn ít nhất một câu hỏi hoặc bộ câu hỏi có chứa câu hỏi' };
+        throw new ApiError(400, 'Phải chọn ít nhất một câu hỏi hoặc bộ câu hỏi có chứa câu hỏi');
       }
     }
 
-    return prisma.$transaction(async (tx) => {
+    return this.assignmentsRepository.executeTransaction(async (tx) => {
       if (questionsToAssignIds) {
-        await tx.assignmentQuestion.deleteMany({ where: { assignment_id: id } });
+        await this.assignmentsRepository.deleteAssignmentQuestions(id, tx);
       }
 
       if (data.student_ids) {
-        await tx.assignmentStudent.deleteMany({ where: { assignment_id: id } });
+        await this.assignmentsRepository.deleteAssignmentStudents(id, tx);
       }
 
       const isAllStudents = data.student_ids ? data.student_ids.length === 0 : assignment.is_all_students;
 
-      return tx.assignment.update({
-        where: { id },
-        data: {
+      return this.assignmentsRepository.updateAssignment(id, {
           title: data.title,
           description: data.description,
           mode: data.mode,
@@ -262,45 +220,31 @@ export class AssignmentsService {
               create: data.student_ids.map((sId: string) => ({ student_id: sId }))
             }
           })
-        },
-        include: { assignment_questions: true, assigned_students: true }
-      });
+        }, tx);
     });
   }
 
-  static async deleteAssignment(id: string, teacherId: string) {
+  async deleteAssignment(id: string, teacherId: string) {
     await this.getAssignmentById(id, teacherId, 'teacher');
-    return prisma.assignment.update({
-      where: { id },
-      data: { deleted_at: new Date() }
-    });
+    return this.assignmentsRepository.updateAssignment(id, { deleted_at: new Date() });
   }
 
-  static async publishAssignment(id: string, teacherId: string) {
+  async publishAssignment(id: string, teacherId: string) {
     await this.getAssignmentById(id, teacherId, 'teacher');
-    return prisma.assignment.update({
-      where: { id },
-      data: { is_published: true, published_at: new Date(), updated_at: new Date() }
-    });
+    return this.assignmentsRepository.updateAssignment(id, { is_published: true, published_at: new Date(), updated_at: new Date() });
   }
 
-  static async unpublishAssignment(id: string, teacherId: string) {
+  async unpublishAssignment(id: string, teacherId: string) {
     await this.getAssignmentById(id, teacherId, 'teacher');
-    return prisma.assignment.update({
-      where: { id },
-      data: { is_published: false, updated_at: new Date() }
-    });
+    return this.assignmentsRepository.updateAssignment(id, { is_published: false, updated_at: new Date() });
   }
 
-  static async getMyAssignments(studentId: string, query: any) {
+  async getMyAssignments(studentId: string, query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
     const status = query.status || 'all';
 
-    const memberClasses = await prisma.classMember.findMany({
-      where: { student_id: studentId, is_active: true },
-      select: { class_id: true }
-    });
+    const memberClasses = await this.assignmentsRepository.getStudentActiveClasses(studentId);
     
     // Filter by class_id if provided, otherwise use all classes the student is in
     const targetClassIds = query.class_id 
@@ -331,21 +275,9 @@ export class AssignmentsService {
       ];
     }
 
-    const assignments = await prisma.assignment.findMany({
-      where: baseWhere,
-      include: { 
-        class: { select: { name: true } },
-        quiz_sessions: {
-          where: { student_id: studentId },
-          orderBy: { started_at: 'desc' }
-        }
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { created_at: 'desc' }
-    });
+    const assignments = await this.assignmentsRepository.findStudentAssignments(baseWhere, studentId, (page - 1) * limit, limit);
     
-    const total = await prisma.assignment.count({ where: baseWhere });
+    const total = await this.assignmentsRepository.countAssignments(baseWhere);
     return { assignments, meta: { page, limit, total } };
   }
 }

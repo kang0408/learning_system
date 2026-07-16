@@ -1,15 +1,22 @@
 import { Router } from 'express';
 import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { AuthRepository } from './auth.repository';
 import { requireAuth } from '../../middlewares/auth.middleware';
+import { asyncWrapper } from '../../utils/asyncWrapper';
+import { prisma } from '../../lib/prisma';
 
 const router = Router();
 
-router.post('/register', AuthController.register);
-router.post('/login', AuthController.login);
+const authRepository = new AuthRepository(prisma);
+const authService = new AuthService(authRepository);
+const authController = new AuthController(authService);
 
-// Add this route for testing middleware
+router.post('/register', asyncWrapper(authController.register));
+router.post('/login', asyncWrapper(authController.login));
+
 router.get('/me', requireAuth, (req: any, res) => {
-  res.json({ user: req.user });
+  res.json({ success: true, data: { user: req.user } });
 });
 
 export default router;

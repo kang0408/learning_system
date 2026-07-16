@@ -1,84 +1,100 @@
 import { Request, Response } from 'express';
 import { QuestionsService } from './questions.service';
+import { BaseController } from '../../controllers/BaseController';
 import { createQuestionSchema, updateQuestionSchema } from './questions.schema';
 
-export class QuestionsController {
-  static async createQuestion(req: any, res: Response) {
+export class QuestionsController extends BaseController {
+  constructor(private readonly questionsService: QuestionsService) {
+    super();
+    this.createQuestion = this.createQuestion.bind(this);
+    this.getQuestions = this.getQuestions.bind(this);
+    this.getQuestionById = this.getQuestionById.bind(this);
+    this.updateQuestion = this.updateQuestion.bind(this);
+    this.togglePublish = this.togglePublish.bind(this);
+    this.deleteQuestion = this.deleteQuestion.bind(this);
+    this.importCSV = this.importCSV.bind(this);
+    this.createTopic = this.createTopic.bind(this);
+    this.getTopics = this.getTopics.bind(this);
+    this.getTopicById = this.getTopicById.bind(this);
+    this.updateTopic = this.updateTopic.bind(this);
+    this.deleteTopic = this.deleteTopic.bind(this);
+  }
+  async createQuestion(req: any, res: Response) {
     const parseResult = createQuestionSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const q = await QuestionsService.createQuestion(parseResult.data, req.user.userId);
-    res.status(201).json({ success: true, data: q });
+    const q = await this.questionsService.createQuestion(parseResult.data, req.user.userId);
+    this.handleSuccess(res, q, 201);
   }
 
-  static async getQuestions(req: any, res: Response) {
-    const result = await QuestionsService.getQuestions(req.user.userId, req.query);
-    res.json({ success: true, data: result.questions, meta: result.meta });
+  async getQuestions(req: any, res: Response) {
+    const result = await this.questionsService.getQuestions(req.user.userId, req.query);
+    this.handleSuccess(res, result.questions, 200, result.meta);
   }
 
-  static async getQuestionById(req: any, res: Response) {
-    const q = await QuestionsService.getQuestionById(req.params.id, req.user.userId);
-    res.json({ success: true, data: q });
+  async getQuestionById(req: any, res: Response) {
+    const q = await this.questionsService.getQuestionById(req.params.id, req.user.userId);
+    this.handleSuccess(res, q);
   }
 
-  static async updateQuestion(req: any, res: Response) {
+  async updateQuestion(req: any, res: Response) {
     const parseResult = updateQuestionSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const q = await QuestionsService.updateQuestion(req.params.id, req.user.userId, parseResult.data);
-    res.json({ success: true, data: q });
+    const q = await this.questionsService.updateQuestion(req.params.id, req.user.userId, parseResult.data);
+    this.handleSuccess(res, q);
   }
 
-  static async togglePublish(req: any, res: Response) {
-    const q = await QuestionsService.togglePublish(req.params.id, req.user.userId);
-    res.json({ success: true, data: q });
+  async togglePublish(req: any, res: Response) {
+    const q = await this.questionsService.togglePublish(req.params.id, req.user.userId);
+    this.handleSuccess(res, q);
   }
 
-  static async deleteQuestion(req: any, res: Response) {
-    await QuestionsService.deleteQuestion(req.params.id, req.user.userId);
-    res.json({ success: true, data: null });
+  async deleteQuestion(req: any, res: Response) {
+    await this.questionsService.deleteQuestion(req.params.id, req.user.userId);
+    this.handleSuccess(res, null);
   }
 
-  static async importCSV(req: any, res: Response) {
+  async importCSV(req: any, res: Response) {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
     try {
       const csvData = req.file.buffer.toString('utf-8');
-      const result = await QuestionsService.importCSV(csvData, req.user.userId);
-      res.json({ success: true, data: result });
+      const result = await this.questionsService.importCSV(csvData, req.user.userId);
+      this.handleSuccess(res, result);
     } catch (e: any) {
       res.status(500).json({ success: false, message: e.message || 'Error processing CSV' });
     }
   }
 
   // Topic methods
-  static async createTopic(req: any, res: Response) {
+  async createTopic(req: any, res: Response) {
     const { createTopicSchema } = await import('./questions.schema');
     const parseResult = createTopicSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const qs = await QuestionsService.createTopic(parseResult.data, req.user.userId);
-    res.status(201).json({ success: true, data: qs });
+    const qs = await this.questionsService.createTopic(parseResult.data, req.user.userId);
+    this.handleSuccess(res, qs, 201);
   }
 
-  static async getTopics(req: any, res: Response) {
-    const result = await QuestionsService.getTopics(req.user.userId, req.query);
-    res.json({ success: true, data: result.topics, meta: result.meta });
+  async getTopics(req: any, res: Response) {
+    const result = await this.questionsService.getTopics(req.user.userId, req.query);
+    this.handleSuccess(res, result.topics, 200, result.meta);
   }
 
-  static async getTopicById(req: any, res: Response) {
-    const qs = await QuestionsService.getTopicById(req.params.id, req.user.userId);
-    res.json({ success: true, data: qs });
+  async getTopicById(req: any, res: Response) {
+    const qs = await this.questionsService.getTopicById(req.params.id, req.user.userId);
+    this.handleSuccess(res, qs);
   }
 
-  static async updateTopic(req: any, res: Response) {
+  async updateTopic(req: any, res: Response) {
     const { updateTopicSchema } = await import('./questions.schema');
     const parseResult = updateTopicSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const qs = await QuestionsService.updateTopic(req.params.id, req.user.userId, parseResult.data);
-    res.json({ success: true, data: qs });
+    const qs = await this.questionsService.updateTopic(req.params.id, req.user.userId, parseResult.data);
+    this.handleSuccess(res, qs);
   }
 
-  static async deleteTopic(req: any, res: Response) {
-    await QuestionsService.deleteTopic(req.params.id, req.user.userId);
-    res.json({ success: true, data: null });
+  async deleteTopic(req: any, res: Response) {
+    await this.questionsService.deleteTopic(req.params.id, req.user.userId);
+    this.handleSuccess(res, null);
   }
 }

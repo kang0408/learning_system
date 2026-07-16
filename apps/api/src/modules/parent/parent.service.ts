@@ -1,30 +1,18 @@
-import { prisma } from '../../lib/prisma';
+import { ParentRepository } from './parent.repository';
+import { ApiError } from '../../lib/ApiError';
 
 export class ParentService {
-  static async linkStudent(parentId: string, studentEmail: string) {
-    const student = await prisma.user.findUnique({ where: { email: studentEmail } });
-    if (!student || student.role !== 'student') throw { status: 404, message: 'Student not found' };
+  constructor(private readonly parentRepository: ParentRepository) {}
 
-    return prisma.parentStudentLink.create({
-      data: { parent_id: parentId, student_id: student.id }
-    });
+  async linkStudent(parentId: string, studentEmail: string) {
+    const student = await this.parentRepository.findStudentByEmail(studentEmail);
+    if (!student || student.role !== 'student') throw new ApiError(404, 'Student not found');
+
+    return this.parentRepository.createParentStudentLink(parentId, student.id);
   }
 
-  static async getChildren(parentId: string) {
-    const links = await prisma.parentStudentLink.findMany({
-      where: { parent_id: parentId, is_active: true },
-      include: {
-        student: {
-          select: {
-            id: true,
-            email: true,
-            full_name: true,
-            avatar_url: true,
-            created_at: true
-          }
-        }
-      }
-    });
+  async getChildren(parentId: string) {
+    const links = await this.parentRepository.getChildren(parentId);
     
     return links.map(link => ({
       link_id: link.id,
@@ -36,16 +24,12 @@ export class ParentService {
     }));
   }
 
-  static async unlinkStudent(parentId: string, studentId: string) {
-    const link = await prisma.parentStudentLink.findUnique({
-      where: { parent_id_student_id: { parent_id: parentId, student_id: studentId } }
-    });
+  async unlinkStudent(parentId: string, studentId: string) {
+    const link = await this.parentRepository.findLink(parentId, studentId);
     
-    if (!link) throw { status: 404, message: 'Link not found' };
+    if (!link) throw new ApiError(404, 'Link not found');
 
-    await prisma.parentStudentLink.delete({
-      where: { id: link.id }
-    });
+    await this.parentRepository.deleteLink(link.id);
     
     return true;
   }

@@ -30,6 +30,8 @@
     "@adaptive-lang/sm2-engine": "^1.0.0",
     "@adaptive-lang/types": "^1.0.0",
     "@prisma/client": "^5.0.0",
+    "@sentry/node": "^10.65.0",
+    "@sentry/profiling-node": "^10.65.0",
     "@types/multer": "^2.1.0",
     "@types/papaparse": "^5.5.2",
     "bcrypt": "^6.0.0",

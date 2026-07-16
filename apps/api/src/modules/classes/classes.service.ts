@@ -1,125 +1,79 @@
-import { prisma } from '../../lib/prisma';
+import { ApiError } from '../../lib/ApiError';
+import { ClassesRepository } from './classes.repository';
 import crypto from 'crypto';
 
 export class ClassesService {
-  static async createClass(data: any, teacherId: string) {
+  constructor(private readonly classesRepository: ClassesRepository) {}
+  async createClass(data: any, teacherId: string) {
     const joinCode = crypto.randomBytes(3).toString('hex').toUpperCase(); // 6 chars
-    return prisma.class.create({
-      data: {
+    return this.classesRepository.createClass({
         name: data.name,
         subject: data.subject,
         description: data.description,
         join_code: joinCode,
         teacher_id: teacherId
-      }
-    });
+      });
   }
 
-  static async getTeacherClasses(teacherId: string) {
-    return prisma.class.findMany({
-      where: { teacher_id: teacherId, deleted_at: null },
-      include: {
-        _count: { select: { members: { where: { is_active: true } } } }
-      }
-    });
+  async getTeacherClasses(teacherId: string) {
+    return this.classesRepository.findTeacherClasses(teacherId);
   }
 
-  static async getClassById(classId: string) {
-    const classData = await prisma.class.findUnique({
-      where: { id: classId, deleted_at: null },
-      include: {
-        teacher: { select: { full_name: true, email: true } },
-        _count: { select: { members: { where: { is_active: true } } } }
-      }
-    });
-    if (!classData) throw { status: 404, message: 'Class not found' };
+  async getClassById(classId: string) {
+    const classData = await this.classesRepository.findClassById(classId);
+    if (!classData) throw new ApiError(404, 'Class not found');
     return classData;
   }
 
-  static async updateClass(classId: string, teacherId: string, data: any) {
+  async updateClass(classId: string, teacherId: string, data: any) {
     const classData = await this.getClassById(classId);
-    if (classData.teacher_id !== teacherId) throw { status: 403, message: 'Forbidden' };
+    if (classData.teacher_id !== teacherId) throw new ApiError(403, 'Forbidden');
     
-    return prisma.class.update({
-      where: { id: classId },
-      data: { ...data, updated_at: new Date() }
-    });
+    return this.classesRepository.updateClass(classId, { ...data, updated_at: new Date() });
   }
 
-  static async deleteClass(classId: string, teacherId: string) {
+  async deleteClass(classId: string, teacherId: string) {
     const classData = await this.getClassById(classId);
-    if (classData.teacher_id !== teacherId) throw { status: 403, message: 'Forbidden' };
+    if (classData.teacher_id !== teacherId) throw new ApiError(403, 'Forbidden');
 
-    return prisma.class.update({
-      where: { id: classId },
-      data: { deleted_at: new Date() }
-    });
+    return this.classesRepository.updateClass(classId, { deleted_at: new Date() });
   }
 
-  static async getClassMembers(classId: string, teacherId: string, page = 1, limit = 20) {
+  async getClassMembers(classId: string, teacherId: string, page = 1, limit = 20) {
     const classData = await this.getClassById(classId);
-    if (classData.teacher_id !== teacherId) throw { status: 403, message: 'Forbidden' };
+    if (classData.teacher_id !== teacherId) throw new ApiError(403, 'Forbidden');
 
-    const members = await prisma.classMember.findMany({
-      where: { class_id: classId, is_active: true },
-      include: {
-        student: { select: { id: true, full_name: true, email: true, avatar_url: true } }
-      },
-      skip: (page - 1) * limit,
-      take: limit
-    });
+    const members = await this.classesRepository.findClassMembers(classId, (page - 1) * limit, limit);
     
-    const total = await prisma.classMember.count({ where: { class_id: classId, is_active: true } });
+    const total = await this.classesRepository.countClassMembers(classId);
     return { members, meta: { page, limit, total } };
   }
 
-  static async removeMember(classId: string, teacherId: string, studentId: string) {
+  async removeMember(classId: string, teacherId: string, studentId: string) {
     const classData = await this.getClassById(classId);
-    if (classData.teacher_id !== teacherId) throw { status: 403, message: 'Forbidden' };
+    if (classData.teacher_id !== teacherId) throw new ApiError(403, 'Forbidden');
 
-    return prisma.classMember.update({
-      where: { class_id_student_id: { class_id: classId, student_id: studentId } },
-      data: { is_active: false }
-    });
+    return this.classesRepository.deactivateMember(classId, studentId);
   }
 
-  static async joinClass(studentId: string, joinCode: string) {
-    const classData = await prisma.class.findUnique({
-      where: { join_code: joinCode, deleted_at: null }
-    });
-    if (!classData) throw { status: 404, message: 'Mã lớp không tồn tại hoặc đã hết hiệu lực' };
+  async joinClass(studentId: string, joinCode: string) {
+    const classData = await this.classesRepository.findClassByJoinCode(joinCode);
+    if (!classData) throw new ApiError(404, 'Mã lớp không tồn tại hoặc đã hết hiệu lực');
 
-    const existing = await prisma.classMember.findUnique({
-      where: { class_id_student_id: { class_id: classData.id, student_id: studentId } }
-    });
+    const existing = await this.classesRepository.checkMembership(classData.id, studentId);
     
     if (existing && existing.is_active) {
-      throw { status: 409, message: 'Bạn đã là thành viên của lớp này' };
+      throw new ApiError(409, 'Bạn đã là thành viên của lớp này');
     }
 
     if (existing && !existing.is_active) {
-      return prisma.classMember.update({
-        where: { id: existing.id },
-        data: { is_active: true, joined_at: new Date() }
-      });
+      return this.classesRepository.reactivateMember(existing.id);
     }
 
-    return prisma.classMember.create({
-      data: {
-        class_id: classData.id,
-        student_id: studentId
-      }
-    });
+    return this.classesRepository.createMember(classData.id, studentId);
   }
 
-  static async getMyClasses(studentId: string) {
-    return prisma.classMember.findMany({
-      where: { student_id: studentId, is_active: true },
-      include: {
-        class: {
-          include: { teacher: { select: { full_name: true } } }
-        }
-      }
-    });
+  async getMyClasses(studentId: string) {
+    return this.classesRepository.findStudentClasses(studentId);
   }
 }

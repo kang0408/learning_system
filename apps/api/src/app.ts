@@ -35,7 +35,12 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/parents', parentRoutes);
 app.use('/api/sm2', sm2Routes);
 
-// Add error handler as the last middleware
+import * as Sentry from '@sentry/node';
+
+// Add Sentry error handler
+Sentry.setupExpressErrorHandler(app);
+
+// Add custom error handler as the last middleware
 app.use(errorHandler);
 
 export default app;

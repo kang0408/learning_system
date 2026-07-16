@@ -1,24 +1,24 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { registerSchema, loginSchema } from './auth.schema';
+import { BaseController } from '../../controllers/BaseController';
 
-export class AuthController {
-  static async register(req: Request, res: Response) {
-    const parseResult = registerSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({ error: parseResult.error });
-    }
-    
-    const user = await AuthService.register(parseResult.data);
-    res.status(201).json({ user });
+export class AuthController extends BaseController {
+  constructor(private readonly authService: AuthService) {
+    super();
+    this.register = this.register.bind(this);
+    this.login = this.login.bind(this);
   }
 
-  static async login(req: Request, res: Response) {
-    const parseResult = loginSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({ error: parseResult.error });
-    }
-    const result = await AuthService.login(parseResult.data);
-    res.json(result);
+  async register(req: Request, res: Response) {
+    const data = registerSchema.parse(req.body);
+    const user = await this.authService.register(data);
+    this.handleSuccess(res, { user }, 201);
+  }
+
+  async login(req: Request, res: Response) {
+    const data = loginSchema.parse(req.body);
+    const result = await this.authService.login(data);
+    this.handleSuccess(res, result);
   }
 }

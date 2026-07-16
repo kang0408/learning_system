@@ -1,48 +1,56 @@
 import { Request, Response } from 'express';
 import { SessionsService } from './sessions.service';
+import { BaseController } from '../../controllers/BaseController';
 import { startSessionSchema, submitAnswerSchema } from './sessions.schema';
 
-export class SessionsController {
-  static async start(req: any, res: Response) {
+export class SessionsController extends BaseController {
+  constructor(private readonly sessionsService: SessionsService) {
+    super();
+    this.start = this.start.bind(this);
+    this.submitAnswer = this.submitAnswer.bind(this);
+    this.finish = this.finish.bind(this);
+    this.abandon = this.abandon.bind(this);
+    this.getInfo = this.getInfo.bind(this);
+    this.getResult = this.getResult.bind(this);
+  }
+  async start(req: any, res: Response) {
     const parseResult = startSessionSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const sessionData = await SessionsService.startSession(req.user.userId, parseResult.data.assignment_id);
-    res.status(201).json({ success: true, data: sessionData });
+    const sessionData = await this.sessionsService.startSession(req.user.userId, parseResult.data.assignment_id);
+    this.handleSuccess(res, sessionData, 201);
   }
 
-  static async submitAnswer(req: any, res: Response) {
+  async submitAnswer(req: any, res: Response) {
     const { id } = req.params;
     const parseResult = submitAnswerSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const result = await SessionsService.submitAnswer(req.user.userId, id, parseResult.data);
-    res.json({ success: true, data: result });
+    const result = await this.sessionsService.submitAnswer(req.user.userId, id, parseResult.data);
+    this.handleSuccess(res, result);
   }
 
-  static async finish(req: any, res: Response) {
+  async finish(req: any, res: Response) {
     const { id } = req.params;
-    const result = await SessionsService.finishSession(req.user.userId, id);
-    res.json({ success: true, data: result });
+    const result = await this.sessionsService.finishSession(req.user.userId, id);
+    this.handleSuccess(res, result);
   }
 
-  static async abandon(req: any, res: Response) {
+  async abandon(req: any, res: Response) {
     const { id } = req.params;
-    await SessionsService.abandonSession(req.user.userId, id);
-    res.json({ success: true, data: null });
+    await this.sessionsService.abandonSession(req.user.userId, id);
+    this.handleSuccess(res, null);
   }
 
-  static async getInfo(req: any, res: Response) {
+  async getInfo(req: any, res: Response) {
     const { id } = req.params;
-    const result = await SessionsService.getSessionInfo(req.user.userId, id);
-    res.json({ success: true, data: result });
+    const result = await this.sessionsService.getSessionInfo(req.user.userId, id);
+    this.handleSuccess(res, result);
   }
 
-  static async getResult(req: any, res: Response) {
-    try {
+  async getResult(req: any, res: Response) {
+    
       const { id } = req.params;
-      const result = await SessionsService.getSessionResult(req.user.userId, id);
-      res.json({ success: true, data: result });
-    } catch (err: any) {
-      res.status(err.status || 500).json({ success: false, error: err.message });
-    }
+      const result = await this.sessionsService.getSessionResult(req.user.userId, id);
+      this.handleSuccess(res, result);
+    
   }
 }

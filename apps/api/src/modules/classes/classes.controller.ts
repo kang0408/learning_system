@@ -1,58 +1,71 @@
 import { Request, Response } from 'express';
 import { ClassesService } from './classes.service';
+import { BaseController } from '../../controllers/BaseController';
 import { createClassSchema, updateClassSchema, joinClassSchema } from './classes.schema';
 
-export class ClassesController {
-  static async createClass(req: any, res: Response) {
+export class ClassesController extends BaseController {
+  constructor(private readonly classesService: ClassesService) {
+    super();
+    this.createClass = this.createClass.bind(this);
+    this.getTeacherClasses = this.getTeacherClasses.bind(this);
+    this.getClassById = this.getClassById.bind(this);
+    this.updateClass = this.updateClass.bind(this);
+    this.deleteClass = this.deleteClass.bind(this);
+    this.getClassMembers = this.getClassMembers.bind(this);
+    this.removeMember = this.removeMember.bind(this);
+    this.joinClass = this.joinClass.bind(this);
+    this.getMyClasses = this.getMyClasses.bind(this);
+  }
+  async createClass(req: any, res: Response) {
     const parseResult = createClassSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const newClass = await ClassesService.createClass(parseResult.data, req.user.userId);
-    res.status(201).json({ success: true, data: newClass });
+    const newClass = await this.classesService.createClass(parseResult.data, req.user.userId);
+    this.handleSuccess(res, newClass, 201);
   }
 
-  static async getTeacherClasses(req: any, res: Response) {
-    const classes = await ClassesService.getTeacherClasses(req.user.userId);
-    res.json({ success: true, data: classes });
+  async getTeacherClasses(req: any, res: Response) {
+    const classes = await this.classesService.getTeacherClasses(req.user.userId);
+    this.handleSuccess(res, classes);
   }
 
-  static async getClassById(req: any, res: Response) {
-    const classData = await ClassesService.getClassById(req.params.id);
-    res.json({ success: true, data: classData });
+  async getClassById(req: any, res: Response) {
+    const classData = await this.classesService.getClassById(req.params.id);
+    this.handleSuccess(res, classData);
   }
 
-  static async updateClass(req: any, res: Response) {
+  async updateClass(req: any, res: Response) {
     const parseResult = updateClassSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const updated = await ClassesService.updateClass(req.params.id, req.user.userId, parseResult.data);
-    res.json({ success: true, data: updated });
+    const updated = await this.classesService.updateClass(req.params.id, req.user.userId, parseResult.data);
+    this.handleSuccess(res, updated);
   }
 
-  static async deleteClass(req: any, res: Response) {
-    await ClassesService.deleteClass(req.params.id, req.user.userId);
-    res.json({ success: true, data: null });
+  async deleteClass(req: any, res: Response) {
+    await this.classesService.deleteClass(req.params.id, req.user.userId);
+    this.handleSuccess(res, null);
   }
 
-  static async getClassMembers(req: any, res: Response) {
+  async getClassMembers(req: any, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
-    const result = await ClassesService.getClassMembers(req.params.id, req.user.userId, page, limit);
-    res.json({ success: true, data: result.members, meta: result.meta });
+    const result = await this.classesService.getClassMembers(req.params.id, req.user.userId, page, limit);
+    this.handleSuccess(res, result.members, 200, result.meta);
   }
 
-  static async removeMember(req: any, res: Response) {
-    await ClassesService.removeMember(req.params.id, req.user.userId, req.params.studentId);
-    res.json({ success: true, data: null });
+  async removeMember(req: any, res: Response) {
+    await this.classesService.removeMember(req.params.id, req.user.userId, req.params.studentId);
+    this.handleSuccess(res, null);
   }
 
-  static async joinClass(req: any, res: Response) {
+  async joinClass(req: any, res: Response) {
     const parseResult = joinClassSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const result = await ClassesService.joinClass(req.user.userId, parseResult.data.join_code);
-    res.json({ success: true, data: result });
+    const result = await this.classesService.joinClass(req.user.userId, parseResult.data.join_code);
+    this.handleSuccess(res, result);
   }
 
-  static async getMyClasses(req: any, res: Response) {
-    const classes = await ClassesService.getMyClasses(req.user.userId);
-    res.json({ success: true, data: classes });
+  async getMyClasses(req: any, res: Response) {
+    const classes = await this.classesService.getMyClasses(req.user.userId);
+    this.handleSuccess(res, classes);
   }
 }

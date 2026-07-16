@@ -2,86 +2,79 @@ import { Request, Response } from 'express';
 import { UsersService } from './users.service';
 import { updateMeSchema, updatePasswordSchema } from './users.schema';
 import { AuthRequest } from '../../middlewares/auth.middleware';
+import { BaseController } from '../../controllers/BaseController';
+import { ApiError } from '../../lib/ApiError';
 
-export class UsersController {
-  static async getMe(req: AuthRequest, res: Response) {
-    if (!req.user) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
-    
-    try {
-      const user = await UsersService.getMe(req.user.userId);
-      res.json({ success: true, data: user });
-    } catch (err: any) {
-      res.status(err.status || 500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: err.message } });
-    }
+export class UsersController extends BaseController {
+  constructor(private readonly usersService: UsersService) {
+    super();
+    this.getMe = this.getMe.bind(this);
+    this.updateMe = this.updateMe.bind(this);
+    this.updatePassword = this.updatePassword.bind(this);
+    this.uploadAvatar = this.uploadAvatar.bind(this);
   }
 
-  static async updateMe(req: AuthRequest, res: Response) {
-    if (!req.user) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+  async getMe(req: AuthRequest, res: Response) {
+    if (!req.user) throw new ApiError(401, 'Unauthorized');
+    
+    const user = await this.usersService.getMe(req.user.userId);
+    this.handleSuccess(res, user);
+  }
+
+  async updateMe(req: AuthRequest, res: Response) {
+    if (!req.user) throw new ApiError(401, 'Unauthorized');
     
     const parseResult = updateMeSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Dữ liệu không hợp lệ', details: parseResult.error.issues } });
+      throw new ApiError(400, 'Dữ liệu không hợp lệ');
     }
 
-    try {
-      const updateData: any = { ...parseResult.data };
+    const updateData: any = { ...parseResult.data };
+    
+    if (req.file) {
+      updateData.avatar_url = `/public/uploads/avatars/${req.file.filename}`;
       
-      if (req.file) {
-        updateData.avatar_url = `/public/uploads/avatars/${req.file.filename}`;
-        
-        // Delete old avatar if it exists
-        const currentUser = await UsersService.getMe(req.user.userId);
-        if (currentUser.avatar_url && currentUser.avatar_url.startsWith('/public/uploads/')) {
-          const fs = require('fs');
-          const path = require('path');
-          const oldPath = path.join(process.cwd(), currentUser.avatar_url);
-          if (fs.existsSync(oldPath)) {
-            try {
-              fs.unlinkSync(oldPath);
-            } catch (e) {
-              console.error('Failed to delete old avatar:', e);
-            }
+      // Delete old avatar if it exists
+      const currentUser = await this.usersService.getMe(req.user.userId);
+      if (currentUser.avatar_url && currentUser.avatar_url.startsWith('/public/uploads/')) {
+        const fs = require('fs');
+        const path = require('path');
+        const oldPath = path.join(process.cwd(), currentUser.avatar_url);
+        if (fs.existsSync(oldPath)) {
+          try {
+            fs.unlinkSync(oldPath);
+          } catch (e) {
+            console.error('Failed to delete old avatar:', e);
           }
         }
       }
-
-      const user = await UsersService.updateMe(req.user.userId, updateData);
-      res.json({ success: true, data: user });
-    } catch (err: any) {
-      res.status(err.status || 500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: err.message } });
     }
+
+    const user = await this.usersService.updateMe(req.user.userId, updateData);
+    this.handleSuccess(res, user);
   }
 
-  static async updatePassword(req: AuthRequest, res: Response) {
-    if (!req.user) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+  async updatePassword(req: AuthRequest, res: Response) {
+    if (!req.user) throw new ApiError(401, 'Unauthorized');
 
     const parseResult = updatePasswordSchema.safeParse(req.body);
     if (!parseResult.success) {
-      return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Dữ liệu không hợp lệ', details: parseResult.error.issues } });
+      throw new ApiError(400, 'Dữ liệu không hợp lệ');
     }
 
-    try {
-      await UsersService.updatePassword(req.user.userId, parseResult.data);
-      res.json({ success: true, data: {} });
-    } catch (err: any) {
-      const code = err.status === 401 ? 'UNAUTHORIZED' : err.status === 404 ? 'NOT_FOUND' : 'INTERNAL_ERROR';
-      res.status(err.status || 500).json({ success: false, error: { code, message: err.message } });
-    }
+    await this.usersService.updatePassword(req.user.userId, parseResult.data);
+    this.handleSuccess(res, {});
   }
 
-  static async uploadAvatar(req: AuthRequest, res: Response) {
-    if (!req.user) return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } });
+  async uploadAvatar(req: AuthRequest, res: Response) {
+    if (!req.user) throw new ApiError(401, 'Unauthorized');
 
     const avatarUrl = req.body.avatar_url;
     if (!avatarUrl) {
-       return res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'avatar_url is required' } });
+      throw new ApiError(400, 'avatar_url is required');
     }
 
-    try {
-      const user = await UsersService.uploadAvatar(req.user.userId, avatarUrl);
-      res.json({ success: true, data: user });
-    } catch (err: any) {
-      res.status(err.status || 500).json({ success: false, error: { code: 'INTERNAL_ERROR', message: err.message } });
-    }
+    const user = await this.usersService.uploadAvatar(req.user.userId, avatarUrl);
+    this.handleSuccess(res, user);
   }
 }

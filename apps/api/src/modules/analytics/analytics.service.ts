@@ -1,16 +1,17 @@
-import { prisma } from '../../lib/prisma';
+import { ApiError } from '../../lib/ApiError';
 import { AnalyticsRepository } from './analytics.repository';
 
 export class AnalyticsService {
+  constructor(private readonly analyticsRepository: AnalyticsRepository) {}
   // --- STUDENT DASHBOARD ---
-  static async getStudentDashboard(studentId: string) {
-    const totalSessions = await prisma.quizSession.count({ where: { student_id: studentId, status: 'completed' } });
-    const totalAnswers = await prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' } } });
+  async getStudentDashboard(studentId: string) {
+    const totalSessions = await this.analyticsRepository.countCompletedSessions(studentId);
+    const totalAnswers = await this.analyticsRepository.countTotalAnswers(studentId);
 
-    const correctAnswers = await prisma.sessionAnswer.count({ where: { session: { student_id: studentId, status: 'completed' }, is_correct: true } });
+    const correctAnswers = await this.analyticsRepository.countCorrectAnswers(studentId);
     const overallAccuracy = totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 0;
 
-    const activeDates = await AnalyticsRepository.getActiveDates(studentId);
+    const activeDates = await this.analyticsRepository.getActiveDates(studentId);
 
     let currentStreakDays = 0;
     let longestStreakDays = 0;
@@ -48,7 +49,7 @@ export class AnalyticsService {
       }
     }
 
-    const sm2SummaryData = await AnalyticsRepository.getSM2Summary(studentId);
+    const sm2SummaryData = await this.analyticsRepository.getSM2Summary(studentId);
     const totalQ = sm2SummaryData?.total_questions || 0;
     const sm2_summary = {
       total_questions: totalQ,
@@ -69,7 +70,7 @@ export class AnalyticsService {
       due_today: sm2SummaryData?.due_today || 0
     };
 
-    const weeklyActivity = await AnalyticsRepository.getWeeklyActivity(studentId);
+    const weeklyActivity = await this.analyticsRepository.getWeeklyActivity(studentId);
 
     return {
       total_sessions: totalSessions,
@@ -82,14 +83,14 @@ export class AnalyticsService {
     };
   }
 
-  static async getStudentCalendar(studentId: string) {
-    const calendar = await AnalyticsRepository.getStudentCalendar(studentId);
+  async getStudentCalendar(studentId: string) {
+    const calendar = await this.analyticsRepository.getStudentCalendar(studentId);
     return { calendar };
   }
 
-  static async getStudentWeakTopics(studentId: string) {
-    const weakTopics = await AnalyticsRepository.getWeakTopicsBySM2(studentId);
-    const recentAcc = await AnalyticsRepository.getRecentTopicAccuracy(studentId, 30);
+  async getStudentWeakTopics(studentId: string) {
+    const weakTopics = await this.analyticsRepository.getWeakTopicsBySM2(studentId);
+    const recentAcc = await this.analyticsRepository.getRecentTopicAccuracy(studentId, 30);
     
     const recentAccMap = new Map(recentAcc.map(r => [r.topic, r.recent_accuracy_pct]));
 
@@ -114,30 +115,30 @@ export class AnalyticsService {
   }
 
   // --- TEACHER DASHBOARD ---
-  static async getTeacherClassStats(teacherId: string, classId: string) {
-    const classData = await prisma.class.findFirst({ where: { id: classId, teacher_id: teacherId } });
-    if (!classData) throw { status: 403, message: 'Forbidden' };
+  async getTeacherClassStats(teacherId: string, classId: string) {
+    const classData = await this.analyticsRepository.findTeacherClass(teacherId, classId);
+    if (!classData) throw new ApiError(403, 'Forbidden');
 
-    const totalStudents = await prisma.classMember.count({ where: { class_id: classId, is_active: true } });
+    const totalStudents = await this.analyticsRepository.countActiveClassMembers(classId);
 
     // Current week active
-    const activeStudentsResult = await AnalyticsRepository.getTeacherClassActiveStudents(classId, 7);
+    const activeStudentsResult = await this.analyticsRepository.getTeacherClassActiveStudents(classId, 7);
     const currentActive = activeStudentsResult[0]?.active_count || 0;
 
     // Previous week active
-    const prevActiveStudentsResult = await AnalyticsRepository.getTeacherClassActiveStudents(classId, 14, 7);
+    const prevActiveStudentsResult = await this.analyticsRepository.getTeacherClassActiveStudents(classId, 14, 7);
     const prevActive = prevActiveStudentsResult[0]?.active_count || 0;
 
     // Averages (current and previous)
-    const currentAvg = await AnalyticsRepository.getTeacherClassAverageScore(classId, 7);
-    const prevAvg = await AnalyticsRepository.getTeacherClassAverageScore(classId, 14, 7);
+    const currentAvg = await this.analyticsRepository.getTeacherClassAverageScore(classId, 7);
+    const prevAvg = await this.analyticsRepository.getTeacherClassAverageScore(classId, 14, 7);
 
     // Completion Rate (assignments with at least one completed session)
-    const totalAssignments = await prisma.assignment.count({ where: { class_id: classId, deleted_at: null } });
+    const totalAssignments = await this.analyticsRepository.countClassAssignments(classId);
     const completionRate = totalStudents > 0 ? Math.round((currentActive / totalStudents) * 100) : 0;
     const prevCompletionRate = totalStudents > 0 ? Math.round((prevActive / totalStudents) * 100) : 0;
 
-    const sm2SummaryData = await AnalyticsRepository.getTeacherClassSM2Summary(classId);
+    const sm2SummaryData = await this.analyticsRepository.getTeacherClassSM2Summary(classId);
     const totalQ = sm2SummaryData?.total_questions || 0;
     const sm2_summary = {
       total_questions: totalQ,
@@ -177,34 +178,28 @@ export class AnalyticsService {
     };
   }
 
-  static async getTeacherClassTopics(teacherId: string, classId: string) {
-    const topics = await AnalyticsRepository.getTeacherClassTopics(classId);
+  async getTeacherClassTopics(teacherId: string, classId: string) {
+    const topics = await this.analyticsRepository.getTeacherClassTopics(classId);
     return topics;
   }
 
-  static async getTeacherClassStudents(teacherId: string, classId: string) {
-    const students = await AnalyticsRepository.getTeacherClassStudents(classId);
+  async getTeacherClassStudents(teacherId: string, classId: string) {
+    const students = await this.analyticsRepository.getTeacherClassStudents(classId);
     return students;
   }
 
-  static async getTeacherClassTopicStudents(teacherId: string, classId: string, topicId: string) {
+  async getTeacherClassTopicStudents(teacherId: string, classId: string, topicId: string) {
     const isGeneral = topicId.toLowerCase() === 'general' || topicId.toLowerCase() === 'null';
-    const students = await AnalyticsRepository.getTeacherClassTopicStudents(classId, topicId, isGeneral);
+    const students = await this.analyticsRepository.getTeacherClassTopicStudents(classId, topicId, isGeneral);
     return students;
   }
 
-  static async getTeacherStudentStats(teacherId: string, studentId: string) {
+  async getTeacherStudentStats(teacherId: string, studentId: string) {
     // Verify student is in at least one of the teacher's classes
-    const membership = await prisma.classMember.findFirst({
-      where: {
-        student_id: studentId,
-        is_active: true,
-        class: { teacher_id: teacherId, deleted_at: null }
-      }
-    });
+    const membership = await this.analyticsRepository.findStudentInTeacherClasses(teacherId, studentId);
 
     if (!membership) {
-      throw { status: 403, message: 'Học sinh này không thuộc bất kỳ lớp nào của bạn.' };
+      throw new ApiError(403, 'Học sinh này không thuộc bất kỳ lớp nào của bạn.');
     }
 
     // Combine dashboard, calendar, and weak topics
@@ -220,12 +215,12 @@ export class AnalyticsService {
   }
 
   // --- PARENT DASHBOARD ---
-  static async getParentChildren(parentId: string) {
-    const children = await AnalyticsRepository.getParentChildrenStats(parentId);
+  async getParentChildren(parentId: string) {
+    const children = await this.analyticsRepository.getParentChildrenStats(parentId);
     return children;
   }
 
-  static async getParentChildWeekly(parentId: string, studentId: string) {
-    throw { status: 501, message: 'Chưa implement' };
+  async getParentChildWeekly(parentId: string, studentId: string) {
+    throw new ApiError(501, 'Chưa implement');
   }
 }
