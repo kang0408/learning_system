@@ -1,0 +1,40 @@
+import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { teacherQuestionBankApi } from '../api/teacherQuestionBankApi';
+import type { CreateTopicPayload, CreateQuestionPayload } from '../types';
+
+export const useTopics = (searchTerm: string) => {
+  return useSuspenseQuery({
+    queryKey: ['teacher', 'topics', searchTerm],
+    queryFn: () => teacherQuestionBankApi.getTopics(searchTerm),
+  });
+};
+
+export const useCreateTopic = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: teacherQuestionBankApi.createTopic,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });
+    },
+  });
+};
+
+export const useCreateQuestion = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: teacherQuestionBankApi.createQuestion,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });
+    },
+  });
+};
+
+export const useImportCsv = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: teacherQuestionBankApi.importCsv,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });
+    },
+  });
+};

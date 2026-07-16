@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GraduationCap, Trophy, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../../../../components/ui/Dialog';
-import { useClassMutations } from '../../hooks/useClassQueries';
+import { useClassMutations } from '../hooks/useClassDetailData';
 
 interface StudentsTabProps {
   analytics: any;

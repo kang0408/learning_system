@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Plus, Award, Calendar, CheckCircle2, AlertCircle, Clock, Send, EyeOff, Edit, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../../../../components/ui/Dialog';
-import { useClassMutations } from '../../hooks/useClassQueries';
+import { useClassMutations } from '../hooks/useClassDetailData';
 
 interface AssignmentsTabProps {
   assignments: any[];
