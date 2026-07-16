@@ -22,6 +22,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Map new { success: false, error: '...' } format to existing code relying on error.message
+    if (error.response?.data?.error) {
+      error.response.data.message = error.response.data.error;
+    }
+    
     if (error.response?.status === 401 && error.config?.url !== '/api/auth/login') {
       useAuthStore.getState().logout();
       window.location.href = '/login';

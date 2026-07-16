@@ -1,12 +1,29 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { Users, FileText, LogOut, Menu, X, GraduationCap, Sparkles, User as UserIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, FileText, LogOut, Menu, X, GraduationCap, Sparkles, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import api from '../api/axios';
 
 export default function TeacherLayout() {
-  const { logout, user } = useAuthStore();
+  const { logout, login, user, token } = useAuthStore();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      api.get('/api/users/me').then(res => {
+        if (res.data?.data) {
+          login(token, res.data.data);
+        }
+      }).catch(err => {
+        if (err.response?.status === 401) {
+          logout();
+          navigate('/login');
+        }
+      });
+    }
+  }, [token, login, logout, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -27,7 +44,7 @@ export default function TeacherLayout() {
           <div className="bg-slate-900 p-1.5 rounded-lg">
             <GraduationCap className="w-5 h-5 text-white" />
           </div>
-          <span className="font-bold tracking-tight text-lg bg-clip-text text-transparent bg-slate-900">SM2 Learn</span>
+          <span className="font-bold tracking-tight text-lg bg-clip-text text-transparent bg-slate-900">Memozy</span>
         </div>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 bg-slate-100 text-slate-900 rounded-lg">
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -44,48 +61,62 @@ export default function TeacherLayout() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-72 bg-white shadow-xl shadow-slate-900/5 border-r border-gray-100 transform transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+        fixed inset-y-0 left-0 z-40 bg-white shadow-xl shadow-slate-900/5 border-r border-gray-100 transform transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
         md:relative md:translate-x-0 pt-16 md:pt-0 flex flex-col
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+        ${isSidebarCollapsed ? 'w-20' : 'w-72'}
       `}>
         {/* Logo Area */}
-        <div className="hidden md:flex h-20 items-center px-8 border-b border-gray-50 bg-white">
-          <div className="flex items-center gap-3">
-            <div className="bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-900">
+        <div className={`hidden md:flex h-20 items-center border-b border-gray-50 bg-white relative ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-900 flex-shrink-0">
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <span className="font-bold tracking-tight text-2xl tracking-tight bg-clip-text text-transparent bg-slate-900">SM2 Learn</span>
+            <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-24 opacity-100'}`}>
+              <span className="font-bold tracking-tight text-2xl bg-clip-text text-transparent bg-slate-900 whitespace-nowrap">
+                Memozy
+              </span>
             </div>
           </div>
+          <button 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className={`p-1.5 rounded-lg text-gray-400 hover:text-slate-900 hover:bg-slate-100 transition-colors z-50 ${isSidebarCollapsed ? 'absolute -right-3 top-6 bg-white border border-gray-200 shadow-sm rounded-full' : ''}`}
+          >
+            {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-5 h-5" />}
+          </button>
         </div>
 
         {/* User Info */}
-        <div className="p-6">
-          <div className="bg-slate-100/50 rounded-xl p-4 border border-slate-200/50 flex items-center gap-3 mb-2">
+        <div className={`p-4 ${isSidebarCollapsed ? 'px-2' : 'p-6'}`}>
+          <div className={`bg-slate-100/50 rounded-xl p-3 border border-slate-200/50 flex items-center mb-2 ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
             {user?.avatar_url ? (
               <img 
                 src={`http://localhost:5000${user.avatar_url}`} 
                 alt="Avatar" 
                 className="w-10 h-10 flex-shrink-0 rounded-full object-cover shadow-sm border border-slate-200"
+                title={user?.full_name || user?.email}
               />
             ) : (
-              <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold shadow-sm">
+              <div className="w-10 h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold shadow-sm" title={user?.full_name || user?.email}>
                 {(user?.full_name?.charAt(0) || user?.email?.charAt(0) || 'T').toUpperCase()}
               </div>
             )}
-            <div className="overflow-hidden">
-              <p className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" /> Teacher
+            <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col justify-center ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-40 opacity-100'}`}>
+              <p className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-0.5 flex items-center gap-1 whitespace-nowrap">
+                <Sparkles className="w-3 h-3 flex-shrink-0" /> Teacher
               </p>
-              <p className="font-semibold text-gray-900 truncate text-sm">{user?.full_name || user?.email}</p>
+              <p className="font-semibold text-gray-900 truncate text-sm whitespace-nowrap">{user?.full_name || user?.email}</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 px-4 overflow-y-auto">
-          <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Menu Quản Lý</p>
+        <div className="flex-1 px-3 overflow-y-auto overflow-x-hidden">
+          <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarCollapsed ? 'h-0 opacity-0 mb-0' : 'h-6 opacity-100 mb-3'}`}>
+            <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
+              Menu Quản Lý
+            </p>
+          </div>
           <nav className="space-y-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -95,17 +126,20 @@ export default function TeacherLayout() {
                   to={item.to}
                   end={item.end}
                   onClick={() => setIsMobileMenuOpen(false)}
+                  title={isSidebarCollapsed ? item.label : undefined}
                   className={({ isActive }) =>
-                    `flex items-center px-4 py-3 text-sm font-bold rounded-xl transition-all duration-300 group ${isActive
-                      ? 'bg-slate-900 text-white shadow-sm border border-slate-900 translate-x-1'
+                    `flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'px-4'} py-3 text-sm font-bold rounded-xl transition-all duration-300 group ${isActive
+                      ? 'bg-slate-900 text-white shadow-sm border border-slate-900 ' + (!isSidebarCollapsed ? 'translate-x-1' : '')
                       : 'text-gray-600 hover:bg-slate-100 hover:text-slate-900'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      <Icon className={`w-5 h-5 mr-3 transition-colors ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-slate-900'}`} />
-                      {item.label}
+                      <Icon className={`w-5 h-5 transition-colors flex-shrink-0 ${!isSidebarCollapsed ? 'mr-3' : ''} ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-slate-900'}`} />
+                      <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-32 opacity-100'}`}>
+                        {item.label}
+                      </div>
                     </>
                   )}
                 </NavLink>
@@ -115,13 +149,16 @@ export default function TeacherLayout() {
         </div>
 
         {/* Logout */}
-        <div className="p-4 border-t border-gray-50 bg-gray-50/30">
+        <div className={`p-4 border-t border-gray-50 bg-gray-50/30 ${isSidebarCollapsed ? 'px-2' : ''}`}>
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center px-4 py-3 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 w-full transition-all shadow-sm group"
+            title={isSidebarCollapsed ? "Đăng xuất" : undefined}
+            className={`flex items-center justify-center py-3 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 w-full transition-all shadow-sm group ${isSidebarCollapsed ? 'px-0' : 'px-4'}`}
           >
-            <LogOut className="w-5 h-5 mr-2 text-gray-400 group-hover:text-red-500 transition-colors" />
-            Đăng xuất
+            <LogOut className={`w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors flex-shrink-0 ${!isSidebarCollapsed ? 'mr-2' : ''}`} />
+            <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-20 opacity-100'}`}>
+              Đăng xuất
+            </div>
           </button>
         </div>
       </aside>

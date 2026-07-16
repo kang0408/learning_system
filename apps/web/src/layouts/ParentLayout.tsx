@@ -1,12 +1,28 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Home, LogOut, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import api from '../api/axios';
 
 export default function ParentLayout() {
-  const { logout, user } = useAuthStore();
+  const { logout, login, user, token } = useAuthStore();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      api.get('/api/users/me').then(res => {
+        if (res.data?.data) {
+          login(token, res.data.data);
+        }
+      }).catch(err => {
+        if (err.response?.status === 401) {
+          logout();
+          navigate('/login');
+        }
+      });
+    }
+  }, [token, login, logout, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -21,7 +37,7 @@ export default function ParentLayout() {
     <div className="flex h-screen bg-gray-50">
       {/* Mobile Menu Button */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b flex items-center justify-between px-4 z-50">
-        <span className="font-bold text-xl text-green-600">SM2 Learn - Parent</span>
+        <span className="font-bold text-xl text-green-600">Memozy - Parent</span>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X /> : <Menu />}
         </button>
@@ -34,7 +50,7 @@ export default function ParentLayout() {
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="hidden md:flex h-16 items-center px-6 border-b">
-          <span className="font-bold text-xl text-green-600">SM2 Learn</span>
+          <span className="font-bold text-xl text-green-600">Memozy</span>
         </div>
         <div className="p-4">
           <div className="mb-6 px-2">
