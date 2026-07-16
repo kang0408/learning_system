@@ -1,0 +1,28 @@
+import { useSuspenseQuery, useMutation } from '@tanstack/react-query';
+import { studentQuizApi } from '../api/studentQuizApi';
+import type { AnswerPayload } from '../types';
+
+export const useQuizSession = (assignmentId: string) => {
+  return useSuspenseQuery({
+    queryKey: ['quizSession', assignmentId],
+    queryFn: () => studentQuizApi.initSession(assignmentId),
+    // Prevent refetching to avoid creating multiple sessions unintentionally
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false
+  });
+};
+
+export const useSubmitAnswer = () => {
+  return useMutation({
+    mutationFn: ({ sessionId, payload }: { sessionId: string; payload: AnswerPayload }) =>
+      studentQuizApi.submitAnswer(sessionId, payload),
+  });
+};
+
+export const useFinishQuiz = () => {
+  return useMutation({
+    mutationFn: (sessionId: string) => studentQuizApi.finishSession(sessionId),
+  });
+};
