@@ -14,7 +14,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 selection:bg-indigo-100 selection:text-indigo-900 relative overflow-hidden">
+    <div className="min-h-screen bg-zinc-50 flex flex-col justify-center px-4 py-8 sm:px-6 sm:py-12 lg:px-8 selection:bg-indigo-100 selection:text-indigo-900 relative overflow-hidden">
       {/* Background Ornaments */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-full pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/40 blur-[120px] rounded-full mix-blend-multiply" />
