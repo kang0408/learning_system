@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Save, Loader2, Mail, Phone, MapPin, Briefcase } from 'lucide-react';
+import { Camera, Upload, Save, Loader2, Mail, Phone, MapPin, Briefcase, KeyRound } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useUpdateTeacherProfile } from '../hooks/useTeacherProfile';
+import { ChangePasswordModal } from './ChangePasswordModal';
 
 interface ProfileFormProps {
   onSuccess: (message: string) => void;
@@ -19,6 +20,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
     phone: user?.phone || '',
     address: user?.address || ''
   });
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -94,9 +96,23 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
           <h2 className="text-xl font-bold text-gray-900">
             {formData.full_name || 'Chưa cập nhật tên'}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
+          <p className="text-sm text-gray-500 mt-1 mb-6">{user?.email}</p>
+
+          <button 
+            type="button" 
+            onClick={() => setIsChangePasswordOpen(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium text-sm shadow-sm hover:shadow"
+          >
+            <KeyRound className="w-4 h-4" />
+            Đổi mật khẩu
+          </button>
         </div>
       </div>
+
+      <ChangePasswordModal 
+        isOpen={isChangePasswordOpen} 
+        onClose={() => setIsChangePasswordOpen(false)} 
+      />
 
       {/* Right column: Form */}
       <div className="lg:col-span-2">
