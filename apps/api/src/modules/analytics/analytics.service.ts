@@ -1,8 +1,12 @@
 import { ApiError } from '../../lib/ApiError';
 import { AnalyticsRepository } from './analytics.repository';
+import { AiRepository } from '../ai/ai.repository';
 
 export class AnalyticsService {
-  constructor(private readonly analyticsRepository: AnalyticsRepository) {}
+  constructor(
+    private readonly analyticsRepository: AnalyticsRepository,
+    private readonly aiRepository: AiRepository
+  ) {}
   // --- STUDENT DASHBOARD ---
   async getStudentDashboard(studentId: string) {
     const totalSessions = await this.analyticsRepository.countCompletedSessions(studentId);
@@ -72,6 +76,15 @@ export class AnalyticsService {
 
     const weeklyActivity = await this.analyticsRepository.getWeeklyActivity(studentId);
 
+    const latestAiReport = await this.aiRepository.getLatestStudentReport(studentId);
+    let aiInsight = null;
+    if (latestAiReport) {
+      aiInsight = {
+        ...latestAiReport.report as any,
+        generated_at: latestAiReport.created_at
+      };
+    }
+
     return {
       total_sessions: totalSessions,
       total_questions_answered: totalAnswers,
@@ -79,7 +92,8 @@ export class AnalyticsService {
       current_streak_days: currentStreakDays,
       longest_streak_days: longestStreakDays,
       sm2_summary,
-      weekly_activity: weeklyActivity
+      weekly_activity: weeklyActivity,
+      ai_insight: aiInsight
     };
   }
 
@@ -159,6 +173,15 @@ export class AnalyticsService {
       due_today: sm2SummaryData?.due_today || 0
     };
 
+    const latestAiReport = await this.aiRepository.getLatestClassReport(classId);
+    let aiInsight = null;
+    if (latestAiReport) {
+      aiInsight = {
+        ...latestAiReport.report as any,
+        generated_at: latestAiReport.created_at
+      };
+    }
+
     return {
       class_name: classData.name,
       total_students: totalStudents,
@@ -174,7 +197,8 @@ export class AnalyticsService {
         current: Math.round(currentAvg[0]?.avg_score || 0),
         trend: (currentAvg[0]?.avg_score || 0) >= (prevAvg[0]?.avg_score || 0) ? 'up' : 'down'
       },
-      sm2_summary
+      sm2_summary,
+      ai_insight: aiInsight
     };
   }
 

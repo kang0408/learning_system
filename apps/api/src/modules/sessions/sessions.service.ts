@@ -4,8 +4,14 @@ import { SM2Repository } from '../sm2/sm2.repository';
 import { ApiError } from '../../lib/ApiError';
 import { SessionsRepository } from './sessions.repository';
 
+import { AiService } from '../ai/ai.service';
+
 export class SessionsService {
-  constructor(private readonly sessionsRepository: SessionsRepository, private readonly sm2Repository: SM2Repository) {}
+  constructor(
+    private readonly sessionsRepository: SessionsRepository, 
+    private readonly sm2Repository: SM2Repository,
+    private readonly aiService: AiService
+  ) {}
 
   private computeTopicPerformance(answers: any[]) {
     const topicStats: Record<string, { total: number, correct: number }> = {};
@@ -216,10 +222,27 @@ export class SessionsService {
       await redisClient.setEx(`session:${sessionId}`, ttl, JSON.stringify(cacheState));
     }
 
+    let explanation = currentQuestion?.explanation || null;
+
+    if (!isCorrect && correctOpt) {
+      const questionContext = currentQuestion?.content || 'Unknown context';
+      try {
+        const aiExp = await Promise.race([
+          this.aiService.getExplanation(question_id, selected_option_id, questionContext),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
+        ]);
+        if (aiExp) {
+          explanation = aiExp;
+        }
+      } catch (e) {
+        console.error('AI Explanation Error:', e);
+      }
+    }
+
     return {
       is_correct: isCorrect,
       correct_option_id: correctOpt?.id,
-      explanation: currentQuestion?.explanation || null,
+      explanation: explanation,
       sm2_quality: sm2Result ? sm2Result.q : -1,
       next_review_in_days: sm2Result ? sm2Result.new_interval : (progress ? progress.interval_days : 1),
       next_question: nextQuestion,

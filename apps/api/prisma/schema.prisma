@@ -31,6 +31,7 @@ model User {
   assignments          Assignment[]
   assigned_assignments AssignmentStudent[]
   topics               Topic[]
+  ai_reports           AiReport[]
 
   @@index([email])
   @@index([role])
@@ -52,6 +53,7 @@ model Class {
   teacher     User          @relation(fields: [teacher_id], references: [id], onDelete: Restrict)
   members     ClassMember[]
   assignments Assignment[]
+  ai_reports  AiReport[]
 
   @@index([teacher_id])
   @@map("classes")
@@ -297,3 +299,21 @@ model OtpCode {
   @@index([email, code])
   @@map("otp_codes")
 }
+
+model AiReport {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id String?  @db.Uuid
+  class_id   String?  @db.Uuid
+  report     Json
+  type       String   @db.VarChar(20) // 'student' or 'class'
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  student    User?    @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  class      Class?   @relation(fields: [class_id], references: [id], onDelete: Cascade)
+
+  @@index([student_id])
+  @@index([class_id])
+  @@map("ai_reports")
+}
+

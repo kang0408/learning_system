@@ -3,6 +3,9 @@ import { SessionsController } from './sessions.controller';
 import { SessionsService } from './sessions.service';
 import { SessionsRepository } from './sessions.repository';
 import { SM2Repository } from '../sm2/sm2.repository';
+import { AiService } from '../ai/ai.service';
+import { AiRepository } from '../ai/ai.repository';
+import { AiCacheRepository } from '../ai/ai-cache.repository';
 import { asyncWrapper } from '../../utils/asyncWrapper';
 import { prisma } from '../../lib/prisma';
 import { requireAuth, requireRole } from '../../middlewares/auth.middleware';
@@ -11,7 +14,10 @@ const router = Router();
 
 const sessionsRepository = new SessionsRepository(prisma);
 const sm2Repository = new SM2Repository(prisma);
-const sessionsService = new SessionsService(sessionsRepository, sm2Repository);
+const aiCacheRepo = new AiCacheRepository();
+const aiRepo = new AiRepository();
+const aiService = new AiService(aiCacheRepo, aiRepo);
+const sessionsService = new SessionsService(sessionsRepository, sm2Repository, aiService);
 const sessionsController = new SessionsController(sessionsService);
 
 // Standardized endpoints matching Phan 3 and Phan 6

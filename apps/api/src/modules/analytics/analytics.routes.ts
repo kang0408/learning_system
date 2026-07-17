@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsRepository } from './analytics.repository';
+import { AiRepository } from '../ai/ai.repository';
 import { asyncWrapper } from '../../utils/asyncWrapper';
 import { prisma } from '../../lib/prisma';
 import { requireAuth, requireRole } from '../../middlewares/auth.middleware';
@@ -9,7 +10,8 @@ import { requireAuth, requireRole } from '../../middlewares/auth.middleware';
 const router = Router();
 
 const analyticsRepository = new AnalyticsRepository(prisma);
-const analyticsService = new AnalyticsService(analyticsRepository);
+const aiRepository = new AiRepository();
+const analyticsService = new AnalyticsService(analyticsRepository, aiRepository);
 const analyticsController = new AnalyticsController(analyticsService);
 
 // Student routes

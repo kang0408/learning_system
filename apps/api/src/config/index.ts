@@ -9,6 +9,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(10, 'JWT_SECRET must be at least 10 characters long'),
   DATABASE_URL: z.string().url().optional(),
   SENTRY_DSN: z.string().optional(),
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
 });
 
 const _env = envSchema.safeParse(process.env);
@@ -29,5 +30,8 @@ export const config = {
   },
   sentry: {
     dsn: _env.data.SENTRY_DSN,
+  },
+  ai: {
+    geminiApiKey: _env.data.GEMINI_API_KEY,
   }
 };
