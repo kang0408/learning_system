@@ -15,7 +15,7 @@ export const DetailedReview: React.FC<DetailedReviewProps> = ({ answers }) => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-3xl font-black uppercase tracking-tighter mb-8">
+      <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter mb-6 sm:mb-8">
         {t('student.result.detailedReview')}
       </h3>
       <div className="space-y-4">
@@ -24,12 +24,12 @@ export const DetailedReview: React.FC<DetailedReviewProps> = ({ answers }) => {
           return (
             <div key={answer.id} className={`border-4 p-6 md:p-8 ${isCorrect ? 'border-zinc-900 bg-white' : 'border-red-600 bg-red-50'}`}>
               <div className="flex flex-col gap-6">
-                <div className="flex items-start justify-between gap-4">
-                  <p className="font-black text-2xl md:text-3xl tracking-tight leading-snug">
-                    <span className="text-indigo-600 mr-4 font-mono">{(index + 1).toString().padStart(2, '0')}</span>
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                  <p className="font-black text-xl sm:text-2xl md:text-3xl tracking-tight leading-snug">
+                    <span className="text-indigo-600 mr-2 sm:mr-4 font-mono">{(index + 1).toString().padStart(2, '0')}</span>
                     {answer.question.content}
                   </p>
-                  <div className={`shrink-0 font-black uppercase tracking-widest px-3 py-1 border-2 ${isCorrect ? 'border-zinc-900 text-zinc-900' : 'border-red-600 text-red-600'}`}>
+                  <div className={`shrink-0 text-sm sm:text-base font-black uppercase tracking-widest px-3 py-1 border-2 ${isCorrect ? 'border-zinc-900 text-zinc-900' : 'border-red-600 text-red-600'}`}>
                     {isCorrect ? t('student.result.correct') : t('student.result.incorrect')}
                   </div>
                 </div>
