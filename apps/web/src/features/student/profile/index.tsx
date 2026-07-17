@@ -51,10 +51,10 @@ export const StudentProfileFeature: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="w-full max-w-4xl mx-auto flex flex-col gap-8 md:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <ProfileHeader />
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-12">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
         <AvatarUpload 
           user={user}
           avatarFile={avatarFile}

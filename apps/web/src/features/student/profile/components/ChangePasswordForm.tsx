@@ -70,10 +70,10 @@ export const ChangePasswordForm: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-8 p-8 border-4 border-zinc-900 bg-amber-100 shadow-[8px_8px_0px_0px_rgba(24,24,27,1)]">
+    <div className="w-full flex flex-col gap-6 sm:gap-8 p-4 sm:p-8 border-4 border-zinc-900 bg-amber-100 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] sm:shadow-[8px_8px_0px_0px_rgba(24,24,27,1)]">
       <div>
-        <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900 mb-2">{t('student.profile.changePasswordTitle')}</h2>
-        <p className="text-lg font-medium text-zinc-700">{t('student.profile.changePasswordSubtitle')}</p>
+        <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-zinc-900 mb-2">{t('student.profile.changePasswordTitle')}</h2>
+        <p className="text-base sm:text-lg font-medium text-zinc-700">{t('student.profile.changePasswordSubtitle')}</p>
       </div>
 
       {message && (
@@ -100,7 +100,7 @@ export const ChangePasswordForm: React.FC = () => {
             value={formData.old_password}
             onChange={handleChange}
             placeholder={t('student.profile.currentPasswordPlaceholder')}
-            className="w-full px-5 py-4 bg-white border-2 border-zinc-900 text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)]"
+            className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white border-2 border-zinc-900 text-base sm:text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)]"
           />
         </div>
 
@@ -115,7 +115,7 @@ export const ChangePasswordForm: React.FC = () => {
               value={formData.new_password}
               onChange={handleChange}
               placeholder={t('student.profile.newPasswordPlaceholder')}
-              className="w-full px-5 py-4 bg-white border-2 border-zinc-900 text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)]"
+              className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white border-2 border-zinc-900 text-base sm:text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)]"
             />
           </div>
 
@@ -129,7 +129,7 @@ export const ChangePasswordForm: React.FC = () => {
               value={formData.confirm_password}
               onChange={handleChange}
               placeholder={t('student.profile.confirmPasswordPlaceholder')}
-              className="w-full px-5 py-4 bg-white border-2 border-zinc-900 text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)]"
+              className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white border-2 border-zinc-900 text-base sm:text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)]"
             />
           </div>
         </div>
@@ -138,7 +138,7 @@ export const ChangePasswordForm: React.FC = () => {
           <label className="font-black uppercase tracking-widest text-sm text-zinc-900">
             {t('student.profile.otpLabel')}
           </label>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <input
               type="text"
               name="code"
@@ -146,13 +146,13 @@ export const ChangePasswordForm: React.FC = () => {
               value={formData.code}
               onChange={handleChange}
               placeholder={t('student.profile.otpPlaceholder')}
-              className="flex-1 px-5 py-4 bg-white border-2 border-zinc-900 text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)] text-center tracking-[0.5em]"
+              className="flex-1 px-4 sm:px-5 py-3 sm:py-4 bg-white border-2 border-zinc-900 text-base sm:text-lg font-bold placeholder:text-zinc-400 focus:outline-none focus:ring-4 focus:ring-amber-300 transition-all shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] focus:translate-x-[2px] focus:translate-y-[2px] focus:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)] text-center tracking-[0.5em]"
             />
             <button
               type="button"
               onClick={handleSendOtp}
               disabled={isSendingOtp}
-              className="px-6 py-4 border-2 border-zinc-900 bg-white text-zinc-900 text-lg font-black uppercase tracking-widest disabled:opacity-70 transition-all hover:bg-zinc-100 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] hover:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
+              className="w-full sm:w-auto px-6 py-4 border-2 border-zinc-900 bg-white text-zinc-900 text-base sm:text-lg font-black uppercase tracking-widest disabled:opacity-70 transition-all hover:bg-zinc-100 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] hover:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)] hover:translate-x-[2px] hover:translate-y-[2px] whitespace-nowrap"
             >
               {isSendingOtp ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : t('student.profile.sendOtp')}
             </button>
@@ -163,7 +163,7 @@ export const ChangePasswordForm: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="group relative w-full inline-flex items-center justify-center gap-4 px-8 py-5 border-2 border-zinc-900 bg-zinc-900 text-white text-xl font-black uppercase tracking-widest disabled:opacity-70 transition-all hover:bg-zinc-800 shadow-[6px_6px_0px_0px_rgba(24,24,27,1)] hover:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)] hover:translate-x-[4px] hover:translate-y-[4px]"
+            className="group relative w-full inline-flex items-center justify-center gap-2 sm:gap-4 px-4 sm:px-8 py-4 sm:py-5 border-2 border-zinc-900 bg-zinc-900 text-white text-lg sm:text-xl font-black uppercase tracking-widest disabled:opacity-70 transition-all hover:bg-zinc-800 shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] sm:shadow-[6px_6px_0px_0px_rgba(24,24,27,1)] hover:shadow-[2px_2px_0px_0px_rgba(24,24,27,1)] hover:translate-x-[2px] hover:translate-y-[2px] sm:hover:translate-x-[4px] sm:hover:translate-y-[4px]"
           >
             {isSubmitting ? (
               <>
