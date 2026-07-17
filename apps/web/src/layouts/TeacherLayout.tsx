@@ -41,8 +41,8 @@ export default function TeacherLayout() {
       {/* Mobile Menu Button */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-50 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="bg-slate-900 p-1.5 rounded-lg">
-            <GraduationCap className="w-5 h-5 text-white" />
+          <div className="bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
+            <img src="/favicon.svg" alt="Logo" className="w-5 h-5" />
           </div>
           <span className="font-bold tracking-tight text-lg bg-clip-text text-transparent bg-slate-900">Memozy</span>
         </div>
@@ -69,8 +69,8 @@ export default function TeacherLayout() {
         {/* Logo Area */}
         <div className={`hidden md:flex h-20 items-center border-b border-gray-50 bg-white relative ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="bg-slate-900 p-2 rounded-xl shadow-sm border border-slate-900 flex-shrink-0">
-              <GraduationCap className="w-6 h-6 text-white" />
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex-shrink-0">
+              <img src="/favicon.svg" alt="Logo" className="w-6 h-6" />
             </div>
             <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-24 opacity-100'}`}>
               <span className="font-bold tracking-tight text-2xl bg-clip-text text-transparent bg-slate-900 whitespace-nowrap">
