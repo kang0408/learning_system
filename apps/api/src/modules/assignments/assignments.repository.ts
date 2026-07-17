@@ -114,4 +114,64 @@ export class AssignmentsRepository {
     const client = tx || this.prisma;
     return client.assignmentStudent.deleteMany({ where: { assignment_id: assignmentId } });
   }
+
+  async getStudentsForAssignment(assignmentId: string) {
+    const assignment = await this.prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: {
+        assigned_students: {
+          include: { student: { select: { email: true, full_name: true } } }
+        },
+        class: {
+          include: {
+            members: {
+              where: { is_active: true },
+              include: { student: { select: { email: true, full_name: true } } }
+            }
+          }
+        }
+      }
+    });
+
+    if (!assignment) return [];
+
+    if (assignment.is_all_students) {
+      return assignment.class.members.map(m => m.student);
+    } else {
+      return assignment.assigned_students.map(m => m.student);
+    }
+  }
+
+  async findPendingAssignmentsDueIn24h() {
+    const now = new Date();
+    const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    return this.prisma.assignment.findMany({
+      where: {
+        is_published: true,
+        deleted_at: null,
+        deadline: {
+          gte: now,
+          lte: next24h,
+        }
+      },
+      include: {
+        assigned_students: {
+          include: { student: { select: { id: true, email: true, full_name: true } } }
+        },
+        class: {
+          include: {
+            members: {
+              where: { is_active: true },
+              include: { student: { select: { id: true, email: true, full_name: true } } }
+            }
+          }
+        },
+        quiz_sessions: {
+          where: { status: 'completed' },
+          select: { student_id: true }
+        }
+      }
+    });
+  }
 }

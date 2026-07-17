@@ -1,5 +1,6 @@
 import { ApiError } from '../../lib/ApiError';
 import { AssignmentsRepository } from './assignments.repository';
+import { emailQueue } from '../../jobs/emailQueue';
 
 export class AssignmentsService {
   constructor(private readonly assignmentsRepository: AssignmentsRepository) {}
@@ -230,8 +231,24 @@ export class AssignmentsService {
   }
 
   async publishAssignment(id: string, teacherId: string) {
-    await this.getAssignmentById(id, teacherId, 'teacher');
-    return this.assignmentsRepository.updateAssignment(id, { is_published: true, published_at: new Date(), updated_at: new Date() });
+    const assignment = await this.getAssignmentById(id, teacherId, 'teacher');
+    const updated = await this.assignmentsRepository.updateAssignment(id, { is_published: true, published_at: new Date(), updated_at: new Date() });
+    
+    // Push emails to queue (non-blocking)
+    const students = await this.assignmentsRepository.getStudentsForAssignment(id);
+    for (const student of students) {
+      if (student.email) {
+        emailQueue.add({
+          type: 'NEW_ASSIGNMENT',
+          email: student.email,
+          studentName: student.full_name,
+          assignmentTitle: assignment.title,
+          deadline: assignment.deadline
+        }).catch(err => console.error('[EmailQueue] Add failed:', err));
+      }
+    }
+    
+    return updated;
   }
 
   async unpublishAssignment(id: string, teacherId: string) {
