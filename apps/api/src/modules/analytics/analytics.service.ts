@@ -111,9 +111,7 @@ export class AnalyticsService {
       };
     });
 
-    const filtered = merged.filter(wt => wt.accuracy_pct < 60);
-
-    return { weak_topics: filtered };
+    return { weak_topics: merged };
   }
 
   // --- TEACHER DASHBOARD ---
