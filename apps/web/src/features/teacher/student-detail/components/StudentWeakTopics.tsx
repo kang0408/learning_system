@@ -8,14 +8,14 @@ interface StudentWeakTopicsProps {
 
 export const StudentWeakTopics: React.FC<StudentWeakTopicsProps> = ({ weakTopics }) => {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm h-full flex flex-col overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       <div className="p-5 md:p-6 border-b border-gray-100 bg-gray-50/50">
         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2.5">
           <Target className="w-5 h-5 text-red-500" /> Điểm yếu cần khắc phục
         </h2>
-        <p className="text-sm text-gray-500 mt-1">Các chủ đề có tỷ lệ chính xác dưới 60%</p>
+        <p className="text-sm text-gray-500 mt-1">Các chủ đề cần ưu tiên ôn tập thêm</p>
       </div>
-      <div className="p-5 md:p-6 flex-1 bg-white">
+      <div className="p-5 md:p-6 bg-white">
         {weakTopics && weakTopics.length > 0 ? (
           <div className="space-y-5">
             {weakTopics.map((t, idx) => (
@@ -34,7 +34,7 @@ export const StudentWeakTopics: React.FC<StudentWeakTopicsProps> = ({ weakTopics
             ))}
           </div>
         ) : (
-          <div className="text-center py-10 flex flex-col items-center justify-center h-full">
+          <div className="text-center py-8 flex flex-col items-center justify-center">
             <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
