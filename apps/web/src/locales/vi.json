@@ -664,6 +664,39 @@
         "description": "Các chủ đề cần ưu tiên ôn tập thêm",
         "noWeakTopics": "Không có chủ đề yếu nào.",
         "noWeakTopicsDesc": "Tuyệt vời! Học sinh đang nắm vững các kiến thức cơ bản."
+      },
+      "analytics": {
+        "knowledgeGraph": "Biểu đồ Năng lực (Knowledge Graph)",
+        "notEnoughData": "Chưa có đủ dữ liệu để phân tích.",
+        "knowledgeGraphTitle": "Biểu đồ Năng lực",
+        "knowledgeGraphDesc": "Mức độ thông thạo theo từng lĩnh vực gốc",
+        "needMoreTopics": "Cần ít nhất 3 chủ đề gốc để hiển thị biểu đồ mạng nhện. Hiện tại học sinh mới học {{count}} chủ đề.",
+        "accuracyPct": "Độ chính xác (%)",
+        "accuracyLabel": "Độ chính xác: {{val}}%",
+        "skillTree": "Cây Kỹ Năng (Skill Tree)",
+        "noLearningData": "Chưa có dữ liệu học tập.",
+        "skillTreeDesc": "Chi tiết độ thông thạo theo cấu trúc phân tầng",
+        "topicSkill": "Chủ đề / Kỹ năng",
+        "accuracy": "Chính xác"
+      },
+      "sessionResult": {
+        "score": "Điểm số",
+        "correctQuestions": "Số câu đúng",
+        "duration": "Thời gian làm",
+        "submittedDate": "Ngày nộp",
+        "questionDetails": "Chi tiết từng câu hỏi",
+        "questionNumber": "Câu {{num}}",
+        "correct": "Đúng",
+        "incorrect": "Sai",
+        "studentAnswer": "Học sinh trả lời:",
+        "noAnswer": "Không trả lời",
+        "correctAnswer": "Đáp án đúng:",
+        "or": " hoặc ",
+        "studentMatch": "Học sinh ghép:",
+        "displayError": "Lỗi hiển thị đáp án",
+        "sessionDetails": "Chi tiết bài làm",
+        "loadingChart": "Đang tải biểu đồ...",
+        "loadingData": "Đang tải dữ liệu..."
       }
     },
     "topicDetail": {

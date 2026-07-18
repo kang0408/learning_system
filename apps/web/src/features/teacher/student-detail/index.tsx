@@ -7,12 +7,14 @@ import { StudentSm2Status } from './components/StudentSm2Status';
 import { StudentWeakTopics } from './components/StudentWeakTopics';
 import { StudentAssignmentsList } from './components/StudentAssignmentsList';
 import { SkillTreeTable } from './components/analytics/SkillTreeTable';
+import { useTranslation } from 'react-i18next';
 
 const KnowledgeRadarChart = React.lazy(() => 
   import('./components/analytics/KnowledgeRadarChart').then(module => ({ default: module.KnowledgeRadarChart }))
 );
 
 export default function TeacherStudentDetailFeature() {
+  const { t } = useTranslation();
   const { id: classId, studentId } = useParams<{ id: string, studentId: string }>();
   if (!classId || !studentId) return null;
 
@@ -26,7 +28,7 @@ export default function TeacherStudentDetailFeature() {
         <div className="xl:col-span-2 space-y-8">
           <StudentStatsOverview stats={data.stats} />
           
-          <React.Suspense fallback={<div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm h-full flex items-center justify-center min-h-[450px]"><span className="text-gray-500 text-sm">Đang tải biểu đồ...</span></div>}>
+          <React.Suspense fallback={<div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm h-full flex items-center justify-center min-h-[450px]"><span className="text-gray-500 text-sm">{t('studentDetail.sessionResult.loadingChart')}</span></div>}>
             <KnowledgeRadarChart topicPerformance={data.stats.topic_performance} />
           </React.Suspense>
           

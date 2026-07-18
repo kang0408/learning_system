@@ -664,6 +664,39 @@
         "description": "Topics that need priority for reviewing",
         "noWeakTopics": "No weak topics.",
         "noWeakTopicsDesc": "Great! The student has mastered the basic knowledge."
+      },
+      "analytics": {
+        "knowledgeGraph": "Knowledge Graph",
+        "notEnoughData": "Not enough data to analyze.",
+        "knowledgeGraphTitle": "Knowledge Graph",
+        "knowledgeGraphDesc": "Mastery level by root domain",
+        "needMoreTopics": "Need at least 3 root topics to display radar chart. Currently studying {{count}} topics.",
+        "accuracyPct": "Accuracy (%)",
+        "accuracyLabel": "Accuracy: {{val}}%",
+        "skillTree": "Skill Tree",
+        "noLearningData": "No learning data available.",
+        "skillTreeDesc": "Detailed mastery by hierarchical structure",
+        "topicSkill": "Topic / Skill",
+        "accuracy": "Accuracy"
+      },
+      "sessionResult": {
+        "score": "Score",
+        "correctQuestions": "Correct Questions",
+        "duration": "Duration",
+        "submittedDate": "Submitted Date",
+        "questionDetails": "Question Details",
+        "questionNumber": "Question {{num}}",
+        "correct": "Correct",
+        "incorrect": "Incorrect",
+        "studentAnswer": "Student Answer:",
+        "noAnswer": "No Answer",
+        "correctAnswer": "Correct Answer:",
+        "or": " or ",
+        "studentMatch": "Student Matched:",
+        "displayError": "Error displaying answer",
+        "sessionDetails": "Session Details",
+        "loadingChart": "Loading chart...",
+        "loadingData": "Loading data..."
       }
     },
     "topicDetail": {
