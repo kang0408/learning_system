@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Target, CheckCircle } from 'lucide-react';
 import type { StudentStats } from '../types';
 
@@ -7,13 +8,14 @@ interface StudentWeakTopicsProps {
 }
 
 export const StudentWeakTopics: React.FC<StudentWeakTopicsProps> = ({ weakTopics }) => {
+  const { t } = useTranslation();
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       <div className="p-5 md:p-6 border-b border-gray-100 bg-gray-50/50">
         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2.5">
-          <Target className="w-5 h-5 text-red-500" /> Điểm yếu cần khắc phục
+          <Target className="w-5 h-5 text-red-500" /> {t('teacher.studentDetail.weakTopics.title')}
         </h2>
-        <p className="text-sm text-gray-500 mt-1">Các chủ đề cần ưu tiên ôn tập thêm</p>
+        <p className="text-sm text-gray-500 mt-1">{t('teacher.studentDetail.weakTopics.description')}</p>
       </div>
       <div className="p-5 md:p-6 bg-white">
         {weakTopics && weakTopics.length > 0 ? (
@@ -38,8 +40,8 @@ export const StudentWeakTopics: React.FC<StudentWeakTopicsProps> = ({ weakTopics
             <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
-            <p className="text-gray-900 font-semibold text-lg">Không có chủ đề yếu nào.</p>
-            <p className="text-sm text-gray-500 mt-1">Tuyệt vời! Học sinh đang nắm vững các kiến thức cơ bản.</p>
+            <p className="text-gray-900 font-semibold text-lg">{t('teacher.studentDetail.weakTopics.noWeakTopics')}</p>
+            <p className="text-sm text-gray-500 mt-1">{t('teacher.studentDetail.weakTopics.noWeakTopicsDesc')}</p>
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { UserMinus, Loader2 } from 'lucide-react';
 import type { ClassMember } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface MembersListProps {
   classId: string;
@@ -11,14 +12,15 @@ interface MembersListProps {
 }
 
 export const MembersList: React.FC<MembersListProps> = ({ classId, members, isRemoving, onRemove }) => {
+  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto bg-white border-4 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(24,24,27,1)]">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="bg-zinc-100 border-b-4 border-zinc-900">
-            <th className="p-6 font-black uppercase tracking-widest text-zinc-900">Học sinh</th>
-            <th className="p-6 font-black uppercase tracking-widest text-zinc-900">Email</th>
-            <th className="p-6 font-black uppercase tracking-widest text-zinc-900 text-right">Thao tác</th>
+            <th className="p-6 font-black uppercase tracking-widest text-zinc-900">{t('teacher.classMembers.studentCol')}</th>
+            <th className="p-6 font-black uppercase tracking-widest text-zinc-900">{t('teacher.classMembers.emailCol')}</th>
+            <th className="p-6 font-black uppercase tracking-widest text-zinc-900 text-right">{t('teacher.classMembers.actionCol')}</th>
           </tr>
         </thead>
         <tbody className="divide-y-2 divide-zinc-200">
@@ -41,10 +43,10 @@ export const MembersList: React.FC<MembersListProps> = ({ classId, members, isRe
                   onClick={() => onRemove(m.student.id)}
                   disabled={isRemoving}
                   className="text-white bg-red-600 border-2 border-zinc-900 hover:bg-red-700 disabled:opacity-50 px-4 py-2 font-black uppercase tracking-widest flex items-center inline-flex shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(24,24,27,1)] active:translate-y-[2px] active:shadow-none transition-all"
-                  title="Xóa khỏi lớp"
+                  title={t('teacher.classMembers.removeBtnTooltip')}
                 >
                   {isRemoving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <UserMinus className="w-5 h-5 mr-2" />} 
-                  Xóa
+                  {t('teacher.classMembers.removeBtn')}
                 </button>
               </td>
             </tr>
@@ -52,7 +54,7 @@ export const MembersList: React.FC<MembersListProps> = ({ classId, members, isRe
           {members.length === 0 && (
             <tr>
               <td colSpan={3} className="p-12 text-center text-zinc-500 font-bold uppercase tracking-wider">
-                Chưa có học sinh nào trong lớp.
+                {t('teacher.classMembers.noStudents')}
               </td>
             </tr>
           )}

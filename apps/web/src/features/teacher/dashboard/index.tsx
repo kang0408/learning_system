@@ -5,8 +5,10 @@ import { ClassCard } from './components/ClassCard';
 import { EmptyState } from './components/EmptyState';
 import { CreateClassModal } from './components/CreateClassModal';
 import { toast } from '@/utils/toast';
+import { useTranslation } from 'react-i18next';
 
 export const TeacherDashboardFeature: React.FC = () => {
+  const { t } = useTranslation();
   const { data: classes } = useTeacherDashboardData();
   const { mutateAsync: createClass, isPending: isCreating } = useCreateClass();
   const [showModal, setShowModal] = useState(false);
@@ -14,10 +16,10 @@ export const TeacherDashboardFeature: React.FC = () => {
   const handleCreateClass = async (payload: any) => {
     try {
       await createClass(payload);
-      toast.success('Tạo lớp học thành công!');
+      toast.success(t('teacher.dashboard.createSuccess'));
       setShowModal(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi tạo lớp học');
+      toast.error(err?.response?.data?.message || t('teacher.dashboard.createError'));
     }
   };
 

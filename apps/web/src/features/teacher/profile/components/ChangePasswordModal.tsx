@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Loader2, KeyRound } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import api from '@/api/axios';
+import { useTranslation } from 'react-i18next';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ChangePasswordModalProps {
 }
 
 export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     old_password: '',
     new_password: '',
@@ -42,12 +44,12 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
     try {
       const result = await sendOtpMutation.mutateAsync();
       if (result.success) {
-        setMessage({ type: 'success', text: 'Mã OTP đã được gửi đến email của bạn.' });
+        setMessage({ type: 'success', text: t('teacher.profile.changePassword.otpSentSuccess') });
       } else {
-        setMessage({ type: 'error', text: result.error || result.message || 'Lỗi khi gửi mã OTP.' });
+        setMessage({ type: 'error', text: result.error || result.message || t('teacher.profile.changePassword.otpSendError') });
       }
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.error || err.response?.data?.message || 'Lỗi hệ thống khi gửi mã OTP.' });
+      setMessage({ type: 'error', text: err.response?.data?.error || err.response?.data?.message || t('teacher.profile.changePassword.otpSendSystemError') });
     }
   };
 
@@ -56,13 +58,13 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
     setMessage(null);
 
     if (formData.new_password.length < 8) {
-      return setMessage({ type: 'error', text: 'Mật khẩu mới phải có ít nhất 8 ký tự.' });
+      return setMessage({ type: 'error', text: t('teacher.profile.changePassword.passwordMinLength') });
     }
     if (formData.new_password !== formData.confirm_password) {
-      return setMessage({ type: 'error', text: 'Mật khẩu xác nhận không khớp.' });
+      return setMessage({ type: 'error', text: t('teacher.profile.changePassword.passwordMismatch') });
     }
     if (formData.code.length !== 6) {
-      return setMessage({ type: 'error', text: 'Mã OTP không hợp lệ.' });
+      return setMessage({ type: 'error', text: t('teacher.profile.changePassword.otpInvalid') });
     }
 
     try {
@@ -73,17 +75,17 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
       });
 
       if (result.success) {
-        setMessage({ type: 'success', text: 'Đổi mật khẩu thành công.' });
+        setMessage({ type: 'success', text: t('teacher.profile.changePassword.changeSuccess') });
         setFormData({ old_password: '', new_password: '', confirm_password: '', code: '' });
         setTimeout(() => {
           onClose();
           setMessage(null);
         }, 2000);
       } else {
-        setMessage({ type: 'error', text: result.error || result.message || 'Lỗi khi đổi mật khẩu.' });
+        setMessage({ type: 'error', text: result.error || result.message || t('teacher.profile.changePassword.changeError') });
       }
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.error || err.response?.data?.message || 'Lỗi hệ thống khi đổi mật khẩu.' });
+      setMessage({ type: 'error', text: err.response?.data?.error || err.response?.data?.message || t('teacher.profile.changePassword.changeSystemError') });
     }
   };
 
@@ -93,7 +95,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
             <KeyRound className="w-5 h-5 text-indigo-500" />
-            Đổi mật khẩu
+            {t('teacher.profile.changePassword.title')}
           </h2>
           <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
@@ -111,46 +113,46 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu hiện tại <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.changePassword.currentPasswordLabel')} <span className="text-red-500">*</span></label>
               <input
                 type="password"
                 name="old_password"
                 value={formData.old_password}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                placeholder="Nhập mật khẩu hiện tại"
+                placeholder={t('teacher.profile.changePassword.currentPasswordPlaceholder')}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mật khẩu mới <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.changePassword.newPasswordLabel')} <span className="text-red-500">*</span></label>
               <input
                 type="password"
                 name="new_password"
                 value={formData.new_password}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                placeholder="Tối thiểu 8 ký tự"
+                placeholder={t('teacher.profile.changePassword.newPasswordPlaceholder')}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Xác nhận mật khẩu mới <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.changePassword.confirmPasswordLabel')} <span className="text-red-500">*</span></label>
               <input
                 type="password"
                 name="confirm_password"
                 value={formData.confirm_password}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                placeholder="Nhập lại mật khẩu mới"
+                placeholder={t('teacher.profile.changePassword.confirmPasswordPlaceholder')}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Mã xác nhận (OTP) <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.changePassword.otpLabel')} <span className="text-red-500">*</span></label>
               <div className="flex gap-3">
                 <input
                   type="text"
@@ -168,7 +170,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
                   disabled={sendOtpMutation.isPending}
                   className="px-4 py-2.5 bg-indigo-50 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-100 transition-colors text-sm whitespace-nowrap disabled:opacity-50 flex items-center justify-center min-w-[100px]"
                 >
-                  {sendOtpMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Gửi mã OTP'}
+                  {sendOtpMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : t('teacher.profile.changePassword.sendOtpBtn')}
                 </button>
               </div>
             </div>
@@ -179,7 +181,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
                 onClick={onClose}
                 className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors text-sm"
               >
-                Hủy
+                {t('teacher.profile.changePassword.cancelBtn')}
               </button>
               <button
                 type="submit"
@@ -189,10 +191,10 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ isOpen
                 {changePasswordMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Đang xử lý...
+                    {t('teacher.profile.changePassword.savingBtn')}
                   </>
                 ) : (
-                  'Lưu thay đổi'
+                  t('teacher.profile.changePassword.saveBtn')
                 )}
               </button>
             </div>

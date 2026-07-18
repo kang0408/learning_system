@@ -3,6 +3,7 @@ import { Camera, Upload, Save, Loader2, Mail, Phone, MapPin, Briefcase, KeyRound
 import { useAuthStore } from '@/store/authStore';
 import { useUpdateTeacherProfile } from '../hooks/useTeacherProfile';
 import { ChangePasswordModal } from './ChangePasswordModal';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileFormProps {
   onSuccess: (message: string) => void;
@@ -10,6 +11,7 @@ interface ProfileFormProps {
 }
 
 export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) => {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { mutateAsync: updateProfile, isPending } = useUpdateTeacherProfile();
 
@@ -34,7 +36,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.size > 5 * 1024 * 1024) {
-        onError('Kích thước ảnh phải nhỏ hơn 5MB');
+        onError(t('teacher.profile.fileSizeError'));
         return;
       }
       setAvatarFile(file);
@@ -55,9 +57,9 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
         address: formData.address,
         avatar: avatarFile || undefined
       });
-      onSuccess('Cập nhật thông tin thành công.');
+      onSuccess(t('teacher.profile.updateSuccess'));
     } catch (err: any) {
-      onError(err.response?.data?.message || err.response?.data?.error?.message || 'Có lỗi xảy ra khi cập nhật.');
+      onError(err.response?.data?.message || err.response?.data?.error?.message || t('teacher.profile.updateError'));
     }
   };
 
@@ -75,13 +77,13 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 group-hover:text-indigo-500 transition-colors">
                 <Camera className="w-10 h-10 mb-2" />
-                <span className="font-semibold text-xs tracking-wider uppercase">Chọn ảnh</span>
+                <span className="font-semibold text-xs tracking-wider uppercase">{t('teacher.profile.selectAvatar')}</span>
               </div>
             )}
 
             <div className="absolute inset-0 bg-gray-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Upload className="w-8 h-8 text-white mb-1.5" />
-              <span className="font-medium text-white text-xs">Thay đổi</span>
+              <span className="font-medium text-white text-xs">{t('teacher.profile.changeAvatar')}</span>
             </div>
           </div>
 
@@ -94,7 +96,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
           />
 
           <h2 className="text-xl font-bold text-gray-900">
-            {formData.full_name || 'Chưa cập nhật tên'}
+            {formData.full_name || t('teacher.profile.noName')}
           </h2>
           <p className="text-sm text-gray-500 mt-1 mb-6">{user?.email}</p>
 
@@ -104,7 +106,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium text-sm shadow-sm hover:shadow"
           >
             <KeyRound className="w-4 h-4" />
-            Đổi mật khẩu
+            {t('teacher.profile.changePasswordBtn')}
           </button>
         </div>
       </div>
@@ -118,12 +120,12 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
       <div className="lg:col-span-2">
         <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition duration-300">
           <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2.5 border-b border-gray-100 pb-4">
-            <Briefcase className="w-5 h-5 text-indigo-500" /> Thông tin cơ bản
+            <Briefcase className="w-5 h-5 text-indigo-500" /> {t('teacher.profile.basicInfoTitle')}
           </h3>
           
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="full_name" className="block text-sm font-semibold text-gray-700 mb-1.5">Họ và Tên <span className="text-red-500">*</span></label>
+              <label htmlFor="full_name" className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.fullNameLabel')} <span className="text-red-500">*</span></label>
               <input 
                 type="text" 
                 id="full_name"
@@ -131,14 +133,14 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
                 value={formData.full_name}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                placeholder="Nhập họ và tên đầy đủ..."
+                placeholder={t('teacher.profile.fullNamePlaceholder')}
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email (Cố định)</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.emailLabel')}</label>
                 <div className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 text-sm flex items-center cursor-not-allowed">
                   <Mail className="w-4 h-4 mr-2.5 text-gray-400" />
                   {user?.email}
@@ -146,9 +148,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">Số điện thoại</label>
+                <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.phoneLabel')}</label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Phone className="w-4 h-4 text-gray-400" />
+                  </div>
                   <input 
                     type="tel" 
                     id="phone"
@@ -156,7 +160,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
                     value={formData.phone}
                     onChange={handleChange}
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                    placeholder="0912 345 678"
+                    placeholder={t('teacher.profile.phonePlaceholder')}
                   />
                 </div>
               </div>
@@ -178,21 +182,21 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
               </div>
             </div>
 
-            <div className="pt-5 mt-6 border-t border-gray-100 flex justify-end">
+            <div className="pt-6 border-t border-gray-100 flex justify-end">
               <button 
                 type="submit" 
                 disabled={isPending}
-                className="flex items-center justify-center px-6 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-50 text-sm"
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Đang lưu...
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t('teacher.profile.updatingBtn')}
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Lưu thay đổi
+                    <Save className="w-4 h-4" />
+                    {t('teacher.profile.updateBtn')}
                   </>
                 )}
               </button>

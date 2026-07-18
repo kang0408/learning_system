@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface MembersHeaderProps {
   classId: string;
 }
 
 export const MembersHeader: React.FC<MembersHeaderProps> = ({ classId }) => {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center bg-white p-6 border-4 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(24,24,27,1)] transition-all duration-300">
       <Link 
@@ -17,7 +19,7 @@ export const MembersHeader: React.FC<MembersHeaderProps> = ({ classId }) => {
       </Link>
       <h1 className="text-3xl font-black uppercase tracking-tight text-zinc-900 flex items-center">
         <Users className="w-8 h-8 mr-4 text-indigo-600" />
-        Danh sách Học sinh
+        {t('teacher.classMembers.title')}
       </h1>
     </div>
   );

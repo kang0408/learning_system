@@ -5,8 +5,10 @@ import { MembersHeader } from './components/MembersHeader';
 import { MembersList } from './components/MembersList';
 import { Pagination } from './components/Pagination';
 import { toast } from '@/utils/toast';
+import { useTranslation } from 'react-i18next';
 
 export const TeacherClassMembersFeature: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [page, setPage] = useState(1);
   const [isPending, startTransition] = useTransition();
@@ -21,11 +23,11 @@ export const TeacherClassMembersFeature: React.FC = () => {
   };
 
   const handleRemove = async (studentId: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa học sinh này khỏi lớp?')) return;
+    if (!window.confirm(t('teacher.classMembers.confirmRemove'))) return;
     try {
       await removeMember(studentId);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(err.response?.data?.message || t('teacher.classMembers.errorGeneric'));
     }
   };
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Loader2, Star } from 'lucide-react';
 import { useTopicQuestions } from '../hooks/useTeacherNewAssignment';
 import type { Topic } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface TopicQuestionsListProps {
   topic: Topic;
@@ -18,6 +19,7 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
   onTopicCheckChange,
   onQuestionCheckChange,
 }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const { data: questions, isLoading } = useTopicQuestions(topic.id, expanded);
 
@@ -40,7 +42,7 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
         >
           <div>
             <div className="font-semibold text-gray-900">{topic.name}</div>
-            <div className="text-xs text-gray-500 mt-0.5">{topic._count?.questions || 0} câu hỏi</div>
+            <div className="text-xs text-gray-500 mt-0.5">{t('teacher.newAssignment.questionsCount', { count: topic._count?.questions || 0 })}</div>
           </div>
           <div className="text-gray-400 p-1.5 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
             {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -52,7 +54,7 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
         <div className="border-t border-gray-100 bg-gray-50/50 p-4 space-y-3">
           {isLoading ? (
             <div className="flex items-center text-sm text-gray-500">
-              <Loader2 className="w-4 h-4 mr-2 animate-spin text-indigo-500" /> Đang tải...
+              <Loader2 className="w-4 h-4 mr-2 animate-spin text-indigo-500" /> {t('teacher.newAssignment.loading')}
             </div>
           ) : questions && questions.length > 0 ? (
             questions.map(q => {
@@ -75,7 +77,7 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
                           ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                           : 'bg-pink-50 text-pink-700 border border-pink-200'
                       }`}>
-                        {q.question_type === 'multiple_choice' ? 'Trắc nghiệm' : 'Đúng/Sai'}
+                        {q.question_type === 'multiple_choice' ? t('teacher.newAssignment.typeMultipleChoice') : t('teacher.newAssignment.typeTrueFalse')}
                       </span>
                       {topic.name && (
                         <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200">
@@ -98,7 +100,7 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
               );
             })
           ) : (
-            <p className="text-sm text-gray-500">Chủ đề này không có câu hỏi nào.</p>
+            <p className="text-sm text-gray-500">{t('teacher.newAssignment.noQuestions')}</p>
           )}
         </div>
       )}

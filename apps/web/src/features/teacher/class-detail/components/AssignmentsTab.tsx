@@ -33,7 +33,8 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
   };
 
   const handleTogglePublish = (assignmentId: string, currentStatus: string) => {
-    togglePublish.mutate(assignmentId, {
+    const isPublished = currentStatus !== 'published';
+    togglePublish.mutate({ assignmentId, isPublished }, {
       onSuccess: () => {
         if (currentStatus === 'published') {
           toast.success(t('teacher.classDetail.unpublishSuccess'));

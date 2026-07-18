@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PaginationProps {
   page: number;
@@ -10,6 +11,7 @@ interface PaginationProps {
 }
 
 export const Pagination: React.FC<PaginationProps> = ({ page, total, limit, isPending, onPageChange }) => {
+  const { t } = useTranslation();
   const totalPages = Math.ceil(total / limit);
 
   if (totalPages <= 1) return null;
@@ -18,7 +20,11 @@ export const Pagination: React.FC<PaginationProps> = ({ page, total, limit, isPe
     <div className="flex items-center justify-between p-6 border-t-4 border-zinc-900 bg-white">
       <div className="flex items-center gap-4 text-sm font-bold uppercase tracking-wider text-zinc-600">
         <span>
-          Hiển thị {(page - 1) * limit + 1} - {Math.min(page * limit, total)} trong {total}
+          {t('teacher.classMembers.showing', { 
+            start: (page - 1) * limit + 1, 
+            end: Math.min(page * limit, total), 
+            total 
+          })}
         </span>
         {isPending && <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />}
       </div>

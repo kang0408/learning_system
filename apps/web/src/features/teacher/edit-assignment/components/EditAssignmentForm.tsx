@@ -5,6 +5,7 @@ import { TopicQuestionsList } from './TopicQuestionsList';
 import { useUpdateAssignment } from '../hooks/useTeacherEditAssignment';
 import type { Topic, ClassMember } from '../types';
 import { toast } from '@/utils/toast';
+import { useTranslation } from 'react-i18next';
 
 interface EditAssignmentFormProps {
   classId: string;
@@ -25,6 +26,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
   initialTopicIds,
   initialQuestionIds
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { mutateAsync: updateAssignment, isPending } = useUpdateAssignment(assignmentId);
 
@@ -100,7 +102,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.topic_ids.length === 0 && form.question_ids.length === 0) {
-      toast.warning('Vui lòng chọn ít nhất 1 câu hỏi hoặc 1 chủ đề');
+      toast.warning(t('teacher.editAssignment.validationNoQuestions'));
       return;
     }
 
@@ -116,82 +118,82 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
         question_ids: form.question_ids,
         student_ids: form.assignToAll ? [] : form.student_ids
       });
-      toast.success('Cập nhật bài tập thành công!');
+      toast.success(t('teacher.editAssignment.updateSuccess'));
       navigate(`/teacher/classes/${classId}`);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài tập');
+      toast.error(err?.response?.data?.message || t('teacher.editAssignment.updateError'));
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
       <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-gray-700">Tiêu đề <span className="text-red-500">*</span></label>
+        <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.titleLabel')} <span className="text-red-500">*</span></label>
         <input
           required
           type="text"
           value={form.title}
           onChange={e => setForm({ ...form, title: e.target.value })}
           className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-          placeholder="Nhập tiêu đề bài tập..."
+          placeholder={t('teacher.editAssignment.titlePlaceholder')}
         />
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-gray-700">Mô tả</label>
+        <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.descLabel')}</label>
         <textarea
           value={form.description}
           onChange={e => setForm({ ...form, description: e.target.value })}
           className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm resize-none"
-          placeholder="Mô tả chi tiết bài tập (không bắt buộc)"
+          placeholder={t('teacher.editAssignment.descPlaceholder')}
           rows={4}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">Chế độ làm bài</label>
+          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.modeLabel')}</label>
           <select
             value={form.mode}
             onChange={e => setForm({ ...form, mode: e.target.value })}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
           >
-            <option value="adaptive">Thích ứng (Adaptive/SM-2)</option>
-            <option value="standard">Tiêu chuẩn (Standard)</option>
-            <option value="exam">Thi cử (Exam)</option>
+            <option value="adaptive">{t('teacher.editAssignment.modeAdaptive')}</option>
+            <option value="standard">{t('teacher.editAssignment.modeStandard')}</option>
+            <option value="exam">{t('teacher.editAssignment.modeExam')}</option>
           </select>
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">Số lần tối đa</label>
+          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.maxAttemptsLabel')}</label>
           <input
             type="number"
             min="0"
             value={form.max_attempts}
             onChange={e => setForm({ ...form, max_attempts: parseInt(e.target.value) || 0 })}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-            placeholder="0 = Không giới hạn"
+            placeholder={t('teacher.editAssignment.noLimitPlaceholder')}
           />
-          <p className="text-xs text-gray-500">Nhập 0 để không giới hạn</p>
+          <p className="text-xs text-gray-500">{t('teacher.editAssignment.noLimitHint')}</p>
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">Giới hạn thời gian (Phút)</label>
+          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.timeLimitLabel')}</label>
           <input
             type="number"
             min="0"
             value={form.time_limit}
             onChange={e => setForm({ ...form, time_limit: parseInt(e.target.value) || 0 })}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-            placeholder="0 = Không giới hạn"
+            placeholder={t('teacher.editAssignment.noLimitPlaceholder')}
           />
-          <p className="text-xs text-gray-500">Nhập 0 để không giới hạn</p>
+          <p className="text-xs text-gray-500">{t('teacher.editAssignment.noLimitHint')}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">Hạn chót nộp bài</label>
+          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.deadlineLabel')}</label>
           <input
             type="datetime-local"
             value={form.deadline}
@@ -201,7 +203,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">Đối tượng giao bài</label>
+          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.assignToLabel')}</label>
           <select
             value={form.assignToAll ? 'all' : 'specific'}
             onChange={e => {
@@ -210,8 +212,8 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
             }}
             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
           >
-            <option value="all">Tất cả học sinh trong lớp</option>
-            <option value="specific">Chọn học sinh cụ thể</option>
+            <option value="all">{t('teacher.editAssignment.assignAll')}</option>
+            <option value="specific">{t('teacher.editAssignment.assignSpecific')}</option>
           </select>
         </div>
       </div>
@@ -219,11 +221,11 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
       {!form.assignToAll && (
         <div className="bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
           <label className="block text-sm font-semibold text-indigo-900 mb-3">
-            Chọn học sinh ({form.student_ids.length}/{members.length})
+            {t('teacher.editAssignment.selectStudents', { selected: form.student_ids.length, total: members.length })}
           </label>
           <div className="bg-white rounded-xl border border-gray-200 max-h-[300px] overflow-y-auto space-y-1 p-2">
             {members.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center p-4">Lớp chưa có học sinh nào.</p>
+              <p className="text-sm text-gray-500 text-center p-4">{t('teacher.editAssignment.noStudents')}</p>
             ) : (
               members.map((member) => (
                 <label key={member.student.id} className="flex items-center p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group">
@@ -262,7 +264,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-3">Chọn chủ đề (Topics)</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-3">{t('teacher.editAssignment.selectTopicsLabel')}</label>
         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
           {topics.map(topic => (
             <TopicQuestionsList
@@ -276,7 +278,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
           ))}
           {topics.length === 0 && (
             <p className="text-sm text-gray-500 p-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-              Bạn chưa có chủ đề nào. Hãy tạo chủ đề trước nhé.
+              {t('teacher.editAssignment.noTopics')}
             </p>
           )}
         </div>
@@ -288,7 +290,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
           onClick={() => navigate(-1)}
           className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-semibold hover:bg-gray-50 transition-colors text-sm"
         >
-          Hủy
+          {t('teacher.editAssignment.cancelBtn')}
         </button>
         <button
           type="submit"
@@ -296,7 +298,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
           className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-50 flex items-center transition-colors text-sm shadow-sm"
         >
           {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-          Cập nhật
+          {t('teacher.editAssignment.updateBtn')}
         </button>
       </div>
     </form>
