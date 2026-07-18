@@ -4,6 +4,8 @@ import { BookOpen, Plus, Award, Calendar, CheckCircle2, AlertCircle, Clock, Send
 import { ConfirmDialog } from '../../../../components/ui/Dialog';
 import { useClassMutations } from '../hooks/useClassDetailData';
 
+import { toast } from '@/utils/toast';
+
 interface AssignmentsTabProps {
   assignments: any[];
   classStats: any;
@@ -18,9 +20,26 @@ export function AssignmentsTab({ assignments, classStats, membersCount, classId 
   const handleConfirmDelete = () => {
     if (assignmentToDelete) {
       deleteAssignment.mutate(assignmentToDelete, {
-        onSuccess: () => setAssignmentToDelete(null)
+        onSuccess: () => {
+          toast.success('Xóa bài tập thành công!');
+          setAssignmentToDelete(null);
+        },
+        onError: (err: any) => {
+          toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa bài tập');
+        }
       });
     }
+  };
+
+  const handleTogglePublish = (assignmentId: string, isPublished: boolean) => {
+    togglePublish.mutate({ assignmentId, isPublished }, {
+      onSuccess: () => {
+        toast.success(isPublished ? 'Hủy phát hành bài tập thành công!' : 'Phát hành bài tập thành công!');
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi thay đổi trạng thái bài tập');
+      }
+    });
   };
 
   return (
@@ -146,7 +165,7 @@ export function AssignmentsTab({ assignments, classStats, membersCount, classId 
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => togglePublish.mutate({ assignmentId: assignment.id, isPublished: assignment.is_published })}
+                          onClick={() => handleTogglePublish(assignment.id, assignment.is_published)}
                           disabled={togglePublish.isPending}
                           className={`p-2 rounded-lg transition-colors border border-transparent ${
                             assignment.is_published 

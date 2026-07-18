@@ -15,6 +15,7 @@ import { SaveQuestionModal } from './components/SaveQuestionModal';
 import { GenerateAiQuestionsModal } from './components/GenerateAiQuestionsModal';
 import { ConfirmDialog } from '@/components/ui/Dialog';
 import type { Question } from './types';
+import { toast } from '@/utils/toast';
 
 export default function TeacherTopicDetailFeature() {
   const { topicId } = useParams<{ topicId: string }>();
@@ -54,18 +55,20 @@ export default function TeacherTopicDetailFeature() {
     if (!deleteQuestionId) return;
     try {
       await deleteQuestion(deleteQuestionId);
+      toast.success('Xóa câu hỏi thành công');
       setDeleteQuestionId(null);
-    } catch (e) {
-      alert('Không thể xóa câu hỏi');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Không thể xóa câu hỏi');
     }
   };
 
   const handleDeleteTopicConfirm = async () => {
     try {
       await deleteTopic(topicId);
+      toast.success('Xóa chủ đề thành công');
       navigate('/teacher/questions');
-    } catch (e) {
-      alert('Không thể xóa chủ đề');
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || 'Không thể xóa chủ đề');
     }
   };
 

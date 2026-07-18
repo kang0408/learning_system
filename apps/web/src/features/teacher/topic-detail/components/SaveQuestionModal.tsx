@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, Save, Star, X } from 'lucide-react';
 import { useSaveQuestion } from '../hooks/useTeacherTopicDetail';
 import type { Topic, Question } from '../types';
+import { toast } from '@/utils/toast';
 
 interface SaveQuestionModalProps {
   isOpen: boolean;
@@ -105,9 +106,10 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
         }
       });
       
+      toast.success(editingQuestion ? 'Cập nhật câu hỏi thành công' : 'Tạo câu hỏi thành công');
       onClose();
     } catch (err: any) {
-      alert('Có lỗi xảy ra khi lưu câu hỏi');
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi lưu câu hỏi');
     }
   };
 

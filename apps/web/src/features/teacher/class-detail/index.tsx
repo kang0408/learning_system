@@ -1,19 +1,49 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { useClassDetailData } from './hooks/useClassDetailData';
+import { useClassDetailData, useClassMutations } from './hooks/useClassDetailData';
 import { ClassHeader } from './components/ClassHeader';
 import { AnalyticsTab } from './components/AnalyticsTab';
 import { StudentsTab } from './components/StudentsTab';
 import { AssignmentsTab } from './components/AssignmentsTab';
+import { EditClassModal } from './components/EditClassModal';
+import { DeleteClassModal } from './components/DeleteClassModal';
+import { toast } from '@/utils/toast';
 
 export const TeacherClassDetailFeature: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'analytics' | 'students' | 'assignments'>('analytics');
   
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   // Single parallel request using Suspense
   const { data } = useClassDetailData(id || '');
   const { classDetails, classStats, analytics, members, assignments } = data;
+  
+  const { updateClass, deleteClass } = useClassMutations(id || '');
+
+  const handleEditSubmit = async (payload: { name: string; subject?: string; description?: string }) => {
+    try {
+      await updateClass.mutateAsync(payload);
+      toast.success('Cập nhật lớp học thành công!');
+      setShowEditModal(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật lớp học');
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteClass.mutateAsync();
+      toast.success('Xóa lớp học thành công!');
+      setShowDeleteModal(false);
+      navigate('/teacher');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa lớp học');
+    }
+  };
 
   if (!classDetails) {
     return (
@@ -36,6 +66,8 @@ export const TeacherClassDetailFeature: React.FC = () => {
         classDetails={classDetails} 
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
+        onEditClick={() => setShowEditModal(true)}
+        onDeleteClick={() => setShowDeleteModal(true)}
       />
 
       <div role="tabpanel" id={`${activeTab}-panel`} aria-labelledby={`${activeTab}-tab`} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -64,6 +96,24 @@ export const TeacherClassDetailFeature: React.FC = () => {
           />
         )}
       </div>
+
+      {showEditModal && (
+        <EditClassModal 
+          initialData={classDetails}
+          isUpdating={updateClass.isPending}
+          onClose={() => setShowEditModal(false)}
+          onSubmit={handleEditSubmit}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteClassModal
+          className={classDetails.name}
+          isDeleting={deleteClass.isPending}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteConfirm}
+        />
+      )}
     </div>
   );
 };

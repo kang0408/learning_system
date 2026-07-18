@@ -11,6 +11,15 @@ export const teacherClassDetailApi = {
     return res.data.data;
   },
   
+  updateClass: async (id: string, payload: { name: string; subject?: string; description?: string }) => {
+    const res = await api.patch(`/api/classes/${id}`, payload);
+    return res.data.data;
+  },
+
+  deleteClass: async (id: string) => {
+    await api.delete(`/api/classes/${id}`);
+  },
+
   getClassAnalytics: async (id: string) => {
     const [topicsRes, studentsRes] = await Promise.all([
       api.get(`/api/analytics/class/${id}/topics`),

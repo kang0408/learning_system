@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, Save, X } from 'lucide-react';
 import { useUpdateTopic } from '../hooks/useTeacherTopicDetail';
 import type { Topic } from '../types';
+import { toast } from '@/utils/toast';
 
 interface EditTopicModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ export const EditTopicModal: React.FC<EditTopicModalProps> = ({ isOpen, onClose,
     if (!editTopicName.trim()) return;
     
     if (enableEditCustomCode && editTopicCode.trim().length !== 6) {
-      alert('Mã chủ đề (nếu bật) phải có đúng 6 ký tự.');
+      toast.error('Mã chủ đề (nếu bật) phải có đúng 6 ký tự.');
       return;
     }
 
@@ -47,9 +48,10 @@ export const EditTopicModal: React.FC<EditTopicModalProps> = ({ isOpen, onClose,
       }
       
       await updateTopic({ topicId: topic.id, payload });
+      toast.success('Cập nhật chủ đề thành công');
       onClose();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.response?.data?.error?.message || 'Không thể cập nhật chủ đề');
+      toast.error(err.response?.data?.message || err.response?.data?.error?.message || 'Không thể cập nhật chủ đề');
     }
   };
 

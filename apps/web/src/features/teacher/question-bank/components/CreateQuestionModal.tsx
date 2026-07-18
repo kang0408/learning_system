@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, Save, Star, X } from 'lucide-react';
 import { useCreateQuestion } from '../hooks/useTeacherQuestionBank';
 import type { Topic } from '../types';
+import { toast } from '@/utils/toast';
 
 interface CreateQuestionModalProps {
   isOpen: boolean;
@@ -61,13 +62,14 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
         answer_options
       });
       
+      toast.success('Tạo câu hỏi thành công');
       onClose();
       setNewContent('');
       setNewOptions(['', '', '', '']);
       setIsTrueStatement(true);
       setNewDifficulty(3);
     } catch (err: any) {
-      alert('Có lỗi xảy ra khi tạo câu hỏi');
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi tạo câu hỏi');
     }
   };
 

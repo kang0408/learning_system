@@ -3,6 +3,7 @@ import { X, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { useGenerateAiQuestions, useBulkCreateQuestions } from '../hooks/useTeacherTopicDetail';
 import { Select } from '@/components/ui/Select';
 import type { AiGeneratedQuestion } from '../types';
+import { toast } from '@/utils/toast';
 
 interface GenerateAiQuestionsModalProps {
   isOpen: boolean;
@@ -65,8 +66,9 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
       setGeneratedQuestions(result);
       setSelectedIndices(result.map((_, i) => i));
       setStep(2);
-    } catch (error) {
-      alert('Có lỗi xảy ra khi tạo câu hỏi bằng AI');
+      toast.success('Tạo câu hỏi bằng AI thành công');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo câu hỏi bằng AI');
     }
   };
 
@@ -79,9 +81,10 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
         topic_id: topicId,
         questions: questionsToSave,
       });
+      toast.success(`Đã lưu thành công ${questionsToSave.length} câu hỏi`);
       handleClose();
-    } catch (error) {
-      alert('Có lỗi xảy ra khi lưu câu hỏi');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi lưu câu hỏi');
     }
   };
 

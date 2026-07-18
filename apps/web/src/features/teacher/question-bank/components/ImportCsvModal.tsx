@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Loader2, Upload, Download, X } from 'lucide-react';
 import { useImportCsv } from '../hooks/useTeacherQuestionBank';
 import type { ImportCsvResult } from '../types';
+import { toast } from '@/utils/toast';
 
 interface ImportCsvModalProps {
   isOpen: boolean;
@@ -22,8 +23,9 @@ export const ImportCsvModal: React.FC<ImportCsvModalProps> = ({ isOpen, onClose 
     try {
       const res = await importCsv(file);
       setResult(res);
+      toast.success('Nhập dữ liệu thành công');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra khi import CSV');
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi import CSV');
     }
   };
 

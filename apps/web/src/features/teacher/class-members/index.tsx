@@ -4,6 +4,7 @@ import { useClassMembersData, useRemoveMember } from './hooks/useTeacherClassMem
 import { MembersHeader } from './components/MembersHeader';
 import { MembersList } from './components/MembersList';
 import { Pagination } from './components/Pagination';
+import { toast } from '@/utils/toast';
 
 export const TeacherClassMembersFeature: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +25,7 @@ export const TeacherClassMembersFeature: React.FC = () => {
     try {
       await removeMember(studentId);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, Save, X } from 'lucide-react';
 import { useCreateTopic } from '../hooks/useTeacherQuestionBank';
+import { toast } from '@/utils/toast';
 
 interface CreateTopicModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ isOpen, onCl
     if (!topicName.trim()) return;
     
     if (enableCustomCode && topicCode.trim().length !== 6) {
-      alert('Mã chủ đề (nếu nhập) phải có đúng 6 ký tự.');
+      toast.error('Mã chủ đề (nếu nhập) phải có đúng 6 ký tự.');
       return;
     }
 
@@ -31,13 +32,14 @@ export const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ isOpen, onCl
         description: topicDescription,
         code: enableCustomCode ? topicCode.trim().toUpperCase() : undefined
       });
+      toast.success('Tạo chủ đề thành công');
       onClose();
       setTopicName('');
       setTopicDescription('');
       setEnableCustomCode(false);
       setTopicCode('');
     } catch (err: any) {
-      alert(err.response?.data?.message || err.response?.data?.error?.message || 'Có lỗi xảy ra khi tạo chủ đề');
+      toast.error(err.response?.data?.message || err.response?.data?.error?.message || 'Có lỗi xảy ra khi tạo chủ đề');
     }
   };
 

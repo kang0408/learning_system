@@ -4,6 +4,7 @@ import { DashboardHeader } from './components/DashboardHeader';
 import { ClassCard } from './components/ClassCard';
 import { EmptyState } from './components/EmptyState';
 import { CreateClassModal } from './components/CreateClassModal';
+import { toast } from '@/utils/toast';
 
 export const TeacherDashboardFeature: React.FC = () => {
   const { data: classes } = useTeacherDashboardData();
@@ -13,9 +14,10 @@ export const TeacherDashboardFeature: React.FC = () => {
   const handleCreateClass = async (payload: any) => {
     try {
       await createClass(payload);
+      toast.success('Tạo lớp học thành công!');
       setShowModal(false);
-    } catch (err) {
-      alert('Failed to create class');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi tạo lớp học');
     }
   };
 

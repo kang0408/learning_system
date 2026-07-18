@@ -58,9 +58,27 @@ export const useClassMutations = (classId: string) => {
     },
   });
 
+  const updateClass = useMutation({
+    mutationFn: (payload: { name: string; subject?: string; description?: string }) => 
+      teacherClassDetailApi.updateClass(classId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'class-detail', classId] });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'classes'] });
+    },
+  });
+
+  const deleteClass = useMutation({
+    mutationFn: () => teacherClassDetailApi.deleteClass(classId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'classes'] });
+    },
+  });
+
   return {
     removeStudent,
     deleteAssignment,
     togglePublish,
+    updateClass,
+    deleteClass,
   };
 };

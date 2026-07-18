@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BarChart2, GraduationCap, BookOpen } from 'lucide-react';
+import { ArrowLeft, BarChart2, GraduationCap, BookOpen, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 
 interface ClassHeaderProps {
   classDetails: any;
   activeTab: 'analytics' | 'students' | 'assignments';
   onTabChange: (tab: 'analytics' | 'students' | 'assignments') => void;
+  onEditClick: () => void;
+  onDeleteClick: () => void;
 }
 
-export function ClassHeader({ classDetails, activeTab, onTabChange }: ClassHeaderProps) {
+export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick, onDeleteClick }: ClassHeaderProps) {
+  const [showMenu, setShowMenu] = useState(false);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition duration-300">
@@ -30,6 +34,41 @@ export function ClassHeader({ classDetails, activeTab, onTabChange }: ClassHeade
               </span>
             </p>
           </div>
+        </div>
+        
+        <div className="relative">
+          <button 
+            onClick={() => setShowMenu(!showMenu)}
+            className="p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-900"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
+          
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)}></div>
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-20 animate-in fade-in slide-in-from-top-2 duration-200">
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onEditClick();
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                >
+                  <Edit2 className="w-4 h-4" /> Chỉnh sửa
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onDeleteClick();
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors text-left border-t border-gray-100"
+                >
+                  <Trash2 className="w-4 h-4" /> Xóa lớp học
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

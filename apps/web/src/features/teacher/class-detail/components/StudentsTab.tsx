@@ -4,6 +4,8 @@ import { GraduationCap, Trophy, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../../../../components/ui/Dialog';
 import { useClassMutations } from '../hooks/useClassDetailData';
 
+import { toast } from '@/utils/toast';
+
 interface StudentsTabProps {
   analytics: any;
   members: any[];
@@ -25,7 +27,13 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
   const handleConfirmRemove = () => {
     if (studentToRemove) {
       removeStudent.mutate(studentToRemove.id, {
-        onSuccess: () => setStudentToRemove(null)
+        onSuccess: () => {
+          toast.success(`Đã xoá học sinh ${studentToRemove.name} khỏi lớp`);
+          setStudentToRemove(null);
+        },
+        onError: (err: any) => {
+          toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi xoá học sinh');
+        }
       });
     }
   };

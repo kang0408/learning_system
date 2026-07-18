@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Users, FileText, LogOut, Menu, X, GraduationCap, Sparkles, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/axios';
+import { NotificationProvider } from '../components/ui/NotificationProvider';
 
 export default function TeacherLayout() {
   const { logout, login, user, token } = useAuthStore();
@@ -38,6 +39,7 @@ export default function TeacherLayout() {
 
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
+      <NotificationProvider />
       {/* Mobile Menu Button */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-50 shadow-sm">
         <div className="flex items-center gap-2">

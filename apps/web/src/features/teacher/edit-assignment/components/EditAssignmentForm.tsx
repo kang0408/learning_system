@@ -4,6 +4,7 @@ import { Loader2, Save } from 'lucide-react';
 import { TopicQuestionsList } from './TopicQuestionsList';
 import { useUpdateAssignment } from '../hooks/useTeacherEditAssignment';
 import type { Topic, ClassMember } from '../types';
+import { toast } from '@/utils/toast';
 
 interface EditAssignmentFormProps {
   classId: string;
@@ -99,7 +100,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.topic_ids.length === 0 && form.question_ids.length === 0) {
-      alert('Vui lòng chọn ít nhất 1 câu hỏi hoặc 1 chủ đề');
+      toast.warning('Vui lòng chọn ít nhất 1 câu hỏi hoặc 1 chủ đề');
       return;
     }
 
@@ -115,9 +116,10 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
         question_ids: form.question_ids,
         student_ids: form.assignToAll ? [] : form.student_ids
       });
+      toast.success('Cập nhật bài tập thành công!');
       navigate(`/teacher/classes/${classId}`);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài tập');
+      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật bài tập');
     }
   };
 
