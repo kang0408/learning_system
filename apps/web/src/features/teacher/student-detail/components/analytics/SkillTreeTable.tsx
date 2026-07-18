@@ -27,8 +27,8 @@ export const SkillTreeTable: React.FC<SkillTreeTableProps> = ({ topicPerformance
   if (!topicPerformance || topicPerformance.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">{t('studentDetail.analytics.skillTree')}</h3>
-        <p className="text-sm text-gray-500 text-center py-8">{t('studentDetail.analytics.noLearningData')}</p>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">{t('teacher.studentDetail.analytics.skillTree')}</h3>
+        <p className="text-sm text-gray-500 text-center py-8">{t('teacher.studentDetail.analytics.noLearningData')}</p>
       </div>
     );
   }
@@ -137,16 +137,16 @@ export const SkillTreeTable: React.FC<SkillTreeTableProps> = ({ topicPerformance
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
       <div className="p-6 border-b border-gray-100 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-gray-900">{t('studentDetail.analytics.skillTree')}</h3>
-          <p className="text-sm text-gray-500 mt-1">{t('studentDetail.analytics.skillTreeDesc')}</p>
+          <h3 className="text-lg font-bold text-gray-900">{t('teacher.studentDetail.analytics.skillTree')}</h3>
+          <p className="text-sm text-gray-500 mt-1">{t('teacher.studentDetail.analytics.skillTreeDesc')}</p>
         </div>
       </div>
       
       <div className="flex-1 overflow-x-auto">
         <div className="min-w-[600px]">
           <div className="flex items-center py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            <div className="flex-1 px-4">{t('studentDetail.analytics.topicSkill')}</div>
-            <div className="w-28 text-center px-4">{t('studentDetail.analytics.accuracy')}</div>
+            <div className="flex-1 px-4">{t('teacher.studentDetail.analytics.topicSkill')}</div>
+            <div className="w-28 text-center px-4">{t('teacher.studentDetail.analytics.accuracy')}</div>
             <div className="w-24 text-center px-4 text-emerald-600">Mastered</div>
             <div className="w-24 text-center px-4 text-red-600">At Risk</div>
           </div>

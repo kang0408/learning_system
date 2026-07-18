@@ -31,8 +31,8 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
   if (!topicPerformance || topicPerformance.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm h-full">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">{t('studentDetail.analytics.knowledgeGraph')}</h3>
-        <p className="text-sm text-gray-500 text-center py-10">{t('studentDetail.analytics.notEnoughData')}</p>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">{t('teacher.studentDetail.analytics.knowledgeGraph')}</h3>
+        <p className="text-sm text-gray-500 text-center py-10">{t('teacher.studentDetail.analytics.notEnoughData')}</p>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
     labels,
     datasets: [
       {
-        label: t('studentDetail.analytics.accuracyPct'),
+        label: t('teacher.studentDetail.analytics.accuracyPct'),
         data: dataPoints,
         backgroundColor: 'rgba(79, 70, 229, 0.25)', // indigo-600 with opacity
         borderColor: 'rgba(79, 70, 229, 0.8)',
@@ -116,7 +116,7 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
         cornerRadius: 12,
         callbacks: {
           label: function(context: any) {
-            return t('studentDetail.analytics.accuracyLabel', { val: context.raw });
+            return t('teacher.studentDetail.analytics.accuracyLabel', { val: context.raw });
           }
         }
       }
@@ -127,8 +127,8 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
       <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900">{t('studentDetail.analytics.knowledgeGraphTitle')}</h3>
-        <p className="text-sm text-gray-500 mt-1">{t('studentDetail.analytics.knowledgeGraphDesc')}</p>
+        <h3 className="text-lg font-bold text-gray-900">{t('teacher.studentDetail.analytics.knowledgeGraphTitle')}</h3>
+        <p className="text-sm text-gray-500 mt-1">{t('teacher.studentDetail.analytics.knowledgeGraphDesc')}</p>
       </div>
       <div className="relative w-full h-[450px] mt-4">
         {labels.length >= 3 ? (
@@ -138,7 +138,7 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-gray-500 text-sm p-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-              {t('studentDetail.analytics.needMoreTopics', { count: labels.length })}
+              {t('teacher.studentDetail.analytics.needMoreTopics', { count: labels.length })}
             </div>
           </div>
         )}

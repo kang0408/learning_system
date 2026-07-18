@@ -30,7 +30,7 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
           <div className="text-3xl font-black text-indigo-600 mb-1">
             {Number(result.score || 0).toFixed(0)}%
           </div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('studentDetail.sessionResult.score')}</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teacher.studentDetail.sessionResult.score')}</p>
         </div>
         
         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
@@ -38,7 +38,7 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
             <Target className="w-5 h-5 text-green-500" />
             <span>{result.correct_questions}/{result.total_questions}</span>
           </div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('studentDetail.sessionResult.correctQuestions')}</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teacher.studentDetail.sessionResult.correctQuestions')}</p>
         </div>
 
         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
@@ -46,7 +46,7 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
             <Clock className="w-5 h-5 text-amber-500" />
             <span>{formatDuration(result.duration_seconds || 0)}</span>
           </div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('studentDetail.sessionResult.duration')}</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teacher.studentDetail.sessionResult.duration')}</p>
         </div>
 
         <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex flex-col items-center justify-center">
@@ -54,7 +54,7 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
             <Calendar className="w-5 h-5 text-blue-500" />
             <span>{result.finished_at ? new Date(result.finished_at).toLocaleDateString() : '--'}</span>
           </div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('studentDetail.sessionResult.submittedDate')}</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teacher.studentDetail.sessionResult.submittedDate')}</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <Brain className="w-5 h-5 text-indigo-500" />
-          {t('studentDetail.sessionResult.questionDetails')}
+          {t('teacher.studentDetail.sessionResult.questionDetails')}
         </h3>
         <div className="space-y-4">
           {answers.map((answer: any, index: number) => {
@@ -80,14 +80,14 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
                 <div className={`px-5 py-3 border-b flex justify-between items-center ${
                   isCorrect ? 'bg-green-50/50 border-green-100' : 'bg-red-50/50 border-red-100'
                 }`}>
-                  <span className="font-semibold text-gray-700 text-sm">{t('studentDetail.sessionResult.questionNumber', { num: index + 1 })}</span>
+                  <span className="font-semibold text-gray-700 text-sm">{t('teacher.studentDetail.sessionResult.questionNumber', { num: index + 1 })}</span>
                   {isCorrect ? (
                     <span className="inline-flex items-center gap-1 text-green-700 text-xs font-bold uppercase tracking-wider bg-green-100 px-2.5 py-1 rounded-md">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> {t('studentDetail.sessionResult.correct')}
+                      <CheckCircle2 className="w-3.5 h-3.5" /> {t('teacher.studentDetail.sessionResult.correct')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-red-700 text-xs font-bold uppercase tracking-wider bg-red-100 px-2.5 py-1 rounded-md">
-                      <XCircle className="w-3.5 h-3.5" /> {t('studentDetail.sessionResult.incorrect')}
+                      <XCircle className="w-3.5 h-3.5" /> {t('teacher.studentDetail.sessionResult.incorrect')}
                     </span>
                   )}
                 </div>
@@ -142,18 +142,18 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
                   {qType === 'fill_blank' && (
                     <div className="space-y-3">
                       <div className="flex flex-col gap-1">
-                        <span className="text-xs font-semibold text-gray-500 uppercase">{t('studentDetail.sessionResult.studentAnswer')}</span>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">{t('teacher.studentDetail.sessionResult.studentAnswer')}</span>
                         <div className={`p-3 rounded-lg border font-medium text-sm ${
                           isCorrect ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
                         }`}>
-                          {answer.text_answer || <span className="italic opacity-50">{t('studentDetail.sessionResult.noAnswer')}</span>}
+                          {answer.text_answer || <span className="italic opacity-50">{t('teacher.studentDetail.sessionResult.noAnswer')}</span>}
                         </div>
                       </div>
                       {!isCorrect && options && (
                         <div className="flex flex-col gap-1">
-                          <span className="text-xs font-semibold text-green-600 uppercase">{t('studentDetail.sessionResult.correctAnswer')}</span>
+                          <span className="text-xs font-semibold text-green-600 uppercase">{t('teacher.studentDetail.sessionResult.correctAnswer')}</span>
                           <div className="p-3 rounded-lg border border-green-200 bg-green-50 text-green-800 font-medium text-sm">
-                            {options.filter((o: any) => o.is_correct).map((o: any) => o.content).join(t('studentDetail.sessionResult.or'))}
+                            {options.filter((o: any) => o.is_correct).map((o: any) => o.content).join(t('teacher.studentDetail.sessionResult.or'))}
                           </div>
                         </div>
                       )}
@@ -164,12 +164,12 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
                   {qType === 'matching' && (
                     <div className="space-y-4">
                       <div className="flex flex-col gap-2">
-                        <span className="text-xs font-semibold text-gray-500 uppercase">{t('studentDetail.sessionResult.studentMatch')}</span>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">{t('teacher.studentDetail.sessionResult.studentMatch')}</span>
                         <div className="space-y-2">
                           {(() => {
                             try {
                               const pairs = JSON.parse(answer.text_answer || '[]');
-                              if (pairs.length === 0) return <div className="text-gray-400 italic text-sm">{t('studentDetail.sessionResult.noAnswer')}</div>;
+                              if (pairs.length === 0) return <div className="text-gray-400 italic text-sm">{t('teacher.studentDetail.sessionResult.noAnswer')}</div>;
                               const originalPairs = (answer.question.metadata as any)?.pairs || [];
                               
                               return pairs.map((p: any, i: number) => {
@@ -192,7 +192,7 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
                                 );
                               });
                             } catch(e) {
-                              return <div className="text-red-500 text-sm">{t('studentDetail.sessionResult.displayError')}</div>;
+                              return <div className="text-red-500 text-sm">{t('teacher.studentDetail.sessionResult.displayError')}</div>;
                             }
                           })()}
                         </div>
@@ -200,7 +200,7 @@ const SessionResultContent: React.FC<{ sessionId: string }> = ({ sessionId }) =>
 
                       {!isCorrect && answer.question.metadata && (answer.question.metadata as any).pairs && (
                         <div className="flex flex-col gap-2 pt-3 border-t border-gray-100">
-                          <span className="text-xs font-semibold text-green-600 uppercase">{t('studentDetail.sessionResult.correctAnswer')}</span>
+                          <span className="text-xs font-semibold text-green-600 uppercase">{t('teacher.studentDetail.sessionResult.correctAnswer')}</span>
                           <div className="space-y-2">
                             {(answer.question.metadata as any).pairs.map((p: any, i: number) => (
                               <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg border border-green-200 bg-green-50 text-green-800 text-sm font-medium border-dashed">
@@ -245,7 +245,7 @@ export const SessionResultModal: React.FC<SessionResultModalProps> = ({ sessionI
             <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
               <Brain className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">{t('studentDetail.sessionResult.sessionDetails')}</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('teacher.studentDetail.sessionResult.sessionDetails')}</h2>
           </div>
           <button 
             onClick={onClose}
@@ -259,7 +259,7 @@ export const SessionResultModal: React.FC<SessionResultModalProps> = ({ sessionI
           <Suspense fallback={
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-              <p className="text-sm font-medium text-gray-500">{t('studentDetail.sessionResult.loadingData')}</p>
+              <p className="text-sm font-medium text-gray-500">{t('teacher.studentDetail.sessionResult.loadingData')}</p>
             </div>
           }>
             <SessionResultContent sessionId={sessionId} />
