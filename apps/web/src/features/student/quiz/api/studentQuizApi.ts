@@ -22,5 +22,10 @@ export const studentQuizApi = {
   finishSession: async (sessionId: string): Promise<any> => {
     const res = await api.post(`/api/sessions/${sessionId}/finish`);
     return res.data?.data || res.data;
+  },
+
+  abandonSession: async (sessionId: string): Promise<any> => {
+    const res = await api.post(`/api/sessions/${sessionId}/abandon`);
+    return res.data?.data || res.data;
   }
 };

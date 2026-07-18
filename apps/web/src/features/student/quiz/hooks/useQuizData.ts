@@ -31,3 +31,13 @@ export const useFinishQuiz = () => {
     }
   });
 };
+
+export const useAbandonQuiz = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionId: string) => studentQuizApi.abandonSession(sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quizSession'] });
+    }
+  });
+};

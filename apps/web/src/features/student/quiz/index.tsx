@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useQuizSession, useSubmitAnswer, useFinishQuiz } from './hooks/useQuizData';
+import { useQuizSession, useSubmitAnswer, useFinishQuiz, useAbandonQuiz } from './hooks/useQuizData';
 import { useAntiCheat } from '@/hooks/useAntiCheat';
 import { QuizHeader } from './components/QuizHeader';
 import { QuizQuestion } from './components/QuizQuestion';
@@ -25,6 +25,7 @@ export const StudentQuizFeature: React.FC = () => {
   const { data: session } = useQuizSession(assignmentId);
   const { mutateAsync: submitAnswer } = useSubmitAnswer();
   const { mutateAsync: finishSession } = useFinishQuiz();
+  const { mutateAsync: abandonSession } = useAbandonQuiz();
 
   const questions = session.questions || [];
   
@@ -237,7 +238,14 @@ export const StudentQuizFeature: React.FC = () => {
                 {t('common.ui.cancel')}
               </button>
               <button 
-                onClick={() => navigate('/student')}
+                onClick={async () => {
+                  try {
+                    await abandonSession(session.id);
+                  } catch (e) {
+                    console.error("Failed to abandon session", e);
+                  }
+                  navigate('/student');
+                }}
                 className="flex-1 border-2 border-red-600 bg-red-600 text-white px-6 py-4 font-bold uppercase tracking-widest hover:bg-zinc-900 hover:border-zinc-900 transition-colors shadow-[4px_4px_0_0_rgba(24,24,27,1)] hover:translate-y-1 hover:shadow-none"
               >
                 {t('student.quiz.leaveQuiz')}
