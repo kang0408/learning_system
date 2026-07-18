@@ -144,11 +144,11 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
                   value={newType}
                   onChange={(val) => setNewType(val)}
                   options={[
-                    { label: 'Trắc nghiệm', value: 'multiple_choice' },
-                    { label: 'Nhiều lựa chọn', value: 'multi_select' },
-                    { label: 'Đúng / Sai', value: 'true_false' },
-                    { label: 'Điền vào chỗ trống', value: 'fill_blank' },
-                    { label: 'Ghép cặp', value: 'matching' }
+                    { label: t('teacher.questionBank.createQuestion.typeMultipleChoice'), value: 'multiple_choice' },
+                    { label: t('teacher.questionBank.createQuestion.typeMultiSelect'), value: 'multi_select' },
+                    { label: t('teacher.questionBank.createQuestion.typeTrueFalse'), value: 'true_false' },
+                    { label: t('teacher.questionBank.createQuestion.typeFillBlank'), value: 'fill_blank' },
+                    { label: t('teacher.questionBank.createQuestion.typeMatching'), value: 'matching' }
                   ]}
                 />
               </div>
@@ -183,13 +183,13 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-gray-700">Giải thích chi tiết</label>
+              <label className="block text-sm font-semibold text-gray-700">{t('teacher.questionBank.createQuestion.detailExplanationLabel')}</label>
               <textarea
                 value={newExplanation}
                 onChange={(e) => setNewExplanation(e.target.value)}
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm resize-none"
                 rows={2}
-                placeholder="Nhập giải thích cho câu hỏi này..."
+                placeholder={t('teacher.questionBank.createQuestion.detailExplanationPlaceholder')}
               />
             </div>
 
@@ -223,7 +223,7 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
                 </div>
               ) : newType === 'multi_select' ? (
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Các đáp án (Tích chọn tất cả các đáp án đúng)</label>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">{t('teacher.questionBank.createQuestion.multiSelectLabel')}</label>
                   <div className="space-y-3">
                     {newOptions.map((opt, i) => (
                       <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${newMultiCorrectOptions[i] ? 'border-indigo-300 bg-white shadow-sm' : 'border-gray-200 bg-white/50 hover:bg-white hover:border-indigo-200'}`}>
@@ -273,27 +273,27 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
                 </div>
               ) : newType === 'fill_blank' ? (
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Đáp án đúng (Điền từ)</label>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">{t('teacher.questionBank.createQuestion.fillBlankLabel')}</label>
                   <input
                     type="text"
                     value={fillBlankAnswer}
                     onChange={(e) => setFillBlankAnswer(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Nhập từ hoặc cụm từ đúng..."
+                    placeholder={t('teacher.questionBank.createQuestion.fillBlankPlaceholder')}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-2">Học sinh phải nhập chính xác (không phân biệt chữ hoa, chữ thường) từ này vào ô trống.</p>
+                  <p className="text-xs text-gray-500 mt-2">{t('teacher.questionBank.createQuestion.fillBlankHint')}</p>
                 </div>
               ) : (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <label className="block text-sm font-semibold text-indigo-900">Các cặp tương ứng (Ghép cặp)</label>
+                    <label className="block text-sm font-semibold text-indigo-900">{t('teacher.questionBank.createQuestion.matchingLabel')}</label>
                     <button
                       type="button"
                       onClick={() => setNewMatchingPairs([...newMatchingPairs, { leftText: '', rightText: '' }])}
                       className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
                     >
-                      + Thêm cặp
+                      {t('teacher.questionBank.createQuestion.addPairBtn')}
                     </button>
                   </div>
                   <div className="space-y-3">
@@ -307,7 +307,7 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
                             setNewMatchingPairs(newPairs);
                           }}
                           className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
-                          placeholder={`Vế trái ${i + 1}`}
+                          placeholder={t('teacher.questionBank.createQuestion.leftSidePlaceholder', { index: i + 1 })}
                           rows={2}
                           required
                         />
@@ -320,7 +320,7 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
                             setNewMatchingPairs(newPairs);
                           }}
                           className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
-                          placeholder={`Vế phải ${i + 1}`}
+                          placeholder={t('teacher.questionBank.createQuestion.rightSidePlaceholder', { index: i + 1 })}
                           rows={2}
                           required
                         />

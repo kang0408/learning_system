@@ -9,6 +9,7 @@ export interface Question {
   content: string;
   question_type: string;
   answer_options?: AnswerOption[];
+  metadata?: any;
 }
 
 export interface SessionAnswer {

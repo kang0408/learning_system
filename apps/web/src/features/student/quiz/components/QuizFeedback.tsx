@@ -64,7 +64,7 @@ export const QuizFeedback: React.FC<QuizFeedbackProps> = ({
           {feedback === 'incorrect' && (fillBlankAnswer || matchingPairs || choiceTexts) && (
             <div className="mb-4 p-4 bg-green-50 border-2 border-green-600">
               <span className="font-bold uppercase tracking-widest text-green-700 text-sm block mb-2">
-                Đáp án đúng:
+                {t('student.quiz.correctAnswer')}
               </span>
               
               {fillBlankAnswer && (

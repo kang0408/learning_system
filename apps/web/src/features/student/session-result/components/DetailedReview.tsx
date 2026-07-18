@@ -34,11 +34,20 @@ export const DetailedReview: React.FC<DetailedReviewProps> = ({ answers }) => {
                   </div>
                 </div>
                 
-                {/* Options */}
-                {['multiple_choice', 'true_false'].includes(answer.question.question_type) && answer.question.answer_options && (
+                {/* Options for Choice Types */}
+                {['multiple_choice', 'true_false', 'multi_select'].includes(answer.question.question_type) && answer.question.answer_options && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     {answer.question.answer_options.map((opt) => {
-                      const isSelected = answer.selected_option === opt.id;
+                      let isSelected = false;
+                      if (answer.question.question_type === 'multi_select' || (answer.text_answer && answer.text_answer.startsWith('['))) {
+                        try {
+                          const ids = JSON.parse(answer.text_answer || '[]');
+                          isSelected = ids.includes(opt.id);
+                        } catch(e) {}
+                      } else {
+                        isSelected = answer.selected_option === opt.id;
+                      }
+                      
                       const isOptCorrect = opt.is_correct;
                       
                       let boxClass = "p-4 border-2 font-bold text-lg ";
@@ -59,12 +68,65 @@ export const DetailedReview: React.FC<DetailedReviewProps> = ({ answers }) => {
                   </div>
                 )}
 
-                {!['multiple_choice', 'true_false'].includes(answer.question.question_type) && (
+                {/* Fill in the blank */}
+                {answer.question.question_type === 'fill_blank' && (
                   <div className="mt-4 p-4 border-2 border-indigo-600 font-mono text-lg font-bold bg-indigo-50">
                      <span className="text-indigo-600 uppercase tracking-widest text-sm block mb-2">{t('student.result.yourAnswer')}</span> 
                      <span className={isCorrect ? 'text-zinc-900' : 'text-red-600'}>
                        {answer.text_answer || t('student.result.noAnswer')}
                      </span>
+                     {!isCorrect && answer.question.answer_options && (
+                       <div className="mt-4 pt-4 border-t-2 border-indigo-200">
+                         <span className="text-indigo-600 uppercase tracking-widest text-sm block mb-2">{t('student.result.correctAnswer')}</span>
+                         <span className="text-green-600">
+                           {answer.question.answer_options.filter((o: any) => o.is_correct).map((o: any) => o.content).join(' / ')}
+                         </span>
+                       </div>
+                     )}
+                  </div>
+                )}
+
+                {/* Matching */}
+                {answer.question.question_type === 'matching' && (
+                  <div className="mt-4 space-y-4">
+                    <div className="p-4 border-2 border-indigo-600 font-mono text-lg font-bold bg-indigo-50">
+                      <span className="text-indigo-600 uppercase tracking-widest text-sm block mb-2">{t('student.result.yourAnswer')}</span>
+                      {(() => {
+                        try {
+                          const pairs = JSON.parse(answer.text_answer || '[]');
+                          if (pairs.length === 0) return <span className="text-zinc-400">{t('student.result.noAnswer')}</span>;
+                          const originalPairs = (answer.question.metadata as any)?.pairs || [];
+                          return (
+                            <ul className="list-disc list-inside space-y-2">
+                              {pairs.map((p: any, i: number) => {
+                                const originalLeft = originalPairs.find((op: any) => op.leftId === p.leftId);
+                                const originalRight = originalPairs.find((op: any) => op.rightId === p.rightId);
+                                const leftText = originalLeft ? originalLeft.leftText : (p.leftText || p.leftId);
+                                const rightText = originalRight ? originalRight.rightText : (p.rightText || p.rightId);
+                                return (
+                                  <li key={i} className={isCorrect ? 'text-zinc-900' : 'text-red-600'}>
+                                    {leftText} ➔ {rightText}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          );
+                        } catch(e) {
+                          return <span className="text-red-600">{t('student.result.noAnswer')}</span>;
+                        }
+                      })()}
+                    </div>
+                    
+                    {!isCorrect && answer.question.metadata && (answer.question.metadata as any).pairs && (
+                      <div className="p-4 border-2 border-green-600 font-mono text-lg font-bold bg-green-50">
+                        <span className="text-green-600 uppercase tracking-widest text-sm block mb-2">{t('student.result.correctAnswer')}</span>
+                        <ul className="list-disc list-inside space-y-2 text-green-900">
+                          {(answer.question.metadata as any).pairs.map((p: any, i: number) => (
+                            <li key={i}>{p.leftText} ➔ {p.rightText}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

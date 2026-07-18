@@ -62,11 +62,11 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                           ? 'bg-pink-50 text-pink-700 border-pink-200'
                           : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       }`}>
-                        {q.question_type === 'multiple_choice' ? 'Trắc nghiệm' 
-                         : q.question_type === 'multi_select' ? 'Nhiều lựa chọn'
-                         : q.question_type === 'true_false' ? 'Đúng / Sai'
-                         : q.question_type === 'fill_blank' ? 'Điền vào chỗ trống'
-                         : 'Ghép cặp'}
+                        {q.question_type === 'multiple_choice' ? t('teacher.topicDetail.listTypeMultipleChoice') 
+                         : q.question_type === 'multi_select' ? t('teacher.topicDetail.listTypeMultiSelect')
+                         : q.question_type === 'true_false' ? t('teacher.topicDetail.listTypeTrueFalse')
+                         : q.question_type === 'fill_blank' ? t('teacher.topicDetail.listTypeFillBlank')
+                         : t('teacher.topicDetail.listTypeMatching')}
                       </span>
                       <div className="inline-flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100">
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -92,7 +92,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                     
                     {q.question_type === 'fill_blank' && q.answer_options && q.answer_options.length > 0 && (
                       <div className="mt-4 p-3 bg-orange-50 border border-orange-100 rounded-lg text-sm flex items-center inline-flex">
-                        <span className="font-semibold text-orange-800 mr-2">Đáp án:</span> 
+                        <span className="font-semibold text-orange-800 mr-2">{t('teacher.topicDetail.listCorrectAnswer')}</span> 
                         <span className="font-bold text-orange-900">
                           {q.answer_options.find((o) => o.is_correct)?.content}
                         </span>

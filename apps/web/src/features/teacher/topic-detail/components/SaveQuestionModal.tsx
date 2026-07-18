@@ -211,11 +211,11 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
                   value={newType}
                   onChange={(val) => setNewType(val)}
                   options={[
-                    { label: 'Trắc nghiệm', value: 'multiple_choice' },
-                    { label: 'Nhiều lựa chọn', value: 'multi_select' },
-                    { label: 'Đúng / Sai', value: 'true_false' },
-                    { label: 'Điền vào chỗ trống', value: 'fill_blank' },
-                    { label: 'Ghép cặp', value: 'matching' }
+                    { label: t('teacher.topicDetail.saveModalTypeMultipleChoice'), value: 'multiple_choice' },
+                    { label: t('teacher.topicDetail.saveModalTypeMultiSelect'), value: 'multi_select' },
+                    { label: t('teacher.topicDetail.saveModalTypeTrueFalse'), value: 'true_false' },
+                    { label: t('teacher.topicDetail.saveModalTypeFillBlank'), value: 'fill_blank' },
+                    { label: t('teacher.topicDetail.saveModalTypeMatching'), value: 'matching' }
                   ]}
                 />
               </div>
@@ -290,7 +290,7 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
                 </div>
               ) : newType === 'multi_select' ? (
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Các đáp án (Tích chọn tất cả các đáp án đúng)</label>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">{t('teacher.topicDetail.saveModalOptionsLabelMultiSelect')}</label>
                   <div className="space-y-3">
                     {newOptions.map((opt, i) => (
                       <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${newMultiCorrectOptions[i] ? 'border-indigo-300 bg-white shadow-sm' : 'border-gray-200 bg-white/50 hover:bg-white hover:border-indigo-200'}`}>
@@ -340,27 +340,27 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
                 </div>
               ) : newType === 'fill_blank' ? (
                 <div>
-                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Đáp án đúng (Điền từ)</label>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">{t('teacher.topicDetail.saveModalOptionsLabelFillBlank')}</label>
                   <input
                     type="text"
                     value={fillBlankAnswer}
                     onChange={(e) => setFillBlankAnswer(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    placeholder="Nhập từ hoặc cụm từ đúng..."
+                    placeholder={t('teacher.topicDetail.saveModalFillBlankPlaceholder')}
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-2">Học sinh phải nhập chính xác (không phân biệt chữ hoa, chữ thường) từ này vào ô trống.</p>
+                  <p className="text-xs text-gray-500 mt-2">{t('teacher.topicDetail.saveModalFillBlankHint')}</p>
                 </div>
               ) : (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <label className="block text-sm font-semibold text-indigo-900">Các cặp tương ứng (Ghép cặp)</label>
+                    <label className="block text-sm font-semibold text-indigo-900">{t('teacher.topicDetail.saveModalOptionsLabelMatching')}</label>
                     <button
                       type="button"
                       onClick={() => setNewMatchingPairs([...newMatchingPairs, { leftText: '', rightText: '' }])}
                       className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
                     >
-                      + Thêm cặp
+                      {t('teacher.topicDetail.saveModalAddPairBtn')}
                     </button>
                   </div>
                   <div className="space-y-3">
@@ -374,7 +374,7 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
                             setNewMatchingPairs(newPairs);
                           }}
                           className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
-                          placeholder={`Vế trái ${i + 1}`}
+                          placeholder={t('teacher.topicDetail.saveModalLeftSidePlaceholder', { index: i + 1 })}
                           rows={2}
                           required
                         />
@@ -387,7 +387,7 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
                             setNewMatchingPairs(newPairs);
                           }}
                           className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
-                          placeholder={`Vế phải ${i + 1}`}
+                          placeholder={t('teacher.topicDetail.saveModalRightSidePlaceholder', { index: i + 1 })}
                           rows={2}
                           required
                         />

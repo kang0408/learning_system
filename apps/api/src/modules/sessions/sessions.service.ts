@@ -191,12 +191,19 @@ export class SessionsService {
       console.error('🚨 [CRITICAL SM2 FALLBACK] Lỗi tính toán SM-2:', e);
     }
 
+    let textAnswerToSave = data.fill_text || null;
+    if ((qType === 'multi_select' || qType === 'multiple_choice' || qType === 'true_false') && data.selected_option_ids && data.selected_option_ids.length > 0) {
+      textAnswerToSave = JSON.stringify(data.selected_option_ids);
+    } else if (qType === 'matching' && data.matching_pairs) {
+      textAnswerToSave = JSON.stringify(data.matching_pairs);
+    }
+
     // Save Answer (Luôn luôn lưu lịch sử làm bài để tính điểm)
     await this.sessionsRepository.createSessionAnswer({
       session_id: sessionId,
       question_id,
       selected_option: selected_option_id || null,
-      text_answer: data.fill_text || null,
+      text_answer: textAnswerToSave,
       is_correct: isCorrect,
       response_time_ms,
       sm2_quality: sm2Result ? sm2Result.q : -1 

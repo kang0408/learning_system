@@ -22,12 +22,12 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
   const { t } = useTranslation();
 
   const QUESTION_TYPE_OPTIONS = [
-    { label: 'Trắc nghiệm', value: 'multiple_choice' },
-    { label: 'Nhiều lựa chọn', value: 'multi_select' },
-    { label: 'Đúng / Sai', value: 'true_false' },
-    { label: 'Điền vào chỗ trống', value: 'fill_blank' },
-    { label: 'Ghép cặp', value: 'matching' },
-    { label: 'Tổng hợp', value: 'mixed' },
+    { label: t('teacher.topicDetail.aiModalTypeMultipleChoice'), value: 'multiple_choice' },
+    { label: t('teacher.topicDetail.aiModalTypeMultiSelect'), value: 'multi_select' },
+    { label: t('teacher.topicDetail.aiModalTypeTrueFalse'), value: 'true_false' },
+    { label: t('teacher.topicDetail.aiModalTypeFillBlank'), value: 'fill_blank' },
+    { label: t('teacher.topicDetail.aiModalTypeMatching'), value: 'matching' },
+    { label: t('teacher.topicDetail.aiModalTypeMixed'), value: 'mixed' },
   ];
 
   const DIFFICULTY_OPTIONS = [
@@ -185,11 +185,11 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                       <p className="text-gray-900 font-medium">{q.content}</p>
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md">
-                          {q.question_type === 'multiple_choice' ? 'Trắc nghiệm' 
-                           : q.question_type === 'multi_select' ? 'Nhiều lựa chọn'
-                           : q.question_type === 'true_false' ? 'Đúng / Sai'
-                           : q.question_type === 'fill_blank' ? 'Điền vào chỗ trống' 
-                           : 'Ghép cặp'}
+                          {q.question_type === 'multiple_choice' ? t('teacher.topicDetail.aiModalTypeMultipleChoice') 
+                           : q.question_type === 'multi_select' ? t('teacher.topicDetail.aiModalTypeMultiSelect')
+                           : q.question_type === 'true_false' ? t('teacher.topicDetail.aiModalTypeTrueFalse')
+                           : q.question_type === 'fill_blank' ? t('teacher.topicDetail.aiModalTypeFillBlank') 
+                           : t('teacher.topicDetail.aiModalTypeMatching')}
                         </span>
                         <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md">
                           {t('teacher.topicDetail.aiModalDiffText')} {q.difficulty}

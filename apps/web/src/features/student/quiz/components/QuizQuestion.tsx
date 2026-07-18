@@ -75,14 +75,14 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
     if (feedback === 'incorrect') {
       return (
         <div className="p-2 md:p-3 mt-1 md:mt-2 bg-red-50 border-4 border-red-600 text-red-700 font-bold text-base md:text-lg uppercase tracking-tight">
-          Đáp án không chính xác.
+          {t('student.quiz.incorrectFeedback')}
         </div>
       );
     }
     if (feedback === 'correct') {
       return (
         <div className="p-2 md:p-3 mt-1 md:mt-2 bg-green-50 border-4 border-green-600 text-green-700 font-bold text-base md:text-lg uppercase tracking-tight">
-          Chính xác!
+          {t('student.quiz.correctFeedback')}
         </div>
       );
     }
@@ -111,7 +111,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
              onChange={(e) => setFillValue(e.target.value)}
              disabled={!!feedback || submitting}
              className="w-full text-lg md:text-xl font-black tracking-tight p-3 md:p-4 border-4 border-zinc-900 focus:outline-none focus:border-indigo-600 transition-colors bg-white"
-             placeholder="Nhập câu trả lời của bạn..."
+             placeholder={t('student.quiz.typeAnswer')}
              onKeyDown={(e) => {
                if (e.key === 'Enter' && fillValue.trim() && !feedback && !submitting) onSelect({ fillText: fillValue });
              }}
@@ -121,7 +121,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
              onClick={() => onSelect({ fillText: fillValue })}
              className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
            >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "XÁC NHẬN"}
+             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
            </button>
            {renderFeedback()}
         </div>
@@ -184,7 +184,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
              onClick={() => onSelect({ optIds: localSelectedIds })}
              className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
            >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "XÁC NHẬN"}
+             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
            </button>
            {renderFeedback()}
         </div>
@@ -234,7 +234,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
              onClick={() => onSelect({ optId: localSelectedId })}
              className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
            >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "XÁC NHẬN"}
+             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
            </button>
            {renderFeedback()}
         </div>
@@ -319,7 +319,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                           </div>
                        ) : (
                           <span className="text-[10px] md:text-xs text-zinc-400 font-medium italic text-center px-1">
-                             Kéo thả vào đây
+                             {t('student.quiz.dragDropHere')}
                           </span>
                        )}
                     </div>
@@ -330,7 +330,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
           {!feedback && (
             <div className="mt-1 md:mt-2">
-              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Danh sách lựa chọn</h3>
+              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5">{t('student.quiz.choiceList')}</h3>
               <div 
                  className="p-3 md:p-4 bg-zinc-100 rounded-lg border-2 border-dashed border-zinc-300 min-h-[60px] md:min-h-[80px] flex flex-wrap gap-2 items-center justify-center transition-colors"
                  onDragOver={(e) => { 
@@ -356,7 +356,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                  style={{ borderColor: dragOverBank ? '#6366f1' : undefined, backgroundColor: dragOverBank ? '#eef2ff' : undefined }}
               >
                  {unplacedRights.length === 0 ? (
-                    <span className="text-zinc-400 font-medium text-xs">Bạn đã đặt tất cả lựa chọn</span>
+                    <span className="text-zinc-400 font-medium text-xs">{t('student.quiz.allPlaced')}</span>
                  ) : (
                     unplacedRights.map(right => (
                        <div 
@@ -393,7 +393,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
              }}
              className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
            >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "XÁC NHẬN"}
+             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
            </button>
            {renderFeedback()}
         </div>
