@@ -15,7 +15,7 @@ export const NewAssignmentHeader: React.FC<NewAssignmentHeaderProps> = ({ classI
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition duration-300">
       <div className="flex items-center mb-4 md:mb-0">
         <button 
-          onClick={() => navigate(`/teacher/classes/${classId}`)} 
+          onClick={() => navigate(`/teacher/classes/${classId}?tab=assignments`)} 
           className="mr-5 p-2 rounded-full hover:bg-slate-100 text-gray-400 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />

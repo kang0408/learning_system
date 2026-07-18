@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useClassDetailData, useClassMutations } from './hooks/useClassDetailData';
 import { ClassHeader } from './components/ClassHeader';
@@ -15,7 +15,9 @@ export const TeacherClassDetailFeature: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'analytics' | 'students' | 'assignments'>('analytics');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = (searchParams.get('tab') as 'analytics' | 'students' | 'assignments') || 'analytics';
+  const setActiveTab = (tab: 'analytics' | 'students' | 'assignments') => setSearchParams({ tab });
   
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);

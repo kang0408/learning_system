@@ -119,7 +119,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
         student_ids: form.assignToAll ? [] : form.student_ids
       });
       toast.success(t('teacher.editAssignment.updateSuccess'));
-      navigate(`/teacher/classes/${classId}`);
+      navigate(`/teacher/classes/${classId}?tab=assignments`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t('teacher.editAssignment.updateError'));
     }

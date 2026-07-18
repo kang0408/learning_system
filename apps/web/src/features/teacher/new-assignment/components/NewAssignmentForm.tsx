@@ -102,7 +102,7 @@ export const NewAssignmentForm: React.FC<NewAssignmentFormProps> = ({ classId, t
         student_ids: form.assignToAll ? [] : form.student_ids
       });
       toast.success(t('teacher.newAssignment.createSuccess'));
-      navigate(`/teacher/classes/${classId}`);
+      navigate(`/teacher/classes/${classId}?tab=assignments`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t('teacher.newAssignment.createError'));
     }

@@ -32,11 +32,10 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
     }
   };
 
-  const handleTogglePublish = (assignmentId: string, currentStatus: string) => {
-    const isPublished = currentStatus !== 'published';
+  const handleTogglePublish = (assignmentId: string, isPublished: boolean) => {
     togglePublish.mutate({ assignmentId, isPublished }, {
       onSuccess: () => {
-        if (currentStatus === 'published') {
+        if (isPublished) {
           toast.success(t('teacher.classDetail.unpublishSuccess'));
         } else {
           toast.success(t('teacher.classDetail.publishSuccess'));
@@ -123,29 +122,38 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
-                        ${assignment.assignment_status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
-                          assignment.assignment_status === 'overdue' ? 'bg-red-100 text-red-800' :
-                          assignment.assignment_status === 'ongoing' ? 'bg-indigo-100 text-indigo-800' :
-                          'bg-gray-100 text-gray-800'}`}>
-                        {assignment.assignment_status === 'completed' ? t('teacher.classDetail.completed') :
-                         assignment.assignment_status === 'overdue' ? t('teacher.classDetail.overdue') :
-                         assignment.assignment_status === 'ongoing' ? t('teacher.classDetail.ongoing') :
-                         assignment.status === 'published' ? t('teacher.classDetail.published') : t('teacher.classDetail.draft')}
-                      </span>
+                      <div className="flex flex-col items-center gap-1.5">
+                        {/* Publish Status */}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                          ${assignment.is_published ? 'bg-indigo-100 text-indigo-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {assignment.is_published ? t('teacher.classDetail.published') : t('teacher.classDetail.draft')}
+                        </span>
+                        
+                        {/* Progress Status */}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold
+                          ${assignment.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
+                            assignment.status === 'overdue' ? 'bg-red-100 text-red-800' :
+                            assignment.status === 'ongoing' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'}`}>
+                          {assignment.status === 'completed' ? t('teacher.classDetail.completed') :
+                           assignment.status === 'overdue' ? t('teacher.classDetail.overdue') :
+                           assignment.status === 'ongoing' ? t('teacher.classDetail.ongoing') :
+                           assignment.status}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleTogglePublish(assignment.id, assignment.status)}
+                          onClick={() => handleTogglePublish(assignment.id, assignment.is_published)}
                           className={`p-2 rounded-lg transition-colors border ${
-                            assignment.status === 'published' 
+                            assignment.is_published 
                               ? 'text-emerald-600 hover:bg-emerald-50 border-transparent hover:border-emerald-100' 
                               : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 border-transparent hover:border-indigo-100'
                           }`}
-                          title={assignment.status === 'published' ? t('teacher.classDetail.unpublish') : t('teacher.classDetail.publishToStudents')}
+                          title={assignment.is_published ? t('teacher.classDetail.unpublish') : t('teacher.classDetail.publishToStudents')}
                         >
-                          {assignment.status === 'published' ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {assignment.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                         <Link
                           to={`/teacher/classes/${classId}/assignments/${assignment.id}/edit`}

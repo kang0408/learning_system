@@ -134,7 +134,6 @@ export default function TeacherLayout() {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.end}
                   onClick={() => setIsMobileMenuOpen(false)}
                   title={isSidebarCollapsed ? item.label : undefined}
                   className={({ isActive }) =>
