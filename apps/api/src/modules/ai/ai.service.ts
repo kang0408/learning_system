@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { AiCacheRepository } from './ai-cache.repository';
 import { AiRepository } from './ai.repository';
 import { config } from '../../config';
@@ -26,13 +26,13 @@ export class AiService {
       if (cached) return cached;
 
       // 2. Cache Miss -> Call Gemini API
-      const prompt = `Học sinh trả lời sai câu hỏi: "${questionContext}". Hãy giải thích ngắn gọn, dễ hiểu trong 2 câu vì sao đáp án này sai và gợi ý cách nhớ.`;
+      const prompt = `Học sinh trả lời sai câu hỏi: "${questionContext}". Hãy giải thích ngắn gọn, dễ hiểu trong 2 câu vì sao đáp án này sai và gợi ý cách nhớ. Chỉ liệt kệ giải thích và cách nhớ, không có gì khác`;
       
       const response = await this.ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt
       });
-
+      
       const explanation = response.text;
 
       // 3. Update Cache (TTL: 30 days)
@@ -99,6 +99,54 @@ Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "
     } catch (error) {
       Sentry.captureException(error);
       return null;
+    }
+  }
+  /**
+   * Generates quiz questions based on topic, type, quantity, and difficulty
+   */
+  async generateQuizQuestions(params: { topic: string; question_type: string; quantity: number; difficulty?: number }) {
+    try {
+      const typeStr = params.question_type === 'multiple_choice' ? 'trắc nghiệm (4 đáp án)' : params.question_type === 'true_false' ? 'đúng/sai (2 đáp án)' : 'tổng hợp (trắc nghiệm và đúng/sai)';
+      const difficultyStr = params.difficulty ? `${params.difficulty}/5 sao` : 'ngẫu nhiên';
+      
+      const prompt = `Bạn là một chuyên gia giáo dục. Hãy tạo ${params.quantity} câu hỏi dạng ${typeStr} cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết.`;
+
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                content: { type: Type.STRING },
+                question_type: { type: Type.STRING },
+                difficulty: { type: Type.INTEGER },
+                explanation: { type: Type.STRING },
+                answer_options: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      content: { type: Type.STRING },
+                      is_correct: { type: Type.BOOLEAN }
+                    }
+                  }
+                }
+              },
+              required: ["content", "question_type", "difficulty", "explanation", "answer_options"]
+            }
+          }
+        }
+      });
+
+      const jsonString = response.text || "[]";
+      return JSON.parse(jsonString);
+    } catch (error) {
+      Sentry.captureException(error);
+      throw error;
     }
   }
 }

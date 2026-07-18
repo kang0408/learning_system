@@ -18,9 +18,24 @@ interface SelectProps {
 
 export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeholder = 'Select...', className = '', icon }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [direction, setDirection] = useState<'down' | 'up'>('down');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const estimatedHeight = 20 + options.length * 44;
+      
+      if (spaceBelow < estimatedHeight && rect.top > estimatedHeight) {
+        setDirection('up');
+      } else {
+        setDirection('down');
+      }
+    }
+  }, [isOpen, options.length]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,7 +70,11 @@ export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeh
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-zinc-100 rounded-2xl shadow-xl shadow-zinc-200/50 py-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div 
+          className={`absolute z-50 w-full bg-white border border-zinc-100 rounded-2xl shadow-xl shadow-zinc-200/50 py-2 overflow-hidden animate-in fade-in duration-200 ${
+            direction === 'up' ? 'bottom-full mb-2 slide-in-from-bottom-2' : 'top-full mt-2 slide-in-from-top-2'
+          }`}
+        >
           {options.map((option) => (
             <button
               key={option.value}
