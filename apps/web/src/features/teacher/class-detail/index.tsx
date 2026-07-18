@@ -9,8 +9,10 @@ import { AssignmentsTab } from './components/AssignmentsTab';
 import { EditClassModal } from './components/EditClassModal';
 import { DeleteClassModal } from './components/DeleteClassModal';
 import { toast } from '@/utils/toast';
+import { useTranslation } from 'react-i18next';
 
 export const TeacherClassDetailFeature: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'analytics' | 'students' | 'assignments'>('analytics');
@@ -27,34 +29,34 @@ export const TeacherClassDetailFeature: React.FC = () => {
   const handleEditSubmit = async (payload: { name: string; subject?: string; description?: string }) => {
     try {
       await updateClass.mutateAsync(payload);
-      toast.success('Cập nhật lớp học thành công!');
+      toast.success(t('teacher.classDetail.updateClassSuccess'));
       setShowEditModal(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi cập nhật lớp học');
+      toast.error(err?.response?.data?.message || t('teacher.classDetail.updateClassError'));
     }
   };
 
   const handleDeleteConfirm = async () => {
     try {
       await deleteClass.mutateAsync();
-      toast.success('Xóa lớp học thành công!');
+      toast.success(t('teacher.classDetail.deleteClassSuccess'));
       setShowDeleteModal(false);
       navigate('/teacher');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi xóa lớp học');
+      toast.error(err?.response?.data?.message || t('teacher.classDetail.deleteClassError'));
     }
   };
 
   if (!classDetails) {
     return (
       <div className="max-w-md mx-auto my-12 bg-white border-4 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(24,24,27,1)] rounded-none p-8 text-center animate-in fade-in zoom-in-95 duration-500">
-        <h3 className="text-2xl font-black uppercase tracking-tight text-zinc-900 mb-2">Lớp học không tồn tại</h3>
-        <p className="text-zinc-500 font-bold uppercase tracking-wider mb-8">Không thể tải thông tin lớp học này.</p>
+        <h3 className="text-2xl font-black uppercase tracking-tight text-zinc-900 mb-2">{t('teacher.classDetail.classNotFound')}</h3>
+        <p className="text-zinc-500 font-bold uppercase tracking-wider mb-8">{t('teacher.classDetail.cannotLoadClass')}</p>
         <Link 
           to="/teacher" 
           className="inline-flex items-center px-6 py-4 bg-zinc-900 text-white font-black uppercase tracking-widest border-2 border-zinc-900 hover:bg-indigo-600 transition-colors shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" /> Quay lại
+          <ArrowLeft className="w-5 h-5 mr-2" /> {t('teacher.classDetail.back')}
         </Link>
       </div>
     );

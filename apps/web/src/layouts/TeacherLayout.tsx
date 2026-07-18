@@ -1,15 +1,23 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Users, FileText, LogOut, Menu, X, GraduationCap, Sparkles, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, FileText, LogOut, Menu, X, GraduationCap, Sparkles, User as UserIcon, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/axios';
 import { NotificationProvider } from '../components/ui/NotificationProvider';
 
 export default function TeacherLayout() {
   const { logout, login, user, token } = useAuthStore();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('teacher_sidebar_collapsed') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('teacher_sidebar_collapsed', String(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
 
   useEffect(() => {
     if (token) {
@@ -150,15 +158,29 @@ export default function TeacherLayout() {
           </nav>
         </div>
 
-        {/* Logout */}
-        <div className={`p-4 border-t border-gray-50 bg-gray-50/30 ${isSidebarCollapsed ? 'px-2' : ''}`}>
+        {/* Actions */}
+        <div className={`p-4 border-t border-gray-50 bg-gray-50/30 flex flex-col gap-2 ${isSidebarCollapsed ? 'px-2' : ''}`}>
+          <button
+            onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en')}
+            title={isSidebarCollapsed ? (i18n.language === 'en' ? 'Tiếng Việt' : 'English') : undefined}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm group`}
+          >
+            <Globe className={`w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-colors flex-shrink-0 ${!isSidebarCollapsed ? 'mr-3' : ''}`} />
+            <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap flex items-center justify-between ${isSidebarCollapsed ? 'w-0 opacity-0' : 'flex-1 opacity-100'}`}>
+              <span>Ngôn ngữ</span>
+              <span className="text-xs font-semibold px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-md">
+                {i18n.language === 'en' ? 'EN' : 'VI'}
+              </span>
+            </div>
+          </button>
+
           <button
             onClick={handleLogout}
             title={isSidebarCollapsed ? "Đăng xuất" : undefined}
-            className={`flex items-center justify-center py-3 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 w-full transition-all shadow-sm group ${isSidebarCollapsed ? 'px-0' : 'px-4'}`}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 w-full transition-all shadow-sm group`}
           >
-            <LogOut className={`w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors flex-shrink-0 ${!isSidebarCollapsed ? 'mr-2' : ''}`} />
-            <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-20 opacity-100'}`}>
+            <LogOut className={`w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors flex-shrink-0 ${!isSidebarCollapsed ? 'mr-3' : ''}`} />
+            <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap text-left ${isSidebarCollapsed ? 'w-0 opacity-0' : 'flex-1 opacity-100'}`}>
               Đăng xuất
             </div>
           </button>

@@ -6,6 +6,7 @@ import {
 import { Bar } from 'react-chartjs-2';
 import { useTopicStudents } from '../hooks/useClassDetailData';
 import { Dialog } from '../../../../components/ui/Dialog';
+import { useTranslation } from 'react-i18next';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -16,6 +17,7 @@ interface AnalyticsTabProps {
 }
 
 export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabProps) {
+  const { t } = useTranslation();
   const [selectedTopic, setSelectedTopic] = useState<{ id: string; name: string } | null>(null);
   
   const { data: topicStudents = [], isLoading: modalLoading } = useTopicStudents(
@@ -28,7 +30,7 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
   const chartData = {
     labels: sortedTopics.map(t => t.topic),
     datasets: [{
-      label: 'Tỷ lệ chính xác (%)',
+      label: t('teacher.classDetail.accuracy'),
       data: sortedTopics.map(t => t.accuracy),
       backgroundColor: sortedTopics.map(t =>
         t.accuracy >= 70 ? 'rgba(16, 185, 129, 0.85)' :
@@ -54,7 +56,7 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (context: any) => ` Tỷ lệ chính xác: ${context.raw}%`
+          label: (context: any) => ` ${t('teacher.classDetail.accuracy')}: ${context.raw}%`
         },
         backgroundColor: 'rgba(17, 24, 39, 0.95)',
         titleFont: { size: 13, weight: 'bold' as const },
@@ -87,27 +89,30 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard title="Tổng số học sinh" value={classStats?.total_students || 0} icon={<Users className="w-6 h-6" />} color="blue" />
+        <StatCard title={t('teacher.classDetail.totalStudents')} value={classStats?.total_students || 0} icon={<Users className="w-6 h-6" />} color="blue" t={t} />
         <StatCard 
-          title="Hoạt động tuần này" 
+          title={t('teacher.classDetail.weeklyActivity')} 
           value={classStats?.active_students?.current || 0} 
           trend={classStats?.active_students?.trend} 
           icon={<Trophy className="w-6 h-6" />} 
           color="slate" 
+          t={t}
         />
         <StatCard 
-          title="Tỷ lệ nộp bài" 
+          title={t('teacher.classDetail.submissionRate')} 
           value={`${classStats?.completion_rate?.current || 0}%`} 
           trend={classStats?.completion_rate?.trend} 
           icon={<Percent className="w-6 h-6" />} 
           color="emerald" 
+          t={t}
         />
         <StatCard 
-          title="Điểm trung bình" 
+          title={t('teacher.classDetail.averageScore')} 
           value={`${classStats?.average_score?.current || 0} pts`} 
           trend={classStats?.average_score?.trend} 
           icon={<Award className="w-6 h-6" />} 
           color="amber" 
+          t={t}
         />
       </div>
 
@@ -116,40 +121,43 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
           <div className="mb-6 flex justify-between items-end">
             <div>
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-purple-600" aria-hidden="true" /> Trạng thái trí nhớ SM2
+                <BarChart2 className="w-5 h-5 text-purple-600" aria-hidden="true" /> {t('teacher.classDetail.sm2Status')}
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                Tổng quan quá trình ghi nhớ kiến thức của toàn bộ học sinh (tổng {classStats.sm2_summary.total_questions} lượt).
+                {t('teacher.classDetail.sm2Overview', { total: classStats.sm2_summary.total_questions })}
               </p>
             </div>
             <div className="text-right">
-              <div className="text-sm font-semibold text-gray-500">Cần ôn tập hôm nay</div>
-              <div className="text-2xl font-bold text-red-600">{classStats.sm2_summary.due_today} câu</div>
+              <div className="text-sm font-semibold text-gray-500">{t('teacher.classDetail.dueToday')}</div>
+              <div className="text-2xl font-bold text-red-600">{classStats.sm2_summary.due_today} {t('teacher.classDetail.questionsCount')}</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <SM2Card 
-              title="Đã thành thạo (Mastered)" 
+              title={t('teacher.classDetail.mastered')} 
               pct={classStats.sm2_summary.mastered.pct} 
               count={classStats.sm2_summary.mastered.count} 
               icon={<CheckCircle2 className="w-4 h-4" />} 
               theme="emerald" 
+              t={t}
             />
             <SM2Card 
-              title="Đang học (Learning)" 
+              title={t('teacher.classDetail.learning')} 
               pct={classStats.sm2_summary.learning.pct} 
               count={classStats.sm2_summary.learning.count} 
-              extra={`Nguy cơ: ${classStats.sm2_summary.learning.at_risk}`}
+              extra={t('teacher.classDetail.atRisk', { count: classStats.sm2_summary.learning.at_risk })}
               icon={<BookOpen className="w-4 h-4" />} 
               theme="blue" 
+              t={t}
             />
             <SM2Card 
-              title="Kiến thức mới (New)" 
+              title={t('teacher.classDetail.newKnowledge')} 
               pct={classStats.sm2_summary.new.pct} 
               count={classStats.sm2_summary.new.count} 
               icon={<Plus className="w-4 h-4" />} 
               theme="slate" 
+              t={t}
             />
           </div>
 
@@ -164,10 +172,10 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
         <div className="mb-4">
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-slate-900" aria-hidden="true" /> Tỷ lệ chính xác theo chủ đề
+            <BarChart2 className="w-5 h-5 text-slate-900" aria-hidden="true" /> {t('teacher.classDetail.accuracyByTopic')}
           </h2>
           <p className="text-sm text-gray-500 mt-1">
-            Nhấn vào thanh biểu đồ để xem chi tiết học sinh.
+            {t('teacher.classDetail.clickChartToViewDetails')}
           </p>
         </div>
         {sortedTopics.length > 0 ? (
@@ -176,7 +184,7 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
           </div>
         ) : (
           <div className="text-center py-12 text-gray-400 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-            Chưa có dữ liệu thống kê chủ đề.
+            {t('teacher.classDetail.noTopicData')}
           </div>
         )}
       </div>
@@ -184,8 +192,8 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
       <Dialog
         isOpen={!!selectedTopic}
         onClose={() => setSelectedTopic(null)}
-        title={`Chi tiết học sinh - ${selectedTopic?.name}`}
-        description="Danh sách học sinh học tập chủ đề này, xếp theo tỷ lệ chính xác."
+        title={t('teacher.classDetail.studentDetailsTitle', { name: selectedTopic?.name })}
+        description={t('teacher.classDetail.studentDetailsDesc')}
       >
         {modalLoading ? (
           <div className="flex justify-center items-center py-8">
@@ -196,9 +204,9 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
             <table className="min-w-full divide-y divide-gray-150 text-sm">
               <thead className="bg-gray-50 sticky top-0">
                 <tr className="font-semibold text-gray-500">
-                  <th className="px-4 py-3 text-left">Học sinh</th>
-                  <th className="px-4 py-3 text-left">Điểm</th>
-                  <th className="px-4 py-3 text-center">Chính xác</th>
+                  <th className="px-4 py-3 text-left">{t('teacher.classDetail.student')}</th>
+                  <th className="px-4 py-3 text-left">{t('teacher.classDetail.score')}</th>
+                  <th className="px-4 py-3 text-center">{t('teacher.classDetail.accuracy')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
@@ -224,14 +232,14 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
             </table>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">Chưa có học sinh làm bài tập chủ đề này.</div>
+          <div className="text-center py-8 text-gray-500">{t('teacher.classDetail.noStudentTopicData')}</div>
         )}
       </Dialog>
     </div>
   );
 }
 
-function StatCard({ title, value, trend, icon, color }: any) {
+function StatCard({ title, value, trend, icon, color, t }: any) {
   const colorMap: any = {
     blue: 'bg-blue-50 text-blue-600',
     slate: 'bg-slate-100 text-slate-900',
@@ -247,7 +255,7 @@ function StatCard({ title, value, trend, icon, color }: any) {
           {trend && (
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
               {trend === 'up' ? <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-0.5" />}
-              {trend === 'up' ? 'Tăng' : 'Giảm'}
+              {trend === 'up' ? t('teacher.classDetail.increase') : t('teacher.classDetail.decrease')}
             </span>
           )}
         </div>
@@ -257,7 +265,7 @@ function StatCard({ title, value, trend, icon, color }: any) {
   );
 }
 
-function SM2Card({ title, pct, count, icon, theme, extra }: any) {
+function SM2Card({ title, pct, count, icon, theme, extra, t }: any) {
   const themes: any = {
     emerald: 'bg-emerald-50/50 border-emerald-100 text-emerald-700',
     blue: 'bg-blue-50/50 border-blue-100 text-blue-700',
@@ -268,7 +276,7 @@ function SM2Card({ title, pct, count, icon, theme, extra }: any) {
       <div className="text-sm font-bold flex items-center gap-2 mb-2">{icon} {title}</div>
       <div className="text-3xl font-extrabold mb-1">{Math.round(pct)}%</div>
       <div className="text-sm font-medium flex justify-between">
-        <span>Tổng: {count}</span>
+        <span>{t('teacher.classDetail.totalCount', { count })}</span>
         {extra && <span className="text-red-500 font-bold">{extra}</span>}
       </div>
     </div>

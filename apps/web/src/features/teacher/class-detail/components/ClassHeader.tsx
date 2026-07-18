@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, BarChart2, GraduationCap, BookOpen, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ClassHeaderProps {
   classDetails: any;
@@ -12,23 +13,24 @@ interface ClassHeaderProps {
 
 export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick, onDeleteClick }: ClassHeaderProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition duration-300">
         <div className="flex items-center mb-4 md:mb-0">
-          <Link to="/teacher" className="mr-5 p-2 rounded-full hover:bg-slate-100 text-gray-400 hover:text-slate-900 transition-colors" aria-label="Quay lại">
+          <Link to="/teacher" className="mr-5 p-2 rounded-full hover:bg-slate-100 text-gray-400 hover:text-slate-900 transition-colors" aria-label={t('teacher.classDetail.back')}>
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{classDetails?.name || 'Đang tải...'}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{classDetails?.name || t('teacher.classDetail.loading')}</h1>
               <span className="px-2.5 py-1 bg-slate-100 text-slate-900 text-xs font-semibold rounded-full border border-slate-200">
-                {classDetails?.subject || 'Đang tải...'}
+                {classDetails?.subject || t('teacher.classDetail.loading')}
               </span>
             </div>
             <p className="text-sm text-gray-500 mt-1 flex items-center gap-1.5">
-              <span>Mã tham gia lớp học:</span>
+              <span>{t('teacher.classDetail.joinCode')}</span>
               <span className="font-bold text-slate-900 bg-slate-100/50 px-2 py-0.5 rounded border border-slate-200/50 select-all cursor-pointer">
                 {classDetails?.join_code || '---'}
               </span>
@@ -55,7 +57,7 @@ export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick,
                   }}
                   className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
                 >
-                  <Edit2 className="w-4 h-4" /> Chỉnh sửa
+                  <Edit2 className="w-4 h-4" /> {t('teacher.classDetail.edit')}
                 </button>
                 <button
                   onClick={() => {
@@ -64,7 +66,7 @@ export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick,
                   }}
                   className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors text-left border-t border-gray-100"
                 >
-                  <Trash2 className="w-4 h-4" /> Xóa lớp học
+                  <Trash2 className="w-4 h-4" /> {t('teacher.classDetail.deleteClass')}
                 </button>
               </div>
             </>
@@ -96,7 +98,7 @@ export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick,
               {tab === 'analytics' && <BarChart2 className="w-4 h-4" aria-hidden="true" />}
               {tab === 'students' && <GraduationCap className="w-4 h-4" aria-hidden="true" />}
               {tab === 'assignments' && <BookOpen className="w-4 h-4" aria-hidden="true" />}
-              {tab === 'analytics' ? 'Phân tích' : tab === 'students' ? 'Thành viên' : 'Bài tập'}
+              {tab === 'analytics' ? t('teacher.classDetail.analyticsTab') : tab === 'students' ? t('teacher.classDetail.studentsTab') : t('teacher.classDetail.assignmentsTab')}
             </button>
           );
         })}

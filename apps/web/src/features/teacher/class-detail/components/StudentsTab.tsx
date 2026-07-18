@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { GraduationCap, Trophy, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../../../../components/ui/Dialog';
 import { useClassMutations } from '../hooks/useClassDetailData';
+import { useTranslation } from 'react-i18next';
 
 import { toast } from '@/utils/toast';
 
@@ -13,11 +14,12 @@ interface StudentsTabProps {
 }
 
 export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
+  const { t } = useTranslation();
   const { removeStudent } = useClassMutations(classId);
   const [studentToRemove, setStudentToRemove] = useState<{id: string, name: string} | null>(null);
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'Chưa hoạt động';
+    if (!dateString) return t('teacher.classDetail.inactive');
     return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric', month: 'short', day: 'numeric',
       hour: '2-digit', minute: '2-digit'
@@ -28,11 +30,11 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
     if (studentToRemove) {
       removeStudent.mutate(studentToRemove.id, {
         onSuccess: () => {
-          toast.success(`Đã xoá học sinh ${studentToRemove.name} khỏi lớp`);
+          toast.success(t('teacher.classDetail.removeStudentSuccess', { name: studentToRemove.name }));
           setStudentToRemove(null);
         },
         onError: (err: any) => {
-          toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi xoá học sinh');
+          toast.error(err?.response?.data?.message || t('teacher.classDetail.removeStudentError'));
         }
       });
     }
@@ -43,12 +45,12 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
       <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
         <div>
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-slate-900" aria-hidden="true" /> Danh sách học tập và xếp hạng
+            <GraduationCap className="w-5 h-5 text-slate-900" aria-hidden="true" /> {t('teacher.classDetail.studentListAndRanking')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1">Thống kê điểm số tích lũy, số lượt nộp bài, tỷ lệ chính xác.</p>
+          <p className="text-sm text-gray-500 mt-1">{t('teacher.classDetail.studentStatsDesc')}</p>
         </div>
         <span className="px-3 py-1 bg-slate-100 text-slate-900 text-sm font-semibold rounded-full border border-slate-200">
-          Tổng số: {members?.length || 0} học sinh
+          {t('teacher.classDetail.totalStudentsCount', { count: members?.length || 0 })}
         </span>
       </div>
 
@@ -57,13 +59,13 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
           <table className="min-w-full divide-y divide-gray-100 text-sm">
             <thead className="bg-gray-50/50 text-gray-500 font-semibold uppercase text-xs tracking-wider">
               <tr>
-                <th className="px-6 py-3.5 text-center w-16">Thứ hạng</th>
-                <th className="px-6 py-3.5 text-left">Học sinh</th>
-                <th className="px-6 py-3.5 text-left">Điểm tích lũy</th>
-                <th className="px-6 py-3.5 text-center">Độ chính xác</th>
-                <th className="px-6 py-3.5 text-center">Tiến độ SM2</th>
-                <th className="px-6 py-3.5 text-left">Hoạt động cuối cùng</th>
-                <th className="px-6 py-3.5 text-right w-32">Thao tác</th>
+                <th className="px-6 py-3.5 text-center w-16">{t('teacher.classDetail.rank')}</th>
+                <th className="px-6 py-3.5 text-left">{t('teacher.classDetail.student')}</th>
+                <th className="px-6 py-3.5 text-left">{t('teacher.classDetail.cumulativeScore')}</th>
+                <th className="px-6 py-3.5 text-center">{t('teacher.classDetail.accuracy')}</th>
+                <th className="px-6 py-3.5 text-center">{t('teacher.classDetail.sm2Progress')}</th>
+                <th className="px-6 py-3.5 text-left">{t('teacher.classDetail.lastActivity')}</th>
+                <th className="px-6 py-3.5 text-right w-32">{t('teacher.classDetail.actions')}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100 text-gray-700 font-medium">
@@ -123,13 +125,13 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
                           to={`/teacher/classes/${classId}/members/${student.student_id}`}
                           className="px-3 py-1.5 bg-slate-100 text-slate-900 hover:bg-slate-200 rounded-lg transition font-semibold text-sm inline-flex items-center border border-slate-200"
                         >
-                          Chi tiết
+                          {t('teacher.classDetail.details')}
                         </Link>
                         <button
                           onClick={() => setStudentToRemove({id: student.student_id, name: student.name})}
                           className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
-                          title={`Xóa ${student.name} khỏi lớp`}
-                          aria-label={`Xóa ${student.name} khỏi lớp`}
+                          title={t('teacher.classDetail.removeStudentTitle')}
+                          aria-label={t('teacher.classDetail.removeStudentTitle')}
                         >
                           <Trash2 className="w-4 h-4" aria-hidden="true" />
                         </button>
@@ -143,7 +145,7 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
         </div>
       ) : (
         <div className="text-center py-12 text-gray-400 bg-gray-50/50">
-          Lớp học chưa có thành viên học sinh hoặc chưa có dữ liệu nộp bài.
+          {t('teacher.classDetail.noStudentData')}
         </div>
       )}
 
@@ -151,9 +153,9 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
         isOpen={!!studentToRemove}
         onClose={() => setStudentToRemove(null)}
         onConfirm={handleConfirmRemove}
-        title="Xóa học sinh"
-        description={`Bạn có chắc chắn muốn xóa học sinh ${studentToRemove?.name} khỏi lớp?`}
-        confirmText="Xóa học sinh"
+        title={t('teacher.classDetail.removeStudentTitle')}
+        description={t('teacher.classDetail.removeStudentDesc', { name: studentToRemove?.name })}
+        confirmText={t('teacher.classDetail.removeStudentConfirmBtn')}
         isDanger={true}
         isLoading={removeStudent.isPending}
       />
