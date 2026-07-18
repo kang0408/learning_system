@@ -15,11 +15,12 @@ export interface QuestionOption {
 export interface Question {
   id: string;
   topic_id: string;
-  question_type: 'multiple_choice' | 'true_false';
+  question_type: string;
   content: string;
   explanation?: string;
   difficulty: number;
   answer_options: QuestionOption[];
+  metadata?: any;
 }
 
 export interface UpdateTopicPayload {
@@ -35,24 +36,26 @@ export interface SaveQuestionPayload {
   difficulty: number;
   explanation?: string;
   answer_options: QuestionOption[];
+  metadata?: any;
 }
 
 export interface GenerateAiQuestionsPayload {
   topic: string;
-  question_type: 'multiple_choice' | 'true_false' | 'mixed';
+  question_type: string;
   quantity: number;
   difficulty?: number;
 }
 
 export interface AiGeneratedQuestion {
   content: string;
-  question_type: 'multiple_choice' | 'true_false';
+  question_type: string;
   difficulty: number;
   explanation: string;
   answer_options: {
     content: string;
     is_correct: boolean;
   }[];
+  metadata?: any;
 }
 
 export interface BulkSaveQuestionsPayload {

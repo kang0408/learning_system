@@ -12,6 +12,7 @@ export interface Question {
   topic?: string;
   explanation?: string;
   answer_options?: AnswerOption[];
+  metadata?: any;
 }
 
 export interface Session {
@@ -20,6 +21,7 @@ export interface Session {
   assignment_id?: string;
   time_limit_seconds?: number;
   questions?: Question[];
+  started_at?: string;
 }
 
 export interface AnswerPayload {
@@ -32,5 +34,8 @@ export interface AnswerPayload {
 export interface AnswerResponse {
   is_correct: boolean;
   correct_option_id?: string;
+  fill_blank_correct_text?: string;
+  matching_correct_pairs?: string[];
+  choice_correct_texts?: string[];
   explanation?: string | null;
 }

@@ -6,6 +6,7 @@ import { useCreateAssignment } from '../hooks/useTeacherNewAssignment';
 import type { Topic, ClassMember } from '../types';
 import { toast } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
+import { Select } from '@/components/ui/Select';
 
 interface NewAssignmentFormProps {
   classId: string;
@@ -136,15 +137,15 @@ export const NewAssignmentForm: React.FC<NewAssignmentFormProps> = ({ classId, t
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-700">{t('teacher.newAssignment.modeLabel')}</label>
-          <select
+          <Select
             value={form.mode}
-            onChange={e => setForm({ ...form, mode: e.target.value })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-          >
-            <option value="adaptive">{t('teacher.newAssignment.modeAdaptive')}</option>
-            <option value="standard">{t('teacher.newAssignment.modeStandard')}</option>
-            <option value="exam">{t('teacher.newAssignment.modeExam')}</option>
-          </select>
+            onChange={(value) => setForm({ ...form, mode: value })}
+            options={[
+              { value: 'adaptive', label: t('teacher.newAssignment.modeAdaptive') },
+              { value: 'standard', label: t('teacher.newAssignment.modeStandard') },
+              { value: 'exam', label: t('teacher.newAssignment.modeExam') }
+            ]}
+          />
         </div>
 
         <div className="space-y-1.5">

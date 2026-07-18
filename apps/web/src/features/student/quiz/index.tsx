@@ -29,14 +29,26 @@ export const StudentQuizFeature: React.FC = () => {
   const questions = session.questions || [];
   
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState<number | null>(session.time_limit_seconds || null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(() => {
+    if (!session.time_limit_seconds) return null;
+    if (session.started_at) {
+      const elapsed = Math.floor((Date.now() - new Date(session.started_at).getTime()) / 1000);
+      return Math.max(0, session.time_limit_seconds - elapsed);
+    }
+    return session.time_limit_seconds;
+  });
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [selectedOptionIds, setSelectedOptionIds] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [correctAnswerId, setCorrectAnswerId] = useState<string | null>(null);
+  const [correctAnswerIds, setCorrectAnswerIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [warningData, setWarningData] = useState<{count: number, max: number} | null>(null);
   const [submitExplanation, setSubmitExplanation] = useState<string | null>(null);
+  const [submitFillBlankAnswer, setSubmitFillBlankAnswer] = useState<string | null>(null);
+  const [submitMatchingPairs, setSubmitMatchingPairs] = useState<string[] | null>(null);
+  const [submitChoiceTexts, setSubmitChoiceTexts] = useState<string[] | null>(null);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   
   const startTimeRef = useRef<number>(Date.now());
@@ -96,9 +108,10 @@ export const StudentQuizFeature: React.FC = () => {
   const currentQuestion = questions[currentIndex];
   const progress = (currentIndex / questions.length) * 100;
 
-  const handleSelect = async (optId?: string, text?: string) => {
+  const handleSelect = async (payloadData: { optId?: string, optIds?: string[], fillText?: string, matchingPairs?: any[] }) => {
     if (feedback || submitting) return;
-    if (optId) setSelectedOptionId(optId);
+    if (payloadData.optId) setSelectedOptionId(payloadData.optId);
+    if (payloadData.optIds) setSelectedOptionIds(payloadData.optIds);
     setSubmitting(true);
 
     const responseTimeMs = Date.now() - startTimeRef.current;
@@ -108,26 +121,40 @@ export const StudentQuizFeature: React.FC = () => {
         question_id: currentQuestion.id,
         response_time_ms: responseTimeMs
       };
-      if (optId) payload.selected_option_id = optId;
-      if (text !== undefined) payload.fill_text = text;
+      if (payloadData.optId) payload.selected_option_id = payloadData.optId;
+      if (payloadData.optIds) payload.selected_option_ids = payloadData.optIds;
+      if (payloadData.fillText !== undefined) payload.fill_text = payloadData.fillText;
+      if (payloadData.matchingPairs !== undefined) payload.matching_pairs = payloadData.matchingPairs;
 
       const response = await submitAnswer({ sessionId: session.id, payload });
 
       const isCorrect = response.is_correct;
       setSubmitExplanation(response.explanation || null);
+      if (response.fill_blank_correct_text) setSubmitFillBlankAnswer(response.fill_blank_correct_text);
+      if (response.matching_correct_pairs) setSubmitMatchingPairs(response.matching_correct_pairs);
+      if (response.choice_correct_texts) setSubmitChoiceTexts(response.choice_correct_texts);
+      
       setFeedback(isCorrect ? 'correct' : 'incorrect');
       if (!isCorrect) {
-        setCorrectAnswerId(
-          response.correct_option_id || 
-          currentQuestion.answer_options?.find(o => o.is_correct)?.id || 
-          null
-        );
+        if (currentQuestion.question_type === 'multi_select') {
+           setCorrectAnswerIds(
+             currentQuestion.answer_options?.filter(o => o.is_correct).map(o => o.id) || []
+           );
+        } else {
+           setCorrectAnswerId(
+             response.correct_option_id || 
+             currentQuestion.answer_options?.find(o => o.is_correct)?.id || 
+             null
+           );
+        }
       } else {
-        setCorrectAnswerId(optId || null);
+        setCorrectAnswerId(payloadData.optId || null);
+        setCorrectAnswerIds(payloadData.optIds || []);
       }
     } catch (err: any) {
       alert(t('student.quiz.submitFailed'));
       setSelectedOptionId(null);
+      setSelectedOptionIds([]);
     } finally {
       setSubmitting(false);
     }
@@ -138,8 +165,13 @@ export const StudentQuizFeature: React.FC = () => {
       setCurrentIndex(prev => prev + 1);
       setFeedback(null);
       setSelectedOptionId(null);
+      setSelectedOptionIds([]);
       setCorrectAnswerId(null);
+      setCorrectAnswerIds([]);
       setSubmitExplanation(null);
+      setSubmitFillBlankAnswer(null);
+      setSubmitMatchingPairs(null);
+      setSubmitChoiceTexts(null);
       startTimeRef.current = Date.now();
     } else {
       handleFinishQuiz();
@@ -162,17 +194,23 @@ export const StudentQuizFeature: React.FC = () => {
         question={currentQuestion}
         selectedOptionId={selectedOptionId}
         correctAnswerId={correctAnswerId}
+        selectedOptionIds={selectedOptionIds}
+        correctAnswerIds={correctAnswerIds}
         feedback={feedback}
         submitting={submitting}
         onSelect={handleSelect}
       />
 
       <QuizFeedback 
-        feedback={feedback}
-        question={currentQuestion}
-        explanation={submitExplanation}
-        onNext={handleNext}
-      />
+          feedback={feedback}
+          onNext={handleNext}
+          isLastQuestion={currentIndex === questions.length - 1}
+          explanation={submitExplanation}
+          fillBlankAnswer={submitFillBlankAnswer}
+          matchingPairs={submitMatchingPairs}
+          choiceTexts={submitChoiceTexts}
+          question={currentQuestion}
+        />
 
       <QuizOverlays 
         isTimeUp={isTimeUp}

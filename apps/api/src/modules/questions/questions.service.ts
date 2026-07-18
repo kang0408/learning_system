@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import { randomUUID } from 'crypto';
 import { ApiError } from '../../lib/ApiError';
 import { QuestionsRepository } from './questions.repository';
 
@@ -45,6 +46,14 @@ export class QuestionsService {
       topic_id: topicId,
       is_public: data.is_public ?? false,
       created_by: teacherId,
+      metadata: data.metadata ? {
+        pairs: data.metadata.pairs?.map((p: any) => ({
+          leftId: p.leftId || randomUUID(),
+          leftText: p.leftText,
+          rightId: p.rightId || randomUUID(),
+          rightText: p.rightText
+        })) || []
+      } : undefined,
       answer_options: {
         create: data.answer_options?.map((opt: any) => ({
           content: opt.content,
@@ -101,6 +110,14 @@ export class QuestionsService {
         explanation: data.explanation,
         topic_id: topicId,
         is_public: data.is_public !== undefined ? data.is_public : question.is_public,
+        metadata: data.metadata ? {
+          pairs: data.metadata.pairs?.map((p: any) => ({
+            leftId: p.leftId || randomUUID(),
+            leftText: p.leftText,
+            rightId: p.rightId || randomUUID(),
+            rightText: p.rightText
+          })) || []
+        } : undefined,
         updated_at: new Date(),
         answer_options: {
           create: data.answer_options?.map((opt: any) => ({
@@ -233,6 +250,14 @@ export class QuestionsService {
         topic_id: topicId,
         is_public: false,
         created_by: teacherId,
+        metadata: q.metadata ? {
+          pairs: q.metadata.pairs?.map((p: any) => ({
+            leftId: p.leftId || randomUUID(),
+            leftText: p.leftText,
+            rightId: p.rightId || randomUUID(),
+            rightText: p.rightText
+          })) || []
+        } : undefined,
         answer_options: {
           create: q.answer_options?.map((opt: any, index: number) => ({
             content: opt.content,

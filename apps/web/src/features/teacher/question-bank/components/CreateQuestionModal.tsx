@@ -4,6 +4,7 @@ import { Loader2, Save, Star, X } from 'lucide-react';
 import { useCreateQuestion } from '../hooks/useTeacherQuestionBank';
 import type { Topic } from '../types';
 import { toast } from '@/utils/toast';
+import { Select } from '@/components/ui/Select';
 
 interface CreateQuestionModalProps {
   isOpen: boolean;
@@ -19,9 +20,16 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
   const [newContent, setNewContent] = useState('');
   const [newOptions, setNewOptions] = useState(['', '', '', '']);
   const [newCorrectOption, setNewCorrectOption] = useState(0);
+  const [newMultiCorrectOptions, setNewMultiCorrectOptions] = useState([false, false, false, false]);
   const [isTrueStatement, setIsTrueStatement] = useState(true);
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
   const [newDifficulty, setNewDifficulty] = useState(3);
+  const [newExplanation, setNewExplanation] = useState('');
+  const [fillBlankAnswer, setFillBlankAnswer] = useState('');
+  const [newMatchingPairs, setNewMatchingPairs] = useState([
+    { leftText: '', rightText: '' },
+    { leftText: '', rightText: '' }
+  ]);
 
   useEffect(() => {
     if (isOpen && topics.length > 0 && !selectedTopicId) {
@@ -42,17 +50,33 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
     if (!newContent.trim()) return;
 
     let answer_options = [];
+    let metadata: any = undefined;
+
     if (newType === 'multiple_choice') {
       answer_options = newOptions.map((opt, index) => ({
         content: opt,
         is_correct: index === newCorrectOption,
         order_index: index
       }));
-    } else {
+    } else if (newType === 'multi_select') {
+      answer_options = newOptions.map((opt, index) => ({
+        content: opt,
+        is_correct: newMultiCorrectOptions[index],
+        order_index: index
+      }));
+    } else if (newType === 'true_false') {
       answer_options = [
         { content: t('teacher.questionBank.createQuestion.trueOption'), is_correct: isTrueStatement, order_index: 0 },
         { content: t('teacher.questionBank.createQuestion.falseOption'), is_correct: !isTrueStatement, order_index: 1 }
       ];
+    } else if (newType === 'fill_blank') {
+      answer_options = [
+        { content: fillBlankAnswer.trim(), is_correct: true, order_index: 0 }
+      ];
+    } else if (newType === 'matching') {
+      metadata = {
+        pairs: newMatchingPairs.filter(p => p.leftText.trim() && p.rightText.trim())
+      };
     }
 
     try {
@@ -61,15 +85,25 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
         question_type: newType,
         content: newContent,
         difficulty: newDifficulty,
-        answer_options
+        explanation: newExplanation,
+        answer_options,
+        metadata
       });
       
       toast.success(t('teacher.questionBank.createQuestion.success'));
       onClose();
       setNewContent('');
       setNewOptions(['', '', '', '']);
+      setNewCorrectOption(0);
+      setNewMultiCorrectOptions([false, false, false, false]);
       setIsTrueStatement(true);
       setNewDifficulty(3);
+      setNewExplanation('');
+      setFillBlankAnswer('');
+      setNewMatchingPairs([
+        { leftText: '', rightText: '' },
+        { leftText: '', rightText: '' }
+      ]);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t('teacher.questionBank.createQuestion.errorCreate'));
     }
@@ -93,28 +127,30 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">{t('teacher.questionBank.createQuestion.topicLabel')} <span className="text-red-500">*</span></label>
-                <select
+                <Select
                   value={selectedTopicId}
-                  onChange={(e) => setSelectedTopicId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                >
-                  <option value="">{t('teacher.questionBank.createQuestion.topicUncategorized')}</option>
-                  {topics.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} {s.code ? `(${s.code})` : ''}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedTopicId(val)}
+                  options={[
+                    { label: t('teacher.questionBank.createQuestion.topicUncategorized'), value: '' },
+                    ...topics.map(s => ({ label: `${s.name} ${s.code ? `(${s.code})` : ''}`.trim(), value: s.id }))
+                  ]}
+                  placeholder={t('teacher.questionBank.createQuestion.topicUncategorized')}
+                />
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">{t('teacher.questionBank.createQuestion.typeLabel')}</label>
-                <select
+                <Select
                   value={newType}
-                  onChange={(e) => setNewType(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                >
-                  <option value="multiple_choice">{t('teacher.questionBank.createQuestion.typeMultipleChoice')}</option>
-                  <option value="true_false">{t('teacher.questionBank.createQuestion.typeTrueFalse')}</option>
-                </select>
+                  onChange={(val) => setNewType(val)}
+                  options={[
+                    { label: 'Trắc nghiệm', value: 'multiple_choice' },
+                    { label: 'Nhiều lựa chọn', value: 'multi_select' },
+                    { label: 'Đúng / Sai', value: 'true_false' },
+                    { label: 'Điền vào chỗ trống', value: 'fill_blank' },
+                    { label: 'Ghép cặp', value: 'matching' }
+                  ]}
+                />
               </div>
             </div>
 
@@ -146,6 +182,17 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold text-gray-700">Giải thích chi tiết</label>
+              <textarea
+                value={newExplanation}
+                onChange={(e) => setNewExplanation(e.target.value)}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm resize-none"
+                rows={2}
+                placeholder="Nhập giải thích cho câu hỏi này..."
+              />
+            </div>
+
             <div className="bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
               {newType === 'multiple_choice' ? (
                 <div>
@@ -174,7 +221,37 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
                     ))}
                   </div>
                 </div>
-              ) : (
+              ) : newType === 'multi_select' ? (
+                <div>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Các đáp án (Tích chọn tất cả các đáp án đúng)</label>
+                  <div className="space-y-3">
+                    {newOptions.map((opt, i) => (
+                      <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${newMultiCorrectOptions[i] ? 'border-indigo-300 bg-white shadow-sm' : 'border-gray-200 bg-white/50 hover:bg-white hover:border-indigo-200'}`}>
+                        <div className="flex-shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={newMultiCorrectOptions[i]}
+                            onChange={(e) => {
+                              const newArr = [...newMultiCorrectOptions];
+                              newArr[i] = e.target.checked;
+                              setNewMultiCorrectOptions(newArr);
+                            }}
+                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={opt}
+                          onChange={(e) => handleOptionChange(i, e.target.value)}
+                          className="flex-grow px-3 py-2 border-0 bg-transparent text-sm focus:outline-none focus:ring-0"
+                          placeholder={t('teacher.questionBank.createQuestion.optionPlaceholder', { index: i + 1 })}
+                          required
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : newType === 'true_false' ? (
                 <div>
                   <label className="block text-sm font-semibold text-indigo-900 mb-4">{t('teacher.questionBank.createQuestion.trueStatement')}</label>
                   <div className="flex gap-4">
@@ -192,6 +269,76 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
                     >
                       {t('teacher.questionBank.createQuestion.falseOption')}
                     </button>
+                  </div>
+                </div>
+              ) : newType === 'fill_blank' ? (
+                <div>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Đáp án đúng (Điền từ)</label>
+                  <input
+                    type="text"
+                    value={fillBlankAnswer}
+                    onChange={(e) => setFillBlankAnswer(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Nhập từ hoặc cụm từ đúng..."
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Học sinh phải nhập chính xác (không phân biệt chữ hoa, chữ thường) từ này vào ô trống.</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-semibold text-indigo-900">Các cặp tương ứng (Ghép cặp)</label>
+                    <button
+                      type="button"
+                      onClick={() => setNewMatchingPairs([...newMatchingPairs, { leftText: '', rightText: '' }])}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                    >
+                      + Thêm cặp
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {newMatchingPairs.map((pair, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <textarea
+                          value={pair.leftText}
+                          onChange={(e) => {
+                            const newPairs = [...newMatchingPairs];
+                            newPairs[i].leftText = e.target.value;
+                            setNewMatchingPairs(newPairs);
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+                          placeholder={`Vế trái ${i + 1}`}
+                          rows={2}
+                          required
+                        />
+                        <span className="text-gray-400 font-bold">-</span>
+                        <textarea
+                          value={pair.rightText}
+                          onChange={(e) => {
+                            const newPairs = [...newMatchingPairs];
+                            newPairs[i].rightText = e.target.value;
+                            setNewMatchingPairs(newPairs);
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+                          placeholder={`Vế phải ${i + 1}`}
+                          rows={2}
+                          required
+                        />
+                        {newMatchingPairs.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newPairs = [...newMatchingPairs];
+                              newPairs.splice(i, 1);
+                              setNewMatchingPairs(newPairs);
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

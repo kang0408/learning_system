@@ -106,10 +106,36 @@ Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "
    */
   async generateQuizQuestions(params: { topic: string; question_type: string; quantity: number; difficulty?: number }) {
     try {
-      const typeStr = params.question_type === 'multiple_choice' ? 'trắc nghiệm (4 đáp án)' : params.question_type === 'true_false' ? 'đúng/sai (2 đáp án)' : 'tổng hợp (trắc nghiệm và đúng/sai)';
+      let typeStr = '';
+      let formatInstruction = '';
+      switch (params.question_type) {
+        case 'multiple_choice':
+          typeStr = 'trắc nghiệm (1 đáp án đúng trong 4 lựa chọn)';
+          break;
+        case 'multi_select':
+          typeStr = 'trắc nghiệm nhiều đáp án (có thể có nhiều đáp án đúng)';
+          formatInstruction = 'Đảm bảo có ít nhất 1 đáp án is_correct: true. Học sinh sẽ tích chọn các đáp án đúng.';
+          break;
+        case 'true_false':
+          typeStr = 'đúng/sai (2 đáp án)';
+          break;
+        case 'fill_blank':
+          typeStr = 'điền vào chỗ trống';
+          formatInstruction = 'Với dạng điền vào chỗ trống, nội dung câu hỏi chứa "____" để điền. Mảng answer_options chứa 1 phần tử duy nhất là từ/cụm từ đúng đắn (is_correct: true).';
+          break;
+        case 'matching':
+          typeStr = 'ghép cặp';
+          formatInstruction = 'Với dạng ghép cặp, bỏ trống mảng answer_options. Thay vào đó hãy trả về đối tượng metadata: { "pairs": [ { "leftText": "...", "rightText": "..." } ] } chứa ít nhất 3 cặp tương ứng nhau.';
+          break;
+        default:
+          typeStr = 'tổng hợp đa dạng (trắc nghiệm, đúng/sai, điền từ, ghép cặp)';
+          formatInstruction = 'Chú ý định dạng: Ghép cặp dùng metadata.pairs và mảng answer_options rỗng. Điền từ có mảng answer_options chứa 1 đáp án đúng. Trắc nghiệm có 4 đáp án. Đúng/sai có 2 đáp án.';
+      }
       const difficultyStr = params.difficulty ? `${params.difficulty}/5 sao` : 'ngẫu nhiên';
       
-      const prompt = `Bạn là một chuyên gia giáo dục. Hãy tạo ${params.quantity} câu hỏi dạng ${typeStr} cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết.`;
+      const prompt = `Bạn là một chuyên gia giáo dục. Hãy tạo ${params.quantity} câu hỏi dạng ${typeStr} cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết.
+QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "${params.question_type}" cho tất cả câu hỏi được tạo ra!
+${formatInstruction}`;
 
       const response = await this.ai.models.generateContent({
         model: 'gemini-3-flash-preview',
@@ -134,9 +160,24 @@ Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "
                       is_correct: { type: Type.BOOLEAN }
                     }
                   }
+                },
+                metadata: {
+                  type: Type.OBJECT,
+                  properties: {
+                    pairs: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          leftText: { type: Type.STRING },
+                          rightText: { type: Type.STRING }
+                        }
+                      }
+                    }
+                  }
                 }
               },
-              required: ["content", "question_type", "difficulty", "explanation", "answer_options"]
+              required: ["content", "question_type", "difficulty", "explanation"]
             }
           }
         }

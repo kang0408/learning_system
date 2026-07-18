@@ -20,11 +20,13 @@ export interface CreateQuestionPayload {
   question_type: string;
   content: string;
   difficulty: number;
+  explanation?: string;
   answer_options: Array<{
     content: string;
     is_correct: boolean;
     order_index: number;
   }>;
+  metadata?: any;
 }
 
 export interface ImportCsvResult {

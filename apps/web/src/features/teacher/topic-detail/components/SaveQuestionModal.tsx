@@ -4,6 +4,7 @@ import { useSaveQuestion } from '../hooks/useTeacherTopicDetail';
 import type { Topic, Question } from '../types';
 import { toast } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
+import { Select } from '@/components/ui/Select';
 
 interface SaveQuestionModalProps {
   isOpen: boolean;
@@ -27,10 +28,16 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
   const [newContent, setNewContent] = useState('');
   const [newOptions, setNewOptions] = useState(['', '', '', '']);
   const [newCorrectOption, setNewCorrectOption] = useState(0);
+  const [newMultiCorrectOptions, setNewMultiCorrectOptions] = useState([false, false, false, false]);
   const [isTrueStatement, setIsTrueStatement] = useState(true);
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
   const [newDifficulty, setNewDifficulty] = useState(3);
   const [newExplanation, setNewExplanation] = useState('');
+  const [fillBlankAnswer, setFillBlankAnswer] = useState('');
+  const [newMatchingPairs, setNewMatchingPairs] = useState([
+    { leftText: '', rightText: '' },
+    { leftText: '', rightText: '' }
+  ]);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,10 +58,33 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
           ]);
           const correctIdx = opts.findIndex((o) => o.is_correct);
           setNewCorrectOption(correctIdx >= 0 ? correctIdx : 0);
-        } else {
+        } else if (editingQuestion.question_type === 'multi_select') {
+          const opts = editingQuestion.answer_options || [];
+          setNewOptions([
+            opts[0]?.content || '',
+            opts[1]?.content || '',
+            opts[2]?.content || '',
+            opts[3]?.content || ''
+          ]);
+          setNewMultiCorrectOptions([
+            opts[0]?.is_correct || false,
+            opts[1]?.is_correct || false,
+            opts[2]?.is_correct || false,
+            opts[3]?.is_correct || false
+          ]);
+        } else if (editingQuestion.question_type === 'true_false') {
           const opts = editingQuestion.answer_options || [];
           const correctOpt = opts.find((o) => o.is_correct);
           setIsTrueStatement(correctOpt?.content === t('teacher.topicDetail.saveModalTrue') || correctOpt?.content === 'Đúng');
+        } else if (editingQuestion.question_type === 'fill_blank') {
+          const opts = editingQuestion.answer_options || [];
+          setFillBlankAnswer(opts[0]?.content || '');
+        } else if (editingQuestion.question_type === 'matching') {
+          const pairs = editingQuestion.metadata?.pairs || [];
+          setNewMatchingPairs(pairs.length > 0 ? pairs.map((p: any) => ({ leftText: p.leftText, rightText: p.rightText })) : [
+            { leftText: '', rightText: '' },
+            { leftText: '', rightText: '' }
+          ]);
         }
       } else {
         setNewType('multiple_choice');
@@ -64,7 +94,13 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
         setSelectedTopicId(initialTopicId || topics[0]?.id || '');
         setNewOptions(['', '', '', '']);
         setNewCorrectOption(0);
+        setNewMultiCorrectOptions([false, false, false, false]);
         setIsTrueStatement(true);
+        setFillBlankAnswer('');
+        setNewMatchingPairs([
+          { leftText: '', rightText: '' },
+          { leftText: '', rightText: '' }
+        ]);
       }
     }
   }, [isOpen, editingQuestion, initialTopicId, topics]);
@@ -81,18 +117,38 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
     e.preventDefault();
     if (!newContent.trim()) return;
 
-    let answer_options = [];
+    let answer_options = undefined;
+    let metadata = undefined;
     if (newType === 'multiple_choice') {
       answer_options = newOptions.map((opt, index) => ({
         content: opt,
         is_correct: index === newCorrectOption,
         order_index: index
       }));
-    } else {
+    } else if (newType === 'multi_select') {
+      answer_options = newOptions.map((opt, index) => ({
+        content: opt,
+        is_correct: newMultiCorrectOptions[index],
+        order_index: index
+      }));
+    } else if (newType === 'true_false') {
       answer_options = [
         { content: t('teacher.topicDetail.saveModalTrue'), is_correct: isTrueStatement, order_index: 0 },
         { content: t('teacher.topicDetail.saveModalFalse'), is_correct: !isTrueStatement, order_index: 1 }
       ];
+    } else if (newType === 'fill_blank') {
+      answer_options = [
+        { content: fillBlankAnswer, is_correct: true, order_index: 0 }
+      ];
+    } else if (newType === 'matching') {
+      metadata = {
+        pairs: newMatchingPairs.filter(p => p.leftText.trim() && p.rightText.trim()).map(p => ({
+          leftId: crypto.randomUUID(),
+          leftText: p.leftText,
+          rightId: crypto.randomUUID(),
+          rightText: p.rightText
+        }))
+      };
     }
 
     try {
@@ -104,7 +160,8 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
           content: newContent,
           difficulty: newDifficulty,
           explanation: newExplanation,
-          answer_options
+          answer_options,
+          metadata
         }
       });
       
@@ -135,30 +192,32 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">{t('teacher.topicDetail.saveModalTopicLabel')} <span className="text-red-500">*</span></label>
-                <select
+                <Select
                   value={selectedTopicId}
-                  onChange={(e) => setSelectedTopicId(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                >
-                  {!topics.some(t => t.name === 'Chưa phân loại' || t.name === 'Uncategorized') && (
-                    <option value="">{t('teacher.topicDetail.saveModalTopicUncategorized')}</option>
-                  )}
-                  {topics.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} {s.code ? `(${s.code})` : ''}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedTopicId(val)}
+                  options={[
+                    ...(!topics.some(t => t.name === 'Chưa phân loại' || t.name === 'Uncategorized') 
+                      ? [{ label: t('teacher.topicDetail.saveModalTopicUncategorized'), value: '' }] 
+                      : []),
+                    ...topics.map(s => ({ label: `${s.name} ${s.code ? `(${s.code})` : ''}`.trim(), value: s.id }))
+                  ]}
+                  placeholder={t('teacher.topicDetail.saveModalTopicUncategorized')}
+                />
               </div>
 
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">{t('teacher.topicDetail.saveModalTypeLabel')}</label>
-                <select
+                <Select
                   value={newType}
-                  onChange={(e) => setNewType(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-                >
-                  <option value="multiple_choice">{t('teacher.topicDetail.saveModalTypeMultipleChoice')}</option>
-                  <option value="true_false">{t('teacher.topicDetail.saveModalTypeTrueFalse')}</option>
-                </select>
+                  onChange={(val) => setNewType(val)}
+                  options={[
+                    { label: 'Trắc nghiệm', value: 'multiple_choice' },
+                    { label: 'Nhiều lựa chọn', value: 'multi_select' },
+                    { label: 'Đúng / Sai', value: 'true_false' },
+                    { label: 'Điền vào chỗ trống', value: 'fill_blank' },
+                    { label: 'Ghép cặp', value: 'matching' }
+                  ]}
+                />
               </div>
             </div>
 
@@ -229,7 +288,37 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
                     ))}
                   </div>
                 </div>
-              ) : (
+              ) : newType === 'multi_select' ? (
+                <div>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Các đáp án (Tích chọn tất cả các đáp án đúng)</label>
+                  <div className="space-y-3">
+                    {newOptions.map((opt, i) => (
+                      <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${newMultiCorrectOptions[i] ? 'border-indigo-300 bg-white shadow-sm' : 'border-gray-200 bg-white/50 hover:bg-white hover:border-indigo-200'}`}>
+                        <div className="flex-shrink-0">
+                          <input
+                            type="checkbox"
+                            checked={newMultiCorrectOptions[i]}
+                            onChange={(e) => {
+                              const newArr = [...newMultiCorrectOptions];
+                              newArr[i] = e.target.checked;
+                              setNewMultiCorrectOptions(newArr);
+                            }}
+                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={opt}
+                          onChange={(e) => handleOptionChange(i, e.target.value)}
+                          className="flex-grow px-3 py-2 border-0 bg-transparent text-sm focus:outline-none focus:ring-0"
+                          placeholder={t('teacher.topicDetail.saveModalOptionPlaceholder', { index: i + 1 })}
+                          required
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : newType === 'true_false' ? (
                 <div>
                   <label className="block text-sm font-semibold text-indigo-900 mb-4">{t('teacher.topicDetail.saveModalOptionsLabelTrueFalse')}</label>
                   <div className="flex gap-4">
@@ -247,6 +336,76 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
                     >
                       {t('teacher.topicDetail.saveModalFalse')}
                     </button>
+                  </div>
+                </div>
+              ) : newType === 'fill_blank' ? (
+                <div>
+                  <label className="block text-sm font-semibold text-indigo-900 mb-4">Đáp án đúng (Điền từ)</label>
+                  <input
+                    type="text"
+                    value={fillBlankAnswer}
+                    onChange={(e) => setFillBlankAnswer(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Nhập từ hoặc cụm từ đúng..."
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Học sinh phải nhập chính xác (không phân biệt chữ hoa, chữ thường) từ này vào ô trống.</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <label className="block text-sm font-semibold text-indigo-900">Các cặp tương ứng (Ghép cặp)</label>
+                    <button
+                      type="button"
+                      onClick={() => setNewMatchingPairs([...newMatchingPairs, { leftText: '', rightText: '' }])}
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+                    >
+                      + Thêm cặp
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {newMatchingPairs.map((pair, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <textarea
+                          value={pair.leftText}
+                          onChange={(e) => {
+                            const newPairs = [...newMatchingPairs];
+                            newPairs[i].leftText = e.target.value;
+                            setNewMatchingPairs(newPairs);
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+                          placeholder={`Vế trái ${i + 1}`}
+                          rows={2}
+                          required
+                        />
+                        <span className="text-gray-400 font-bold">-</span>
+                        <textarea
+                          value={pair.rightText}
+                          onChange={(e) => {
+                            const newPairs = [...newMatchingPairs];
+                            newPairs[i].rightText = e.target.value;
+                            setNewMatchingPairs(newPairs);
+                          }}
+                          className="flex-1 px-3 py-2 border border-gray-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none"
+                          placeholder={`Vế phải ${i + 1}`}
+                          rows={2}
+                          required
+                        />
+                        {newMatchingPairs.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newPairs = [...newMatchingPairs];
+                              newPairs.splice(i, 1);
+                              setNewMatchingPairs(newPairs);
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-md"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

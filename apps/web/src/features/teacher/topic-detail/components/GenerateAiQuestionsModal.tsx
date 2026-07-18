@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
+import { X, Sparkles, Loader2, CheckCircle2, ArrowRight } from 'lucide-react';
 import { useGenerateAiQuestions, useBulkCreateQuestions } from '../hooks/useTeacherTopicDetail';
 import { Select } from '@/components/ui/Select';
 import type { AiGeneratedQuestion } from '../types';
@@ -22,9 +22,12 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
   const { t } = useTranslation();
 
   const QUESTION_TYPE_OPTIONS = [
-    { label: t('teacher.topicDetail.aiModalTypeMultipleChoice'), value: 'multiple_choice' },
-    { label: t('teacher.topicDetail.aiModalTypeTrueFalse'), value: 'true_false' },
-    { label: t('teacher.topicDetail.aiModalTypeMixed'), value: 'mixed' },
+    { label: 'Trắc nghiệm', value: 'multiple_choice' },
+    { label: 'Nhiều lựa chọn', value: 'multi_select' },
+    { label: 'Đúng / Sai', value: 'true_false' },
+    { label: 'Điền vào chỗ trống', value: 'fill_blank' },
+    { label: 'Ghép cặp', value: 'matching' },
+    { label: 'Tổng hợp', value: 'mixed' },
   ];
 
   const DIFFICULTY_OPTIONS = [
@@ -114,10 +117,9 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                 <input
                   type="text"
                   required
-                  disabled
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               
@@ -183,7 +185,11 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                       <p className="text-gray-900 font-medium">{q.content}</p>
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md">
-                          {q.question_type === 'multiple_choice' ? t('teacher.topicDetail.listTypeMultipleChoice') : t('teacher.topicDetail.listTypeTrueFalse')}
+                          {q.question_type === 'multiple_choice' ? 'Trắc nghiệm' 
+                           : q.question_type === 'multi_select' ? 'Nhiều lựa chọn'
+                           : q.question_type === 'true_false' ? 'Đúng / Sai'
+                           : q.question_type === 'fill_blank' ? 'Điền vào chỗ trống' 
+                           : 'Ghép cặp'}
                         </span>
                         <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md">
                           {t('teacher.topicDetail.aiModalDiffText')} {q.difficulty}
@@ -193,12 +199,21 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                   </div>
                   
                   <div className="pl-14 space-y-2">
-                    {q.answer_options.map((opt, oIdx) => (
+                    {q.answer_options?.map((opt, oIdx) => (
                       <div key={oIdx} className={`p-3 rounded-lg border text-sm ${opt.is_correct ? 'bg-green-50 border-green-200 text-green-800' : 'bg-gray-50 border-gray-200 text-gray-700'}`}>
                         <div className="flex items-center gap-2">
                           {opt.is_correct && <CheckCircle2 className="w-4 h-4 text-green-600" />}
-                          <span>{String.fromCharCode(65 + oIdx)}. {opt.content}</span>
+                          <span>{!['multi_select', 'fill_blank'].includes(q.question_type) && `${String.fromCharCode(65 + oIdx)}. `}{opt.content}</span>
                         </div>
+                      </div>
+                    ))}
+                    {q.metadata?.pairs?.map((pair: any, pIdx: number) => (
+                      <div key={pIdx} className="p-3 rounded-lg border text-sm bg-gray-50 border-gray-200 text-gray-700">
+                         <div className="flex items-center justify-between gap-4">
+                            <div className="flex-1 bg-white p-2.5 rounded-md border border-gray-200 text-center font-medium shadow-sm break-words">{pair.leftText}</div>
+                            <ArrowRight className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                            <div className="flex-1 bg-white p-2.5 rounded-md border border-gray-200 text-center font-medium shadow-sm break-words">{pair.rightText}</div>
+                         </div>
                       </div>
                     ))}
                   </div>

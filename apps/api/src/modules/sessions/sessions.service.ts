@@ -137,14 +137,38 @@ export class SessionsService {
 
     // Check correct answer
     const options = await this.sessionsRepository.findAnswerOptionsByQuestionId(question_id);
-    const correctOpt = options.find(o => o.is_correct);
     
     let isCorrect = false;
-    if (data.fill_text !== undefined) {
-      isCorrect = correctOpt ? correctOpt.content.trim().toLowerCase() === data.fill_text.trim().toLowerCase() : false;
+    const qType = currentQuestion?.question_type || currentQuestion?.type;
+
+    if (qType === 'fill_blank') {
+      if (data.fill_text) {
+        const formatStr = (s: string) => s.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
+        const userFill = formatStr(data.fill_text);
+        const validOptions = options.filter(o => o.is_correct);
+        isCorrect = validOptions.some(opt => formatStr(opt.content) === userFill);
+      }
+    } else if (qType === 'matching') {
+      if (data.matching_pairs && currentQuestion?.metadata?.pairs) {
+        const correctPairs = currentQuestion.metadata.pairs;
+        isCorrect = correctPairs.length > 0 && correctPairs.every((cp: any) => 
+          data.matching_pairs.some((up: any) => up.leftId === cp.leftId && up.rightId === cp.rightId)
+        ) && data.matching_pairs.length === correctPairs.length;
+      }
     } else {
-      isCorrect = correctOpt ? correctOpt.id === selected_option_id : false;
+      // multiple_choice or true_false
+      const correctIds = options.filter(o => o.is_correct).map(o => o.id);
+      
+      if (data.selected_option_ids && data.selected_option_ids.length > 0) {
+        const submittedIds = data.selected_option_ids;
+        isCorrect = correctIds.length === submittedIds.length && correctIds.every((id: string) => submittedIds.includes(id));
+      } else {
+        // Fallback backward compatibility
+        isCorrect = correctIds.length === 1 && correctIds[0] === selected_option_id;
+      }
     }
+    
+    const correctOpt = options.find(o => o.is_correct); // Keep for backwards compatibility for ai explanation
 
     // Fetch existing progress
     const progress = await this.sessionsRepository.findSM2Progress(studentId, question_id);
@@ -243,9 +267,24 @@ export class SessionsService {
       }
     }
 
+    const fill_blank_correct_text = qType === 'fill_blank' && !isCorrect
+      ? options.filter(o => o.is_correct).map(o => o.content).join(' hoặc ')
+      : undefined;
+
+    const matching_correct_pairs = qType === 'matching' && !isCorrect && currentQuestion?.metadata?.pairs
+      ? currentQuestion.metadata.pairs.map((p: any) => `${p.leftText} ➔ ${p.rightText}`)
+      : undefined;
+
+    const choice_correct_texts = (qType === 'multiple_choice' || qType === 'multi_select' || qType === 'true_false') && !isCorrect
+      ? options.filter(o => o.is_correct).map(o => o.content)
+      : undefined;
+
     return {
       is_correct: isCorrect,
       correct_option_id: correctOpt?.id,
+      fill_blank_correct_text,
+      matching_correct_pairs,
+      choice_correct_texts,
       explanation: explanation,
       sm2_quality: sm2Result ? sm2Result.q : -1,
       next_review_in_days: sm2Result ? sm2Result.new_interval : (progress ? progress.interval_days : 1),

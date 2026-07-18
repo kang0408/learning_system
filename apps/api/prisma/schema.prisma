@@ -94,8 +94,10 @@ model Topic {
 
 enum QuestionType {
   multiple_choice
+  multi_select
   true_false
   fill_blank
+  matching
 }
 
 enum AssignmentMode {
@@ -111,6 +113,7 @@ model Question {
   content       String       @db.Text
   question_type QuestionType
   difficulty    Int          @default(3) @db.SmallInt
+  metadata      Json?
   explanation   String?      @db.Text
   audio_url     String?      @db.VarChar(500)
   image_url     String?      @db.VarChar(500)

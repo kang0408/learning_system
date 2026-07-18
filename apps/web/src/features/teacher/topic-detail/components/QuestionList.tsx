@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Star, Edit, Trash2, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, Star, Edit, Trash2, CheckCircle2, ArrowRight } from 'lucide-react';
 import type { Question } from '../types';
 import { useTranslation } from 'react-i18next';
 
@@ -54,9 +54,19 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                       <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md border ${
                         q.question_type === 'multiple_choice' 
                           ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                          : q.question_type === 'multi_select'
+                          ? 'bg-purple-50 text-purple-700 border-purple-200'
+                          : q.question_type === 'fill_blank'
+                          ? 'bg-orange-50 text-orange-700 border-orange-200'
+                          : q.question_type === 'matching'
+                          ? 'bg-pink-50 text-pink-700 border-pink-200'
                           : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       }`}>
-                        {q.question_type === 'multiple_choice' ? t('teacher.topicDetail.listTypeMultipleChoice') : t('teacher.topicDetail.listTypeTrueFalse')}
+                        {q.question_type === 'multiple_choice' ? 'Trắc nghiệm' 
+                         : q.question_type === 'multi_select' ? 'Nhiều lựa chọn'
+                         : q.question_type === 'true_false' ? 'Đúng / Sai'
+                         : q.question_type === 'fill_blank' ? 'Điền vào chỗ trống'
+                         : 'Ghép cặp'}
                       </span>
                       <div className="inline-flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100">
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -67,7 +77,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                     
                     <p className="font-semibold text-gray-900 text-base leading-relaxed">{q.content}</p>
                     
-                    {q.question_type === 'multiple_choice' && q.answer_options && (
+                    {(q.question_type === 'multiple_choice' || q.question_type === 'multi_select') && q.answer_options && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                         {q.answer_options.map((opt, i) => (
                           <div key={i} className={`flex items-center p-3 rounded-lg border transition-colors ${opt.is_correct ? 'bg-green-50 border-green-200 text-green-900' : 'bg-gray-50 border-gray-200 text-gray-600'}`}>
@@ -75,6 +85,29 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                               {opt.is_correct && <CheckCircle2 className="w-3.5 h-3.5" />}
                             </div>
                             <span className={opt.is_correct ? 'font-semibold text-sm' : 'font-medium text-sm'}>{opt.content}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {q.question_type === 'fill_blank' && q.answer_options && q.answer_options.length > 0 && (
+                      <div className="mt-4 p-3 bg-orange-50 border border-orange-100 rounded-lg text-sm flex items-center inline-flex">
+                        <span className="font-semibold text-orange-800 mr-2">Đáp án:</span> 
+                        <span className="font-bold text-orange-900">
+                          {q.answer_options.find((o) => o.is_correct)?.content}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {q.question_type === 'matching' && q.metadata?.pairs && (
+                      <div className="mt-4 space-y-2">
+                        {q.metadata.pairs.map((pair: any, pIdx: number) => (
+                          <div key={pIdx} className="p-3 rounded-lg border text-sm bg-gray-50 border-gray-200 text-gray-700">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex-1 bg-white p-2.5 rounded-md border border-gray-200 text-center font-medium shadow-sm break-words">{pair.leftText}</div>
+                                <ArrowRight className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                                <div className="flex-1 bg-white p-2.5 rounded-md border border-gray-200 text-center font-medium shadow-sm break-words">{pair.rightText}</div>
+                            </div>
                           </div>
                         ))}
                       </div>
