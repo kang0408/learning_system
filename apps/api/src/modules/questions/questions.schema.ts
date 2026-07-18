@@ -18,4 +18,34 @@ export const createQuestionSchema = z.object({
 
 export const updateQuestionSchema = createQuestionSchema;
 
+export const generateAiQuestionsSchema = z.object({
+  topic: z.string().min(2, 'Chủ đề phải có ít nhất 2 ký tự'),
+  question_type: z.enum(['multiple_choice', 'true_false', 'mixed']),
+  quantity: z.number().int().min(1).max(20).default(10),
+  difficulty: z.number().int().min(1).max(5).optional(),
+});
 
+export const bulkCreateQuestionsSchema = z.object({
+  topic_id: z.string().uuid(),
+  questions: z.array(z.object({
+    content: z.string().min(1),
+    question_type: z.enum(['multiple_choice', 'true_false']),
+    difficulty: z.number().int().min(1).max(5).default(3),
+    explanation: z.string().optional(),
+    answer_options: z.array(z.object({
+      content: z.string().min(1),
+      is_correct: z.boolean()
+    })).min(2).max(4)
+  }))
+});
+
+export const aiGeneratedQuestionResponseSchema = z.array(z.object({
+  content: z.string(),
+  question_type: z.enum(['multiple_choice', 'true_false']),
+  difficulty: z.number().int().min(1).max(5),
+  explanation: z.string(),
+  answer_options: z.array(z.object({
+    content: z.string(),
+    is_correct: z.boolean()
+  }))
+}));

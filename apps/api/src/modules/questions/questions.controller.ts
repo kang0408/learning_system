@@ -1,10 +1,14 @@
 import { Request, Response } from 'express';
 import { QuestionsService } from './questions.service';
 import { BaseController } from '../../controllers/BaseController';
-import { createQuestionSchema, updateQuestionSchema } from './questions.schema';
+import { createQuestionSchema, updateQuestionSchema, generateAiQuestionsSchema, bulkCreateQuestionsSchema, aiGeneratedQuestionResponseSchema } from './questions.schema';
+import { AiService } from '../ai/ai.service';
 
 export class QuestionsController extends BaseController {
-  constructor(private readonly questionsService: QuestionsService) {
+  constructor(
+    private readonly questionsService: QuestionsService,
+    private readonly aiService: AiService
+  ) {
     super();
     this.createQuestion = this.createQuestion.bind(this);
     this.getQuestions = this.getQuestions.bind(this);
@@ -13,6 +17,8 @@ export class QuestionsController extends BaseController {
     this.togglePublish = this.togglePublish.bind(this);
     this.deleteQuestion = this.deleteQuestion.bind(this);
     this.importCSV = this.importCSV.bind(this);
+    this.generateAiQuestions = this.generateAiQuestions.bind(this);
+    this.bulkCreateQuestions = this.bulkCreateQuestions.bind(this);
   }
   async createQuestion(req: any, res: Response) {
     const parseResult = createQuestionSchema.safeParse(req.body);
@@ -59,6 +65,20 @@ export class QuestionsController extends BaseController {
     } catch (e: any) {
       res.status(500).json({ success: false, message: e.message || 'Error processing CSV' });
     }
+  }
+
+  async generateAiQuestions(req: Request, res: Response) {
+    const payload = generateAiQuestionsSchema.parse(req.body);
+    const questions = await this.aiService.generateQuizQuestions(payload);
+    const validatedQuestions = aiGeneratedQuestionResponseSchema.parse(questions);
+    
+    this.handleSuccess(res, validatedQuestions);
+  }
+
+  async bulkCreateQuestions(req: any, res: Response) {
+    const payload = bulkCreateQuestionsSchema.parse(req.body);
+    const createdQuestions = await this.questionsService.bulkCreateQuestions(payload, req.user.userId);
+    this.handleSuccess(res, createdQuestions, 201);
   }
 
   // Topic methods moved to topics.controller.ts

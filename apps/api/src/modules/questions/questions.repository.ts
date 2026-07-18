@@ -57,5 +57,20 @@ export class QuestionsRepository {
     });
   }
 
-
+  async bulkCreateQuestions(questions: Prisma.QuestionUncheckedCreateInput[], tx?: Prisma.TransactionClient) {
+    const client = tx || this.prisma;
+    
+    // Prisma does not support bulk create with nested relations easily in a single query (createMany doesn't support nested creates)
+    // So we iterate and create each within the transaction.
+    const createdQuestions = [];
+    for (const q of questions) {
+      const created = await client.question.create({
+        data: q,
+        include: { answer_options: true }
+      });
+      createdQuestions.push(created);
+    }
+    
+    return createdQuestions;
+  }
 }

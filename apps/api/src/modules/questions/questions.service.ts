@@ -218,5 +218,33 @@ export class QuestionsService {
     return { importedCount, errors };
   }
 
+  async bulkCreateQuestions(data: { topic_id: string, questions: any[] }, teacherId: string) {
+    let topicId = data.topic_id;
+    if (!topicId) {
+      topicId = await this.getOrCreateDefaultTopic(teacherId);
+    }
+
+    return this.questionsRepository.executeTransaction(async (tx) => {
+      const formattedQuestions = data.questions.map((q: any) => ({
+        content: q.content,
+        question_type: q.question_type,
+        difficulty: q.difficulty,
+        explanation: q.explanation,
+        topic_id: topicId,
+        is_public: false,
+        created_by: teacherId,
+        answer_options: {
+          create: q.answer_options?.map((opt: any, index: number) => ({
+            content: opt.content,
+            is_correct: opt.is_correct,
+            order_index: index
+          })) || []
+        }
+      }));
+
+      return this.questionsRepository.bulkCreateQuestions(formattedQuestions, tx);
+    });
+  }
+
   // Topic Methods moved to topics.service.ts
 }

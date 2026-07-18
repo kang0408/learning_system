@@ -229,10 +229,14 @@ export class SessionsService {
       try {
         const aiExp = await Promise.race([
           this.aiService.getExplanation(question_id, selected_option_id, questionContext),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000))
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000))
         ]);
+        
         if (aiExp) {
+          console.log('[sessions.service] Nhận được AI Explanation kịp thời!');
           explanation = aiExp;
+        } else {
+          console.log('[sessions.service] AI Explanation bị Timeout (quá 5 giây), dùng mặc định!');
         }
       } catch (e) {
         console.error('AI Explanation Error:', e);
