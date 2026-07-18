@@ -8,7 +8,7 @@ export const studentProfileApi = {
     if (payload.address) data.append('address', payload.address);
     if (payload.avatar) data.append('avatar', payload.avatar);
 
-    const res = await fetch('http://localhost:5000/api/users/me', {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/me`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`

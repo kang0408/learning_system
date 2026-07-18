@@ -28,7 +28,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
 
   useEffect(() => {
     if (user?.avatar_url) {
-      setAvatarPreview(`http://localhost:5000${user.avatar_url}`);
+      setAvatarPreview(`${import.meta.env.VITE_API_URL}${user.avatar_url}`);
     }
   }, [user]);
 

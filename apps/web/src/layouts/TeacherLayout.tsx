@@ -40,9 +40,9 @@ export default function TeacherLayout() {
   };
 
   const navItems = [
-    { to: '/teacher/classes', icon: Users, label: 'Lớp học', end: true },
-    { to: '/teacher/questions', icon: FileText, label: 'Ngân hàng câu hỏi' },
-    { to: '/teacher/profile', icon: UserIcon, label: 'Hồ sơ cá nhân' },
+    { to: '/teacher/classes', icon: Users, label: t('layout.teacher.nav.classes') },
+    { to: '/teacher/questions', icon: FileText, label: t('layout.teacher.nav.questionBank') },
+    { to: '/teacher/profile', icon: UserIcon, label: t('layout.teacher.nav.profile') },
   ];
 
   return (
@@ -101,7 +101,7 @@ export default function TeacherLayout() {
           <div className={`bg-slate-100/50 rounded-xl p-3 border border-slate-200/50 flex items-center mb-2 ${isSidebarCollapsed ? 'justify-center' : 'gap-3'}`}>
             {user?.avatar_url ? (
               <img 
-                src={`http://localhost:5000${user.avatar_url}`} 
+                src={`${import.meta.env.VITE_API_URL}${user.avatar_url}`} 
                 alt="Avatar" 
                 className="w-10 h-10 flex-shrink-0 rounded-full object-cover shadow-sm border border-slate-200"
                 title={user?.full_name || user?.email}
@@ -113,7 +113,7 @@ export default function TeacherLayout() {
             )}
             <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col justify-center ${isSidebarCollapsed ? 'w-0 opacity-0' : 'w-40 opacity-100'}`}>
               <p className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-0.5 flex items-center gap-1 whitespace-nowrap">
-                <Sparkles className="w-3 h-3 flex-shrink-0" /> Teacher
+                <Sparkles className="w-3 h-3 flex-shrink-0" /> {t('layout.teacher.tooltips.role')}
               </p>
               <p className="font-semibold text-gray-900 truncate text-sm whitespace-nowrap">{user?.full_name || user?.email}</p>
             </div>
@@ -124,7 +124,7 @@ export default function TeacherLayout() {
         <div className="flex-1 px-3 overflow-y-auto overflow-x-hidden">
           <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarCollapsed ? 'h-0 opacity-0 mb-0' : 'h-6 opacity-100 mb-3'}`}>
             <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
-              Menu Quản Lý
+              {t('layout.teacher.menuTitle')}
             </p>
           </div>
           <nav className="space-y-1.5">
@@ -162,12 +162,12 @@ export default function TeacherLayout() {
         <div className={`p-4 border-t border-gray-50 bg-gray-50/30 flex flex-col gap-2 ${isSidebarCollapsed ? 'px-2' : ''}`}>
           <button
             onClick={() => i18n.changeLanguage(i18n.language === 'en' ? 'vi' : 'en')}
-            title={isSidebarCollapsed ? (i18n.language === 'en' ? 'Tiếng Việt' : 'English') : undefined}
+            title={isSidebarCollapsed ? (i18n.language === 'en' ? t('layout.teacher.tooltips.vietnamese') : t('layout.teacher.tooltips.english')) : undefined}
             className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm group`}
           >
             <Globe className={`w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-colors flex-shrink-0 ${!isSidebarCollapsed ? 'mr-3' : ''}`} />
             <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap flex items-center justify-between ${isSidebarCollapsed ? 'w-0 opacity-0' : 'flex-1 opacity-100'}`}>
-              <span>Ngôn ngữ</span>
+              <span>{t('layout.teacher.language')}</span>
               <span className="text-xs font-semibold px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-md">
                 {i18n.language === 'en' ? 'EN' : 'VI'}
               </span>
@@ -176,12 +176,12 @@ export default function TeacherLayout() {
 
           <button
             onClick={handleLogout}
-            title={isSidebarCollapsed ? "Đăng xuất" : undefined}
+            title={isSidebarCollapsed ? t('layout.teacher.tooltips.logout') : undefined}
             className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-start px-4'} py-2.5 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 w-full transition-all shadow-sm group`}
           >
             <LogOut className={`w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors flex-shrink-0 ${!isSidebarCollapsed ? 'mr-3' : ''}`} />
             <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] whitespace-nowrap text-left ${isSidebarCollapsed ? 'w-0 opacity-0' : 'flex-1 opacity-100'}`}>
-              Đăng xuất
+              {t('layout.teacher.logout')}
             </div>
           </button>
         </div>

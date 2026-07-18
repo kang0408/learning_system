@@ -26,7 +26,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       setAvatarPreview(url);
       return () => URL.revokeObjectURL(url);
     } else if (user?.avatar_url) {
-      setAvatarPreview(`http://localhost:5000${user.avatar_url}`);
+      setAvatarPreview(`${import.meta.env.VITE_API_URL}${user.avatar_url}`);
     }
   }, [user, avatarFile]);
 

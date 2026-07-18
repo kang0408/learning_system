@@ -4,6 +4,7 @@ import { useGenerateAiQuestions, useBulkCreateQuestions } from '../hooks/useTeac
 import { Select } from '@/components/ui/Select';
 import type { AiGeneratedQuestion } from '../types';
 import { toast } from '@/utils/toast';
+import { useTranslation } from 'react-i18next';
 
 interface GenerateAiQuestionsModalProps {
   isOpen: boolean;
@@ -12,27 +13,29 @@ interface GenerateAiQuestionsModalProps {
   topicName: string;
 }
 
-const QUESTION_TYPE_OPTIONS = [
-  { label: 'Trắc nghiệm nhiều lựa chọn', value: 'multiple_choice' },
-  { label: 'Đúng / Sai', value: 'true_false' },
-  { label: 'Hỗn hợp', value: 'mixed' },
-];
-
-const DIFFICULTY_OPTIONS = [
-  { label: '1 sao (Rất dễ)', value: '1' },
-  { label: '2 sao (Dễ)', value: '2' },
-  { label: '3 sao (Trung bình)', value: '3' },
-  { label: '4 sao (Khó)', value: '4' },
-  { label: '5 sao (Rất khó)', value: '5' },
-  { label: 'Ngẫu nhiên', value: 'random' },
-];
-
 export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> = ({
   isOpen,
   onClose,
   topicId,
   topicName,
 }) => {
+  const { t } = useTranslation();
+
+  const QUESTION_TYPE_OPTIONS = [
+    { label: t('teacher.topicDetail.aiModalTypeMultipleChoice'), value: 'multiple_choice' },
+    { label: t('teacher.topicDetail.aiModalTypeTrueFalse'), value: 'true_false' },
+    { label: t('teacher.topicDetail.aiModalTypeMixed'), value: 'mixed' },
+  ];
+
+  const DIFFICULTY_OPTIONS = [
+    { label: t('teacher.topicDetail.aiModalDiff1'), value: '1' },
+    { label: t('teacher.topicDetail.aiModalDiff2'), value: '2' },
+    { label: t('teacher.topicDetail.aiModalDiff3'), value: '3' },
+    { label: t('teacher.topicDetail.aiModalDiff4'), value: '4' },
+    { label: t('teacher.topicDetail.aiModalDiff5'), value: '5' },
+    { label: t('teacher.topicDetail.aiModalDiffRandom'), value: 'random' },
+  ];
+
   const [step, setStep] = useState<1 | 2>(1);
   const [topic, setTopic] = useState(topicName || '');
   const [questionType, setQuestionType] = useState('multiple_choice');
@@ -66,9 +69,9 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
       setGeneratedQuestions(result);
       setSelectedIndices(result.map((_, i) => i));
       setStep(2);
-      toast.success('Tạo câu hỏi bằng AI thành công');
+      toast.success(t('teacher.topicDetail.aiModalGenerateSuccess'));
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi tạo câu hỏi bằng AI');
+      toast.error(error?.response?.data?.message || t('teacher.topicDetail.aiModalGenerateError'));
     }
   };
 
@@ -81,10 +84,10 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
         topic_id: topicId,
         questions: questionsToSave,
       });
-      toast.success(`Đã lưu thành công ${questionsToSave.length} câu hỏi`);
+      toast.success(t('teacher.topicDetail.aiModalSaveSuccess', { count: questionsToSave.length }));
       handleClose();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Có lỗi xảy ra khi lưu câu hỏi');
+      toast.error(error?.response?.data?.message || t('teacher.topicDetail.aiModalSaveError'));
     }
   };
 
@@ -95,7 +98,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-indigo-600" />
             <h2 className="text-xl font-semibold text-gray-900">
-              {step === 1 ? 'Tạo câu hỏi bằng AI' : 'Duyệt câu hỏi đã tạo'}
+              {step === 1 ? t('teacher.topicDetail.aiModalTitle1') : t('teacher.topicDetail.aiModalTitle2')}
             </h2>
           </div>
           <button onClick={handleClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
@@ -107,7 +110,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
           {step === 1 ? (
             <form id="generate-ai-form" onSubmit={handleGenerate} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Chủ đề tạo câu hỏi</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('teacher.topicDetail.aiModalTopicLabel')}</label>
                 <input
                   type="text"
                   required
@@ -120,7 +123,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Loại câu hỏi</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('teacher.topicDetail.aiModalTypeLabel')}</label>
                   <Select
                     value={questionType}
                     onChange={setQuestionType}
@@ -130,7 +133,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Số lượng</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('teacher.topicDetail.aiModalQuantityLabel')}</label>
                   <input
                     type="number"
                     min={1}
@@ -140,12 +143,12 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                     onChange={(e) => setQuantity(Number(e.target.value))}
                     className="w-full px-4 py-3.5 bg-white border border-gray-300 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-colors"
                   />
-                  <p className="text-xs text-gray-500 mt-2">Tối đa 20 câu mỗi lần tạo.</p>
+                  <p className="text-xs text-gray-500 mt-2">{t('teacher.topicDetail.aiModalQuantityHint')}</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Độ khó</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('teacher.topicDetail.aiModalDiffLabel')}</label>
                 <Select
                   value={difficulty}
                   onChange={setDifficulty}
@@ -180,10 +183,10 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                       <p className="text-gray-900 font-medium">{q.content}</p>
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md">
-                          {q.question_type === 'multiple_choice' ? 'Trắc nghiệm' : 'Đúng/Sai'}
+                          {q.question_type === 'multiple_choice' ? t('teacher.topicDetail.listTypeMultipleChoice') : t('teacher.topicDetail.listTypeTrueFalse')}
                         </span>
                         <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md">
-                          Độ khó: {q.difficulty}
+                          {t('teacher.topicDetail.aiModalDiffText')} {q.difficulty}
                         </span>
                       </div>
                     </div>
@@ -203,7 +206,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
                   {q.explanation && (
                     <div className="pl-14 mt-4">
                       <div className="p-3 bg-blue-50 text-blue-800 text-sm rounded-lg border border-blue-100">
-                        <span className="font-semibold mr-1">Giải thích:</span>
+                        <span className="font-semibold mr-1">{t('teacher.topicDetail.listExplanation')}</span>
                         {q.explanation}
                       </div>
                     </div>
@@ -220,7 +223,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
             onClick={handleClose}
             className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:outline-none focus:ring-gray-100 transition-colors"
           >
-            Hủy
+            {t('teacher.topicDetail.aiModalBtnCancel')}
           </button>
           {step === 1 ? (
             <button
@@ -232,12 +235,12 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
               {isGenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Đang tạo...
+                  {t('teacher.topicDetail.aiModalBtnGenerating')}
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Tạo câu hỏi
+                  {t('teacher.topicDetail.aiModalBtnGenerate')}
                 </>
               )}
             </button>
@@ -250,10 +253,10 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
               {isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Đang lưu...
+                  {t('teacher.topicDetail.aiModalBtnSaving')}
                 </>
               ) : (
-                `Lưu ${selectedIndices.length > 0 ? selectedIndices.length : ''} câu hỏi này`
+                selectedIndices.length > 0 ? t('teacher.topicDetail.aiModalBtnSave', { count: selectedIndices.length }) : t('teacher.topicDetail.aiModalBtnSaveSimple')
               )}
             </button>
           )}

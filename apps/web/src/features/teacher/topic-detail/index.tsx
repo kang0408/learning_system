@@ -16,8 +16,10 @@ import { GenerateAiQuestionsModal } from './components/GenerateAiQuestionsModal'
 import { ConfirmDialog } from '@/components/ui/Dialog';
 import type { Question } from './types';
 import { toast } from '@/utils/toast';
+import { useTranslation } from 'react-i18next';
 
 export default function TeacherTopicDetailFeature() {
+  const { t } = useTranslation();
   const { topicId } = useParams<{ topicId: string }>();
   const navigate = useNavigate();
   
@@ -55,20 +57,20 @@ export default function TeacherTopicDetailFeature() {
     if (!deleteQuestionId) return;
     try {
       await deleteQuestion(deleteQuestionId);
-      toast.success('Xóa câu hỏi thành công');
+      toast.success(t('teacher.topicDetail.deleteQuestionSuccess'));
       setDeleteQuestionId(null);
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Không thể xóa câu hỏi');
+      toast.error(e?.response?.data?.message || t('teacher.topicDetail.deleteQuestionError'));
     }
   };
 
   const handleDeleteTopicConfirm = async () => {
     try {
       await deleteTopic(topicId);
-      toast.success('Xóa chủ đề thành công');
+      toast.success(t('teacher.topicDetail.deleteTopicSuccess'));
       navigate('/teacher/questions');
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Không thể xóa chủ đề');
+      toast.error(e?.response?.data?.message || t('teacher.topicDetail.deleteTopicError'));
     }
   };
 
@@ -118,9 +120,9 @@ export default function TeacherTopicDetailFeature() {
         isOpen={!!deleteQuestionId}
         onClose={() => setDeleteQuestionId(null)}
         onConfirm={handleDeleteQuestionConfirm}
-        title="Xóa câu hỏi"
-        description="Bạn có chắc muốn xóa câu hỏi này? Dữ liệu không thể khôi phục."
-        confirmText="Xóa câu hỏi"
+        title={t('teacher.topicDetail.deleteQuestionTitle')}
+        description={t('teacher.topicDetail.deleteQuestionDesc')}
+        confirmText={t('teacher.topicDetail.deleteQuestionConfirm')}
         isDanger={true}
         isLoading={deletingQuestion}
       />
@@ -129,9 +131,9 @@ export default function TeacherTopicDetailFeature() {
         isOpen={showDeleteTopicConfirm}
         onClose={() => setShowDeleteTopicConfirm(false)}
         onConfirm={handleDeleteTopicConfirm}
-        title="Xóa chủ đề"
-        description="Bạn có chắc muốn xóa TOÀN BỘ chủ đề này không? Các bài tập liên kết sẽ bị ảnh hưởng."
-        confirmText="Xóa chủ đề"
+        title={t('teacher.topicDetail.deleteTopicTitle')}
+        description={t('teacher.topicDetail.deleteTopicDesc')}
+        confirmText={t('teacher.topicDetail.deleteTopicConfirm')}
         isDanger={true}
         isLoading={deletingTopic}
       />
