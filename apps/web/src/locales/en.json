@@ -66,6 +66,7 @@
       "noQuestions": "No Questions",
       "submitFailed": "Submit failed, please try again.",
       "confirmExit": "Are you sure you want to exit? Your current session progress will be lost.",
+      "confirmExitWarning": "Your progress will not be saved. Are you sure you want to exit?",
       "leaveQuiz": "Leave Quiz",
       "violation": "⚠️ Violation:",
       "topic": "Topic //",

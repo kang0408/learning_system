@@ -66,6 +66,7 @@
       "noQuestions": "Không có câu hỏi",
       "submitFailed": "Nộp bài thất bại, vui lòng thử lại.",
       "confirmExit": "Bạn có chắc chắn muốn thoát? Quá trình làm bài hiện tại sẽ bị mất.",
+      "confirmExitWarning": "Tiến trình làm bài của bạn sẽ không được lưu. Bạn có chắc chắn muốn thoát?",
       "leaveQuiz": "Thoát",
       "violation": "⚠️ Vi phạm:",
       "topic": "Chủ đề //",
