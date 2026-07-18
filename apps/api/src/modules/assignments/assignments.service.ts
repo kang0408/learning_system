@@ -18,7 +18,21 @@ export class AssignmentsService {
     }
 
     if (data.topic_ids && data.topic_ids.length > 0) {
-      const setQuestions = await this.assignmentsRepository.findQuestionsByTopicIds(data.topic_ids);
+      const allTopics = await this.assignmentsRepository.findAllTopics(teacherId);
+      const descendants = new Set<string>(data.topic_ids);
+
+      let added = true;
+      while (added) {
+        added = false;
+        for (const t of allTopics) {
+          if (t.parent_id && descendants.has(t.parent_id) && !descendants.has(t.id)) {
+            descendants.add(t.id);
+            added = true;
+          }
+        }
+      }
+
+      const setQuestions = await this.assignmentsRepository.findQuestionsByTopicIds(Array.from(descendants));
       allQuestionIds.push(...setQuestions.map(q => q.id));
     }
 
@@ -124,7 +138,11 @@ export class AssignmentsService {
           if (completedSessions.length > 0) {
             result.student_status = 'completed';
             // Lấy điểm cao nhất trong các lần làm
-            result.student_score = Math.max(...completedSessions.map(s => Number(s.score || 0)));
+            const bestSession = completedSessions.reduce((prev, current) => 
+              Number(prev.score || 0) > Number(current.score || 0) ? prev : current
+            );
+            result.student_score = Number(bestSession.score || 0);
+            result.session_id = bestSession.id;
           } else {
             result.student_status = 'in_progress';
             result.student_score = null;
@@ -177,7 +195,21 @@ export class AssignmentsService {
       }
 
       if (data.topic_ids && data.topic_ids.length > 0) {
-        const setQuestions = await this.assignmentsRepository.findQuestionsByTopicIds(data.topic_ids);
+        const allTopics = await this.assignmentsRepository.findAllTopics(teacherId);
+        const descendants = new Set<string>(data.topic_ids);
+
+        let added = true;
+        while (added) {
+          added = false;
+          for (const t of allTopics) {
+            if (t.parent_id && descendants.has(t.parent_id) && !descendants.has(t.id)) {
+              descendants.add(t.id);
+              added = true;
+            }
+          }
+        }
+
+        const setQuestions = await this.assignmentsRepository.findQuestionsByTopicIds(Array.from(descendants));
         questionsToAssignIds.push(...setQuestions.map(q => q.id));
       }
 

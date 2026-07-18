@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BookOpen, CheckCircle, Clock, Target, CalendarDays } from 'lucide-react';
 import type { StudentAssignment } from '../types';
+import { SessionResultModal } from './SessionResultModal';
 
 interface StudentAssignmentsListProps {
   assignments: StudentAssignment[];
@@ -10,9 +11,10 @@ interface StudentAssignmentsListProps {
 export const StudentAssignmentsList: React.FC<StudentAssignmentsListProps> = ({ assignments }) => {
   const { t } = useTranslation();
   const publishedAssignments = assignments.filter(a => a.is_published);
+  const [selectedSessionId, setSelectedSessionId] = React.useState<string | null>(null);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm h-full flex flex-col overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       <div className="p-5 md:p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
         <div>
           <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2.5">
@@ -25,9 +27,18 @@ export const StudentAssignmentsList: React.FC<StudentAssignmentsListProps> = ({ 
         <ul className="divide-y divide-gray-100">
           {publishedAssignments.map(a => {
             const isOverdue = a.student_status === 'pending' && a.deadline && new Date(a.deadline) < new Date();
+            const isClickable = a.student_status === 'completed' && a.session_id;
             
             return (
-              <li key={a.id} className="p-5 hover:bg-gray-50/80 transition-colors duration-200">
+              <li 
+                key={a.id} 
+                className={`p-5 hover:bg-gray-50/80 transition-colors duration-200 ${isClickable ? 'cursor-pointer' : ''}`}
+                onClick={() => {
+                  if (isClickable) {
+                    setSelectedSessionId(a.session_id!);
+                  }
+                }}
+              >
                 <div className="flex flex-col gap-3">
                   <div className="flex justify-between items-start gap-4">
                     <p className="font-semibold text-gray-900 text-base">{a.title}</p>
@@ -74,6 +85,13 @@ export const StudentAssignmentsList: React.FC<StudentAssignmentsListProps> = ({ 
           )}
         </ul>
       </div>
+
+      {selectedSessionId && (
+        <SessionResultModal 
+          sessionId={selectedSessionId} 
+          onClose={() => setSelectedSessionId(null)} 
+        />
+      )}
     </div>
   );
 };

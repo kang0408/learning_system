@@ -1,7 +1,9 @@
 export interface Topic {
   id: string;
   name: string;
+  code?: string;
   _count?: { questions: number };
+  children?: Topic[];
 }
 
 export interface Question {

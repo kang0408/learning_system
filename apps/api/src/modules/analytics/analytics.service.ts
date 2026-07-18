@@ -125,7 +125,31 @@ export class AnalyticsService {
       };
     });
 
-    return { weak_topics: merged };
+    const topicPerfRaw = await this.analyticsRepository.getTopicPerformance(studentId);
+    const topics = await this.analyticsRepository.findAllTopics();
+    const topicMap = new Map<string, any>();
+    for (const t of topics) topicMap.set(t.id, t);
+
+    const topic_performance = topicPerfRaw.map(tp => {
+      let topicPath = tp.topic;
+      if (tp.topic_id) {
+        let curr = topicMap.get(tp.topic_id);
+        const pathParts = [];
+        while (curr) {
+          pathParts.unshift(curr.name);
+          curr = curr.parent_id ? topicMap.get(curr.parent_id) : null;
+        }
+        if (pathParts.length > 0) {
+          topicPath = pathParts.join(' ➔ ');
+        }
+      }
+      return {
+        ...tp,
+        topic_path: topicPath
+      };
+    });
+
+    return { weak_topics: merged, topic_performance };
   }
 
   // --- TEACHER DASHBOARD ---

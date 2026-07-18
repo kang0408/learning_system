@@ -25,6 +25,18 @@ export class TopicsRepository {
     });
   }
 
+  async findAllTopicsForTree(where: Prisma.TopicWhereInput) {
+    return this.prisma.topic.findMany({
+      where,
+      include: {
+        _count: {
+          select: { questions: { where: { deleted_at: null } } }
+        }
+      },
+      orderBy: { created_at: 'desc' }
+    });
+  }
+
   async countTopics(where: Prisma.TopicWhereInput) {
     return this.prisma.topic.count({ where });
   }

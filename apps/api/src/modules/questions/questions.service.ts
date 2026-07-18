@@ -74,7 +74,25 @@ export class QuestionsService {
     if (type) where.question_type = type;
     if (search) where.content = { contains: search, mode: 'insensitive' };
     if (topic_id !== undefined) {
-      where.topic_id = topic_id === 'null' ? null : topic_id;
+      if (topic_id === 'null') {
+        where.topic_id = null;
+      } else {
+        const allTopics = await this.questionsRepository.findAllTopics(teacherId);
+        const descendants = new Set<string>();
+        descendants.add(topic_id);
+
+        let added = true;
+        while (added) {
+          added = false;
+          for (const t of allTopics) {
+            if (t.parent_id && descendants.has(t.parent_id) && !descendants.has(t.id)) {
+              descendants.add(t.id);
+              added = true;
+            }
+          }
+        }
+        where.topic_id = { in: Array.from(descendants) };
+      }
     }
 
     const questions = await this.questionsRepository.findQuestions(where, (page - 1) * limit, limit);

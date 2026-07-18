@@ -49,7 +49,7 @@ export class SessionsController extends BaseController {
   async getResult(req: any, res: Response) {
     
       const { id } = req.params;
-      const result = await this.sessionsService.getSessionResult(req.user.userId, id);
+      const result = await this.sessionsService.getSessionResult(req.user.userId, id, req.user.role);
       this.handleSuccess(res, result);
     
   }

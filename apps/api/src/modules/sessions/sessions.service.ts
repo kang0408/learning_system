@@ -13,13 +13,28 @@ export class SessionsService {
     private readonly aiService: AiService
   ) {}
 
-  private computeTopicPerformance(answers: any[]) {
+  private async computeTopicPerformance(answers: any[]) {
     const topicStats: Record<string, { total: number, correct: number }> = {};
+    const topics = await this.sessionsRepository.findAllTopics();
+    const topicMap = new Map<string, any>();
+    for (const t of topics) topicMap.set(t.id, t);
+
     for (const ans of answers) {
-      const topicName = (ans.question as any).topic?.name || 'General';
-      if (!topicStats[topicName]) topicStats[topicName] = { total: 0, correct: 0 };
-      topicStats[topicName].total++;
-      if (ans.is_correct) topicStats[topicName].correct++;
+      let topicPath = 'General';
+      const topic = (ans.question as any).topic;
+      if (topic) {
+        let curr = topicMap.get(topic.id);
+        const pathParts = [];
+        while (curr) {
+          pathParts.unshift(curr.name);
+          curr = curr.parent_id ? topicMap.get(curr.parent_id) : null;
+        }
+        topicPath = pathParts.length > 0 ? pathParts.join(' ➔ ') : topic.name;
+      }
+      
+      if (!topicStats[topicPath]) topicStats[topicPath] = { total: 0, correct: 0 };
+      topicStats[topicPath].total++;
+      if (ans.is_correct) topicStats[topicPath].correct++;
     }
 
     const performance_by_topic = Object.entries(topicStats).map(([topic, stat]) => ({
@@ -321,7 +336,7 @@ export class SessionsService {
     await redisClient.del(`session:${sessionId}`);
 
     // Topic performance logic
-    const { performance_by_topic, weakestTopic } = this.computeTopicPerformance(session.session_answers);
+    const { performance_by_topic, weakestTopic } = await this.computeTopicPerformance(session.session_answers);
 
     return {
       session_id: sessionId,
@@ -363,16 +378,22 @@ export class SessionsService {
     };
   }
 
-  async getSessionResult(studentId: string, sessionId: string) {
+  async getSessionResult(userId: string, sessionId: string, role?: string) {
     const session = await this.sessionsRepository.findQuizSessionWithAnswers(sessionId);
-    if (!session || session.student_id !== studentId) throw new ApiError(404, 'Session not found');
+    if (!session) throw new ApiError(404, 'Session not found');
+    
+    if (role === 'student' && session.student_id !== userId) {
+      throw new ApiError(404, 'Session not found');
+    }
+    // If not student, assume teacher/admin and allow viewing.
+    
     if (session.status !== 'completed') throw new ApiError(400, 'Session is not completed yet');
 
     const score = session.score || 0;
     const durationSeconds = session.finished_at ? Math.floor((session.finished_at.getTime() - session.started_at.getTime()) / 1000) : 0;
 
     // Topic performance logic
-    const { performance_by_topic, weakestTopic } = this.computeTopicPerformance(session.session_answers);
+    const { performance_by_topic, weakestTopic } = await this.computeTopicPerformance(session.session_answers);
 
     return {
       session_id: sessionId,

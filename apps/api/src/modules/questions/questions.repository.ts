@@ -11,6 +11,13 @@ export class QuestionsRepository {
     return this.prisma.topic.create({ data });
   }
 
+  async findAllTopics(teacherId: string) {
+    return this.prisma.topic.findMany({
+      where: { created_by: teacherId, deleted_at: null },
+      select: { id: true, parent_id: true }
+    });
+  }
+
   async createQuestion(data: Prisma.QuestionUncheckedCreateInput) {
     return this.prisma.question.create({
       data,

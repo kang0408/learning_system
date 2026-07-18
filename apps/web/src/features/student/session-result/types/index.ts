@@ -22,6 +22,13 @@ export interface SessionAnswer {
 
 export interface ResultData {
   score: number;
+  total_questions?: number;
+  answered_questions?: number;
+  correct_questions?: number;
+  duration_seconds?: number;
+  finished_at?: string;
+  performance_by_topic?: any[];
+  weakest_topic?: string | null;
   next_review_date?: string;
   session_answers?: SessionAnswer[];
 }

@@ -3,6 +3,13 @@ import { PrismaClient } from '@prisma/client';
 export class AnalyticsRepository {
   constructor(private readonly prisma: PrismaClient) {}
   // --- STUDENT ---
+
+  async findAllTopics() {
+    return this.prisma.topic.findMany({
+      where: { deleted_at: null },
+      select: { id: true, name: true, parent_id: true }
+    });
+  }
   async getActiveDates(studentId: string): Promise<{date: string}[]> {
     return this.prisma.$queryRaw<{date: string}[]>`
       SELECT DISTINCT DATE(started_at)::text as date
@@ -70,6 +77,25 @@ export class AnalyticsRepository {
       HAVING SUM(p.total_attempts) >= 3
          AND (AVG(p.easiness_factor) < 2.5 OR SUM(CASE WHEN p.next_review_date < NOW() - INTERVAL '3 days' THEN 1 ELSE 0 END) > 0)
       ORDER BY overdue_questions DESC, avg_ef ASC, weak_questions DESC;
+    `;
+  }
+
+  async getTopicPerformance(studentId: string): Promise<any[]> {
+    return this.prisma.$queryRaw<any[]>`
+      SELECT 
+        t.id as topic_id,
+        COALESCE(t.name, 'General') as topic,
+        COUNT(p.id)::int as total_questions,
+        SUM(CASE WHEN p.easiness_factor >= 2.5 AND p.repetition_count >= 4 AND p.interval_days >= 21 THEN 1 ELSE 0 END)::int as mastered_count,
+        SUM(CASE WHEN p.easiness_factor < 1.8 OR p.next_review_date < NOW() - INTERVAL '7 days' THEN 1 ELSE 0 END)::int as at_risk_count,
+        ROUND(AVG(p.easiness_factor)::numeric, 2)::float as avg_ef,
+        ROUND((SUM(p.correct_attempts)::float / NULLIF(SUM(p.total_attempts), 0) * 100)::numeric, 1)::float as accuracy_pct
+      FROM sm2_progress p
+      JOIN questions q ON p.question_id = q.id
+      LEFT JOIN topics t ON q.topic_id = t.id
+      WHERE p.student_id = ${studentId}::uuid AND p.total_attempts > 0
+      GROUP BY t.id, t.name
+      ORDER BY t.name ASC;
     `;
   }
 

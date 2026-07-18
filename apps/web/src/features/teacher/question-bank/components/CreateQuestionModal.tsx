@@ -5,6 +5,8 @@ import { useCreateQuestion } from '../hooks/useTeacherQuestionBank';
 import type { Topic } from '../types';
 import { toast } from '@/utils/toast';
 import { Select } from '@/components/ui/Select';
+import { TreeSelect } from '@/components/ui/TreeSelect';
+import type { TreeSelectOption } from '@/components/ui/TreeSelect';
 
 interface CreateQuestionModalProps {
   isOpen: boolean;
@@ -127,13 +129,18 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({ isOpen
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">{t('teacher.questionBank.createQuestion.topicLabel')} <span className="text-red-500">*</span></label>
-                <Select
+                <TreeSelect
                   value={selectedTopicId}
                   onChange={(val) => setSelectedTopicId(val)}
-                  options={[
-                    { label: t('teacher.questionBank.createQuestion.topicUncategorized'), value: '' },
-                    ...topics.map(s => ({ label: `${s.name} ${s.code ? `(${s.code})` : ''}`.trim(), value: s.id }))
-                  ]}
+                  options={
+                    topics.map(function mapTopic(t: Topic): TreeSelectOption {
+                      return {
+                        label: `${t.name} ${t.code ? `(${t.code})` : ''}`.trim(),
+                        value: t.id,
+                        children: t.children?.map(mapTopic)
+                      };
+                    })
+                  }
                   placeholder={t('teacher.questionBank.createQuestion.topicUncategorized')}
                 />
               </div>

@@ -7,6 +7,13 @@ export class AssignmentsRepository {
     return this.prisma.class.findUnique({ where: { id } });
   }
 
+  async findAllTopics(teacherId: string) {
+    return this.prisma.topic.findMany({
+      where: { created_by: teacherId, deleted_at: null },
+      select: { id: true, parent_id: true }
+    });
+  }
+
   async findQuestionsByTopicIds(topicIds: string[]) {
     return this.prisma.question.findMany({
       where: { topic_id: { in: topicIds }, deleted_at: null },
@@ -37,7 +44,7 @@ export class AssignmentsRepository {
           }
         },
         quiz_sessions: {
-          select: { student_id: true, status: true, score: true }
+          select: { id: true, student_id: true, status: true, score: true }
         }
       },
       skip,

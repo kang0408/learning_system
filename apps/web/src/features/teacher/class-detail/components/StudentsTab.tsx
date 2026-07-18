@@ -71,6 +71,12 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
             <tbody className="bg-white divide-y divide-gray-100 text-gray-700 font-medium">
               {analytics.leaderboard.map((student: any, index: number) => {
                 const isTop3 = index < 3;
+                const member = members?.find((m: any) => m.student_id === student.student_id);
+                let avatarUrl = member?.student?.avatar_url;
+                if (avatarUrl && !avatarUrl.startsWith('http')) {
+                  avatarUrl = `${import.meta.env.VITE_API_URL}${avatarUrl}`;
+                }
+                
                 return (
                   <tr key={student.student_id} className="hover:bg-gray-50/80 transition duration-150">
                     <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -87,8 +93,12 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-900 border border-slate-200 flex items-center justify-center font-bold mr-3">
-                          {student.name.charAt(0).toUpperCase()}
+                        <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-900 border border-slate-200 flex items-center justify-center font-bold mr-3 overflow-hidden">
+                          {avatarUrl ? (
+                            <img src={avatarUrl} alt={student.name} className="w-full h-full object-cover" />
+                          ) : (
+                            student.name.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <span className="font-semibold text-gray-900">{student.name}</span>
                       </div>

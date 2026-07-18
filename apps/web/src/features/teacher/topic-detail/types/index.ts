@@ -4,6 +4,8 @@ export interface Topic {
   description?: string;
   code?: string;
   created_at: string;
+  parent_id?: string | null;
+  children?: Topic[];
 }
 
 export interface QuestionOption {

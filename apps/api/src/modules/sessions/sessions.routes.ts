@@ -27,6 +27,6 @@ router.post('/:id/finish', requireAuth, requireRole(['student']), asyncWrapper(s
 router.post('/:id/abandon', requireAuth, requireRole(['student']), asyncWrapper(sessionsController.abandon));
 
 router.get('/:id', requireAuth, requireRole(['student']), asyncWrapper(sessionsController.getInfo));
-router.get('/:id/result', requireAuth, requireRole(['student']), asyncWrapper(sessionsController.getResult));
+router.get('/:id/result', requireAuth, requireRole(['student', 'teacher']), asyncWrapper(sessionsController.getResult));
 
 export default router;

@@ -34,6 +34,7 @@ export default function TeacherQuestionBankFeature() {
       <CreateTopicModal 
         isOpen={showTopicModal} 
         onClose={() => setShowTopicModal(false)} 
+        topics={topics}
       />
       
       <CreateQuestionModal 

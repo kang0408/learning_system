@@ -3,6 +3,8 @@ export interface Topic {
   name: string;
   description?: string;
   code?: string;
+  parent_id?: string | null;
+  children?: Topic[];
   created_at: string;
   _count?: {
     questions: number;
@@ -13,6 +15,7 @@ export interface CreateTopicPayload {
   name: string;
   description?: string;
   code?: string;
+  parent_id?: string | null;
 }
 
 export interface CreateQuestionPayload {

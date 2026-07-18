@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { UsersService } from './users.service';
-import { updateMeSchema, updatePasswordSchema } from './users.schema';
+import { updateMeSchema } from './users.schema';
 import { AuthRequest } from '../../middlewares/auth.middleware';
 import { BaseController } from '../../controllers/BaseController';
 import { ApiError } from '../../lib/ApiError';

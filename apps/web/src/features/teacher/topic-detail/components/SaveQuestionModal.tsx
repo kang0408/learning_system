@@ -5,6 +5,8 @@ import type { Topic, Question } from '../types';
 import { toast } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
 import { Select } from '@/components/ui/Select';
+import { TreeSelect } from '@/components/ui/TreeSelect';
+import type { TreeSelectOption } from '@/components/ui/TreeSelect';
 
 interface SaveQuestionModalProps {
   isOpen: boolean;
@@ -192,14 +194,20 @@ export const SaveQuestionModal: React.FC<SaveQuestionModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-gray-700">{t('teacher.topicDetail.saveModalTopicLabel')} <span className="text-red-500">*</span></label>
-                <Select
+                <TreeSelect
                   value={selectedTopicId}
                   onChange={(val) => setSelectedTopicId(val)}
                   options={[
                     ...(!topics.some(t => t.name === 'Chưa phân loại' || t.name === 'Uncategorized') 
                       ? [{ label: t('teacher.topicDetail.saveModalTopicUncategorized'), value: '' }] 
                       : []),
-                    ...topics.map(s => ({ label: `${s.name} ${s.code ? `(${s.code})` : ''}`.trim(), value: s.id }))
+                    ...topics.map(function mapTopic(t: Topic): TreeSelectOption {
+                      return {
+                        label: `${t.name} ${t.code ? `(${t.code})` : ''}`.trim(),
+                        value: t.id,
+                        children: t.children ? t.children.map(mapTopic) : undefined
+                      };
+                    })
                   ]}
                   placeholder={t('teacher.topicDetail.saveModalTopicUncategorized')}
                 />

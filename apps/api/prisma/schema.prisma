@@ -77,6 +77,7 @@ model ClassMember {
 
 model Topic {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parent_id   String?   @db.Uuid
   code        String?   @unique @db.VarChar(6)
   name        String    @db.VarChar(200)
   description String?   @db.Text
@@ -85,10 +86,13 @@ model Topic {
   updated_at  DateTime  @default(now()) @updatedAt @db.Timestamptz
   deleted_at  DateTime? @db.Timestamptz
 
+  parent    Topic?     @relation("TopicHierarchy", fields: [parent_id], references: [id], onDelete: Cascade)
+  children  Topic[]    @relation("TopicHierarchy")
   author    User       @relation(fields: [created_by], references: [id], onDelete: Restrict)
   questions Question[]
 
   @@index([created_by])
+  @@index([parent_id])
   @@map("topics")
 }
 

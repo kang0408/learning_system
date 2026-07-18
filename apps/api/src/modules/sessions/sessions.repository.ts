@@ -3,6 +3,10 @@ import { PrismaClient, Prisma } from '@prisma/client';
 export class SessionsRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  async findAllTopics() {
+    return this.prisma.topic.findMany();
+  }
+
   async findAssignmentById(id: string) {
     return this.prisma.assignment.findUnique({
       where: { id, deleted_at: null },

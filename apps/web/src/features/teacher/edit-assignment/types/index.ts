@@ -21,7 +21,11 @@ export interface Assignment {
 export interface Topic {
   id: string;
   name: string;
-  _count?: { questions: number };
+  code?: string;
+  _count?: {
+    questions: number;
+  };
+  children?: Topic[];
 }
 
 export interface Question {

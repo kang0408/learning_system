@@ -20,17 +20,23 @@ export class TopicsService {
       if (existing) throw new ApiError(400, 'Mã topic này đã tồn tại!');
     }
 
+    if (data.parent_id) {
+      const parent = await this.topicsRepository.findTopicById(data.parent_id);
+      if (!parent || parent.created_by !== teacherId) {
+        throw new ApiError(400, 'Topic cha không hợp lệ');
+      }
+    }
+
     return this.topicsRepository.createTopic({
       name: data.name,
       code: code,
       description: data.description,
+      parent_id: data.parent_id,
       created_by: teacherId
     });
   }
 
   async getTopics(teacherId: string, query: any) {
-    const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 20;
     const { search } = query;
 
     const where: any = { 
@@ -47,10 +53,29 @@ export class TopicsService {
       where.name = { contains: search, mode: 'insensitive' };
     }
     
-    const topics = await this.topicsRepository.findTopics(where, (page - 1) * limit, limit);
-    const total = await this.topicsRepository.countTopics(where);
+    const allTopics = await this.topicsRepository.findAllTopicsForTree(where);
+    
+    const map = new Map<string, any>();
+    const roots: any[] = [];
 
-    return { topics, meta: { page, limit, total } };
+    for (const t of allTopics) {
+      map.set(t.id, { ...t, children: [] });
+    }
+
+    for (const t of allTopics) {
+      if (t.parent_id) {
+        const parent = map.get(t.parent_id);
+        if (parent) {
+          parent.children.push(map.get(t.id));
+        } else {
+          roots.push(map.get(t.id));
+        }
+      } else {
+        roots.push(map.get(t.id));
+      }
+    }
+
+    return { topics: roots, meta: { page: 1, limit: roots.length, total: roots.length } };
   }
 
   async getTopicById(topicId: string, teacherId: string) {
@@ -64,9 +89,20 @@ export class TopicsService {
   async updateTopic(topicId: string, teacherId: string, data: any) {
     await this.getTopicById(topicId, teacherId);
 
+    if (data.parent_id) {
+      if (data.parent_id === topicId) {
+        throw new ApiError(400, 'Topic không thể tự làm cha của chính nó');
+      }
+      const parent = await this.topicsRepository.findTopicById(data.parent_id);
+      if (!parent || parent.created_by !== teacherId) {
+        throw new ApiError(400, 'Topic cha không hợp lệ');
+      }
+    }
+
     return this.topicsRepository.updateTopic(topicId, {
       name: data.name,
       description: data.description,
+      parent_id: data.parent_id,
       updated_at: new Date()
     });
   }

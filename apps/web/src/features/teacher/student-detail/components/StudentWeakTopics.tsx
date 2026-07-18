@@ -10,7 +10,7 @@ interface StudentWeakTopicsProps {
 export const StudentWeakTopics: React.FC<StudentWeakTopicsProps> = ({ weakTopics }) => {
   const { t } = useTranslation();
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
       <div className="p-5 md:p-6 border-b border-gray-100 bg-gray-50/50">
         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2.5">
           <Target className="w-5 h-5 text-red-500" /> {t('teacher.studentDetail.weakTopics.title')}

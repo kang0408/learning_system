@@ -37,7 +37,7 @@ export const teacherClassDetailApi = {
   
   getClassMembers: async (id: string) => {
     const res = await api.get(`/api/classes/${id}/members`);
-    return res.data.data || [];
+    return res.data.data?.members || res.data.data || [];
   },
   
   getClassAssignments: async (id: string) => {

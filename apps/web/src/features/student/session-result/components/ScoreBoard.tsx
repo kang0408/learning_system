@@ -6,9 +6,10 @@ import type { ResultData } from '../types';
 interface ScoreBoardProps {
   result: ResultData;
   sessionId: string | null;
+  hideContinueButton?: boolean;
 }
 
-export const ScoreBoard: React.FC<ScoreBoardProps> = ({ result, sessionId }) => {
+export const ScoreBoard: React.FC<ScoreBoardProps> = ({ result, sessionId, hideContinueButton }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -36,18 +37,20 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({ result, sessionId }) => 
               : t('student.result.tomorrow')}
           </p>
         </div>
-        <button
-          onClick={() => {
-            if (sessionId) {
-              navigate(-1);
-            } else {
-              navigate('/student');
-            }
-          }}
-          className="font-bold bg-indigo-600 text-white border-2 border-indigo-600 px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl hover:bg-zinc-900 hover:border-zinc-900 transition-colors uppercase tracking-widest w-full md:w-auto text-center"
-        >
-          {t('student.result.continue')}
-        </button>
+        {!hideContinueButton && (
+          <button
+            onClick={() => {
+              if (sessionId) {
+                navigate(-1);
+              } else {
+                navigate('/student');
+              }
+            }}
+            className="font-bold bg-indigo-600 text-white border-2 border-indigo-600 px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl hover:bg-zinc-900 hover:border-zinc-900 transition-colors uppercase tracking-widest w-full md:w-auto text-center"
+          >
+            {t('student.result.continue')}
+          </button>
+        )}
       </div>
     </>
   );

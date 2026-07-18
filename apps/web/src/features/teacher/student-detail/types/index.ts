@@ -13,6 +13,18 @@ export interface StudentStats {
   weak_topics?: Array<{
     topic: string;
     accuracy_pct: number;
+    recent_accuracy_pct?: number;
+    trend?: 'stable' | 'improving' | 'declining';
+  }>;
+  topic_performance?: Array<{
+    topic_id: string | null;
+    topic: string;
+    topic_path: string;
+    total_questions: number;
+    mastered_count: number;
+    at_risk_count: number;
+    avg_ef: number;
+    accuracy_pct: number;
   }>;
 }
 
@@ -22,6 +34,7 @@ export interface StudentAssignment {
   is_published: boolean;
   student_status: 'completed' | 'in_progress' | 'pending';
   student_score?: number;
+  session_id?: string;
   deadline?: string;
   is_all_students: boolean;
 }
@@ -30,6 +43,7 @@ export interface StudentInfo {
   id: string;
   full_name: string;
   email: string;
+  avatar_url?: string;
 }
 
 export interface TeacherStudentDetailData {

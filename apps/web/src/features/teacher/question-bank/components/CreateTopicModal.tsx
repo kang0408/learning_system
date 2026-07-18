@@ -3,19 +3,24 @@ import { useTranslation } from 'react-i18next';
 import { Loader2, Save, X } from 'lucide-react';
 import { useCreateTopic } from '../hooks/useTeacherQuestionBank';
 import { toast } from '@/utils/toast';
+import { TreeSelect } from '@/components/ui/TreeSelect';
+import type { TreeSelectOption } from '@/components/ui/TreeSelect';
+import type { Topic } from '../types';
 
 interface CreateTopicModalProps {
   isOpen: boolean;
   onClose: () => void;
+  topics: Topic[];
 }
 
-export const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ isOpen, onClose }) => {
+export const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ isOpen, onClose, topics }) => {
   const { t } = useTranslation();
   const { mutateAsync: createTopic, isPending } = useCreateTopic();
   const [topicName, setTopicName] = useState('');
   const [topicDescription, setTopicDescription] = useState('');
   const [enableCustomCode, setEnableCustomCode] = useState(false);
   const [topicCode, setTopicCode] = useState('');
+  const [parentId, setParentId] = useState<string>('');
 
   if (!isOpen) return null;
 
@@ -32,7 +37,8 @@ export const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ isOpen, onCl
       await createTopic({
         name: topicName,
         description: topicDescription,
-        code: enableCustomCode ? topicCode.trim().toUpperCase() : undefined
+        code: enableCustomCode ? topicCode.trim().toUpperCase() : undefined,
+        parent_id: parentId || null
       });
       toast.success(t('teacher.questionBank.createTopic.success'));
       onClose();
@@ -40,6 +46,7 @@ export const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ isOpen, onCl
       setTopicDescription('');
       setEnableCustomCode(false);
       setTopicCode('');
+      setParentId('');
     } catch (err: any) {
       toast.error(err.response?.data?.message || err.response?.data?.error?.message || t('teacher.questionBank.createTopic.errorCreate'));
     }
@@ -71,6 +78,25 @@ export const CreateTopicModal: React.FC<CreateTopicModalProps> = ({ isOpen, onCl
             />
           </div>
           
+          <div className="space-y-1.5">
+            <label className="block text-sm font-semibold text-gray-700">Topic Cha</label>
+            <TreeSelect
+              value={parentId}
+              onChange={setParentId}
+              options={[
+                { label: 'Không có Topic Cha (Root)', value: '' },
+                ...topics.map(function mapTopic(t: Topic): TreeSelectOption {
+                  return {
+                    label: `${t.name} ${t.code ? `(${t.code})` : ''}`.trim(),
+                    value: t.id,
+                    children: t.children?.map(mapTopic)
+                  };
+                })
+              ]}
+              placeholder="Chọn Topic Cha..."
+            />
+          </div>
+
           <div className="space-y-1.5">
             <label className="block text-sm font-semibold text-gray-700">{t('teacher.questionBank.createTopic.descLabel')}</label>
             <textarea

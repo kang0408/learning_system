@@ -22,8 +22,16 @@ export const StudentDetailHeader: React.FC<StudentDetailHeaderProps> = ({ classI
         </Link>
         <div className="flex items-center gap-4">
           {studentInfo ? (
-            <div className="w-14 h-14 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center justify-center font-bold text-xl shadow-sm">
-              {studentInfo.full_name.charAt(0).toUpperCase()}
+            <div className="w-14 h-14 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center justify-center font-bold text-xl shadow-sm overflow-hidden">
+              {studentInfo.avatar_url ? (
+                <img 
+                  src={studentInfo.avatar_url.startsWith('http') ? studentInfo.avatar_url : `${import.meta.env.VITE_API_URL}${studentInfo.avatar_url}`} 
+                  alt={studentInfo.full_name} 
+                  className="w-full h-full object-cover" 
+                />
+              ) : (
+                studentInfo.full_name.charAt(0).toUpperCase()
+              )}
             </div>
           ) : (
             <div className="w-14 h-14 rounded-full bg-gray-50 text-gray-400 border border-gray-200 flex items-center justify-center font-bold text-xl shadow-sm">

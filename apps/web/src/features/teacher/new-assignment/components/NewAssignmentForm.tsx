@@ -250,16 +250,27 @@ export const NewAssignmentForm: React.FC<NewAssignmentFormProps> = ({ classId, t
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-3">{t('teacher.newAssignment.selectTopicsLabel')}</label>
         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-          {topics.map(topic => (
-            <TopicQuestionsList
-              key={topic.id}
-              topic={topic}
-              isTopicChecked={form.topic_ids.includes(topic.id)}
-              selectedQuestionIds={form.question_ids}
-              onTopicCheckChange={handleTopicCheckChange}
-              onQuestionCheckChange={handleQuestionCheckChange}
-            />
-          ))}
+          {(() => {
+            const renderTopicNode = (topic: Topic, depth: number, isParentChecked = false) => {
+              const isChecked = form.topic_ids.includes(topic.id);
+              const isImplicitlyChecked = isParentChecked || isChecked;
+              return (
+              <React.Fragment key={topic.id}>
+                <div style={{ paddingLeft: `${depth * 24}px` }}>
+                  <TopicQuestionsList
+                    topic={topic}
+                    isTopicChecked={isChecked}
+                    isImplicitlyChecked={isParentChecked}
+                    selectedQuestionIds={form.question_ids}
+                    onTopicCheckChange={handleTopicCheckChange}
+                    onQuestionCheckChange={handleQuestionCheckChange}
+                  />
+                </div>
+                {topic.children?.map(child => renderTopicNode(child, depth + 1, isImplicitlyChecked))}
+              </React.Fragment>
+            )};
+            return topics.map(t => renderTopicNode(t, 0, false));
+          })()}
           {topics.length === 0 && (
             <p className="text-sm text-gray-500 p-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
               {t('teacher.newAssignment.noTopics')}
