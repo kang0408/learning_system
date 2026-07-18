@@ -36,3 +36,26 @@ export interface SaveQuestionPayload {
   explanation?: string;
   answer_options: QuestionOption[];
 }
+
+export interface GenerateAiQuestionsPayload {
+  topic: string;
+  question_type: 'multiple_choice' | 'true_false' | 'mixed';
+  quantity: number;
+  difficulty?: number;
+}
+
+export interface AiGeneratedQuestion {
+  content: string;
+  question_type: 'multiple_choice' | 'true_false';
+  difficulty: number;
+  explanation: string;
+  answer_options: {
+    content: string;
+    is_correct: boolean;
+  }[];
+}
+
+export interface BulkSaveQuestionsPayload {
+  topic_id: string;
+  questions: AiGeneratedQuestion[];
+}

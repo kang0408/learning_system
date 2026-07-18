@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Edit, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Plus, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Topic } from '../types';
 
@@ -8,13 +8,15 @@ interface TopicDetailHeaderProps {
   onOpenEditTopic: () => void;
   onOpenDeleteTopic: () => void;
   onOpenCreateQuestion: () => void;
+  onOpenGenerateAi: () => void;
 }
 
 export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   topic,
   onOpenEditTopic,
   onOpenDeleteTopic,
-  onOpenCreateQuestion
+  onOpenCreateQuestion,
+  onOpenGenerateAi
 }) => {
   const navigate = useNavigate();
 
@@ -38,6 +40,12 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
         </div>
       </div>
       <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
+        <button
+          onClick={onOpenGenerateAi}
+          className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg border border-transparent hover:from-purple-700 hover:to-indigo-700 transition-colors text-sm shadow-sm"
+        >
+          <Sparkles className="w-4 h-4 mr-2" /> Tạo bằng AI
+        </button>
         <button
           onClick={onOpenCreateQuestion}
           className="flex items-center justify-center px-4 py-2 bg-slate-900 text-white font-medium rounded-lg border border-slate-800 hover:bg-slate-800 transition-colors text-sm shadow-sm"

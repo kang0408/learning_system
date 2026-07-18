@@ -1,5 +1,5 @@
 import api from '@/api/axios';
-import type { Topic, Question, UpdateTopicPayload, SaveQuestionPayload } from '../types';
+import type { Topic, Question, UpdateTopicPayload, SaveQuestionPayload, GenerateAiQuestionsPayload, AiGeneratedQuestion, BulkSaveQuestionsPayload } from '../types';
 
 export const teacherTopicDetailApi = {
   getTopic: async (topicId: string): Promise<Topic> => {
@@ -35,5 +35,14 @@ export const teacherTopicDetailApi = {
 
   deleteQuestion: async (questionId: string): Promise<void> => {
     await api.delete(`/api/questions/${questionId}`);
+  },
+
+  generateAiQuestions: async (payload: GenerateAiQuestionsPayload): Promise<AiGeneratedQuestion[]> => {
+    const res = await api.post('/api/questions/generate-ai', payload);
+    return res.data.data || [];
+  },
+
+  bulkCreateQuestions: async (payload: BulkSaveQuestionsPayload): Promise<void> => {
+    await api.post('/api/questions/bulk', payload);
   }
 };

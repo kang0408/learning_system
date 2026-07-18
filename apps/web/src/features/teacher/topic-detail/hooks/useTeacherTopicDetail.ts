@@ -1,5 +1,6 @@
 import { useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teacherTopicDetailApi } from '../api/teacherTopicDetailApi';
+import type { GenerateAiQuestionsPayload, BulkSaveQuestionsPayload } from '../types';
 
 export const useTopicDetail = (topicId: string) => {
   return useSuspenseQuery({
@@ -65,6 +66,23 @@ export const useDeleteQuestion = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: teacherTopicDetailApi.deleteQuestion,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topic-questions'] });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });
+    },
+  });
+};
+
+export const useGenerateAiQuestions = () => {
+  return useMutation({
+    mutationFn: (payload: GenerateAiQuestionsPayload) => teacherTopicDetailApi.generateAiQuestions(payload),
+  });
+};
+
+export const useBulkCreateQuestions = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: BulkSaveQuestionsPayload) => teacherTopicDetailApi.bulkCreateQuestions(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher', 'topic-questions'] });
       queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });

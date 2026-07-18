@@ -12,6 +12,7 @@ import { TopicDetailHeader } from './components/TopicDetailHeader';
 import { QuestionList } from './components/QuestionList';
 import { EditTopicModal } from './components/EditTopicModal';
 import { SaveQuestionModal } from './components/SaveQuestionModal';
+import { GenerateAiQuestionsModal } from './components/GenerateAiQuestionsModal';
 import { ConfirmDialog } from '@/components/ui/Dialog';
 import type { Question } from './types';
 
@@ -33,6 +34,7 @@ export default function TeacherTopicDetailFeature() {
 
   const [showEditTopicModal, setShowEditTopicModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [showGenerateAiModal, setShowGenerateAiModal] = useState(false);
   
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [deleteQuestionId, setDeleteQuestionId] = useState<string | null>(null);
@@ -74,6 +76,7 @@ export default function TeacherTopicDetailFeature() {
         onOpenEditTopic={() => setShowEditTopicModal(true)}
         onOpenDeleteTopic={() => setShowDeleteTopicConfirm(true)}
         onOpenCreateQuestion={handleOpenCreateQuestion}
+        onOpenGenerateAi={() => setShowGenerateAiModal(true)}
       />
 
       <QuestionList
@@ -98,6 +101,15 @@ export default function TeacherTopicDetailFeature() {
         initialTopicId={topicId}
         editingQuestion={editingQuestion}
       />
+
+      {topic && (
+        <GenerateAiQuestionsModal
+          isOpen={showGenerateAiModal}
+          onClose={() => setShowGenerateAiModal(false)}
+          topicId={topicId}
+          topicName={topic.name}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={!!deleteQuestionId}
