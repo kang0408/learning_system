@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Loader2 } from 'lucide-react';
 import type { Question } from '../types';
 
 interface QuizQuestionProps {
@@ -69,9 +70,12 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
               key={opt.id}
               disabled={!!feedback || submitting}
               onClick={() => onSelect(opt.id)}
-              className={`p-4 md:p-5 text-left font-black text-xl md:text-2xl uppercase tracking-tight transition-colors ${btnClass}`}
+              className={`flex items-center justify-between p-4 md:p-5 text-left font-black text-xl md:text-2xl uppercase tracking-tight transition-colors ${btnClass}`}
             >
-              {opt.content}
+              <span>{opt.content}</span>
+              {submitting && !feedback && isSelected && (
+                <Loader2 className="w-6 h-6 animate-spin shrink-0 ml-4" />
+              )}
             </button>
           );
         })}

@@ -32,4 +32,5 @@ export interface AnswerPayload {
 export interface AnswerResponse {
   is_correct: boolean;
   correct_option_id?: string;
+  explanation?: string | null;
 }

@@ -9,6 +9,7 @@ interface QuizHeaderProps {
   timeLeft: number | null;
   warnings: number;
   maxWarnings: number;
+  onLeaveQuiz?: () => void;
 }
 
 export const QuizHeader: React.FC<QuizHeaderProps> = ({
@@ -18,9 +19,9 @@ export const QuizHeader: React.FC<QuizHeaderProps> = ({
   timeLeft,
   warnings,
   maxWarnings,
+  onLeaveQuiz,
 }) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   return (
     <>
@@ -34,11 +35,7 @@ export const QuizHeader: React.FC<QuizHeaderProps> = ({
       <div className="flex flex-col-reverse md:flex-row justify-between items-start md:items-center px-8 py-6 gap-6 md:gap-0">
         <div className="flex flex-wrap items-center gap-4 md:gap-8">
           <button 
-            onClick={() => {
-              if (window.confirm(t('student.quiz.confirmExit'))) {
-                navigate('/student');
-              }
-            }}
+            onClick={onLeaveQuiz}
             className="flex items-center justify-center font-black uppercase tracking-widest text-xs md:text-sm text-zinc-900 border-2 border-zinc-900 px-4 py-2 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all shadow-[4px_4px_0_0_rgba(24,24,27,1)] hover:translate-y-1 hover:shadow-none"
           >
             {t('student.quiz.leaveQuiz')}

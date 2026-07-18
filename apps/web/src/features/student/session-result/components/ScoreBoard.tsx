@@ -20,7 +20,7 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({ result, sessionId }) => 
           {t('student.result.completed')}
         </p>
         <div className="text-[4rem] sm:text-[8rem] md:text-[12rem] lg:text-[16rem] leading-none font-black tracking-tighter relative inline-block text-zinc-900 pr-10 sm:pr-16 md:pr-24 lg:pr-32">
-          {result.score.toFixed(2) || 0}
+          {Number(result.score || 0).toFixed(2)}
           <span className="text-[2rem] sm:text-[3rem] md:text-[5rem] lg:text-[6rem] absolute top-2 sm:top-4 md:top-6 lg:top-8 right-0 text-indigo-600">%</span>
         </div>
       </div>

@@ -36,6 +36,8 @@ export const StudentQuizFeature: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [warningData, setWarningData] = useState<{count: number, max: number} | null>(null);
+  const [submitExplanation, setSubmitExplanation] = useState<string | null>(null);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   
   const startTimeRef = useRef<number>(Date.now());
 
@@ -112,6 +114,7 @@ export const StudentQuizFeature: React.FC = () => {
       const response = await submitAnswer({ sessionId: session.id, payload });
 
       const isCorrect = response.is_correct;
+      setSubmitExplanation(response.explanation || null);
       setFeedback(isCorrect ? 'correct' : 'incorrect');
       if (!isCorrect) {
         setCorrectAnswerId(
@@ -136,6 +139,7 @@ export const StudentQuizFeature: React.FC = () => {
       setFeedback(null);
       setSelectedOptionId(null);
       setCorrectAnswerId(null);
+      setSubmitExplanation(null);
       startTimeRef.current = Date.now();
     } else {
       handleFinishQuiz();
@@ -151,6 +155,7 @@ export const StudentQuizFeature: React.FC = () => {
         timeLeft={timeLeft}
         warnings={warnings}
         maxWarnings={maxWarnings}
+        onLeaveQuiz={() => setShowExitConfirm(true)}
       />
 
       <QuizQuestion 
@@ -165,6 +170,7 @@ export const StudentQuizFeature: React.FC = () => {
       <QuizFeedback 
         feedback={feedback}
         question={currentQuestion}
+        explanation={submitExplanation}
         onNext={handleNext}
       />
 
@@ -175,6 +181,33 @@ export const StudentQuizFeature: React.FC = () => {
         warningData={warningData}
         onDismissWarning={() => setWarningData(null)}
       />
+
+      {showExitConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/80 backdrop-blur-sm p-4">
+          <div className="bg-white border-4 border-zinc-900 max-w-md w-full p-8 shadow-[12px_12px_0_0_#4f46e5]">
+            <h3 className="text-3xl font-black uppercase tracking-tighter mb-4 text-zinc-900">
+              {t('student.quiz.confirmExit')}
+            </h3>
+            <p className="text-zinc-600 font-medium text-lg mb-8">
+              {t('student.quiz.confirmExitWarning') || "Tiến trình làm bài của bạn sẽ không được lưu. Bạn có chắc chắn muốn thoát?"}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button 
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 border-2 border-zinc-900 px-6 py-4 font-bold uppercase tracking-widest hover:bg-zinc-100 transition-colors"
+              >
+                {t('common.ui.cancel')}
+              </button>
+              <button 
+                onClick={() => navigate('/student')}
+                className="flex-1 border-2 border-red-600 bg-red-600 text-white px-6 py-4 font-bold uppercase tracking-widest hover:bg-zinc-900 hover:border-zinc-900 transition-colors shadow-[4px_4px_0_0_rgba(24,24,27,1)] hover:translate-y-1 hover:shadow-none"
+              >
+                {t('student.quiz.leaveQuiz')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

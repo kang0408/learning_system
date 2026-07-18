@@ -1,4 +1,4 @@
-import { useSuspenseQuery, useMutation } from '@tanstack/react-query';
+import { useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { studentQuizApi } from '../api/studentQuizApi';
 import type { AnswerPayload } from '../types';
 
@@ -22,7 +22,12 @@ export const useSubmitAnswer = () => {
 };
 
 export const useFinishQuiz = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (sessionId: string) => studentQuizApi.finishSession(sessionId),
+    onSuccess: () => {
+      // Xoá cache session cũ để khi Retry ứng dụng sẽ xin session mới
+      queryClient.invalidateQueries({ queryKey: ['quizSession'] });
+    }
   });
 };
