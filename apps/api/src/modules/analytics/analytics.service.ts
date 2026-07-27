@@ -211,15 +211,15 @@ export class AnalyticsService {
       total_students: totalStudents,
       active_students: {
         current: currentActive,
-        trend: currentActive >= prevActive ? 'up' : 'down'
+        trend: currentActive > prevActive ? 'up' : currentActive < prevActive ? 'down' : 'stable'
       },
       completion_rate: {
         current: isNaN(completionRate) ? 0 : completionRate,
-        trend: completionRate >= prevCompletionRate ? 'up' : 'down'
+        trend: completionRate > prevCompletionRate ? 'up' : completionRate < prevCompletionRate ? 'down' : 'stable'
       },
       average_score: {
         current: Math.round(currentAvg[0]?.avg_score || 0),
-        trend: (currentAvg[0]?.avg_score || 0) >= (prevAvg[0]?.avg_score || 0) ? 'up' : 'down'
+        trend: (currentAvg[0]?.avg_score || 0) > (prevAvg[0]?.avg_score || 0) ? 'up' : (currentAvg[0]?.avg_score || 0) < (prevAvg[0]?.avg_score || 0) ? 'down' : 'stable'
       },
       sm2_summary,
       ai_insight: aiInsight

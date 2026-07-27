@@ -252,10 +252,16 @@ function StatCard({ title, value, trend, icon, color, t }: any) {
         <p className="text-sm font-semibold text-gray-500">{title}</p>
         <div className="flex items-baseline gap-2 mt-2">
           <h3 className="text-3xl font-bold tracking-tight text-gray-900">{value}</h3>
-          {trend && (
+          {trend && trend !== 'stable' && (
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold ${trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
               {trend === 'up' ? <ArrowUpRight className="w-3.5 h-3.5 mr-0.5" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-0.5" />}
               {trend === 'up' ? t('teacher.classDetail.increase') : t('teacher.classDetail.decrease')}
+            </span>
+          )}
+          {trend === 'stable' && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+              <span className="w-2 h-0.5 bg-gray-500 mr-1.5 rounded-full"></span>
+              {t('teacher.classDetail.stable', 'Stable')}
             </span>
           )}
         </div>

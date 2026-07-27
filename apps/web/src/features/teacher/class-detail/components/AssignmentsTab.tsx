@@ -110,11 +110,11 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
                       {assignment.avg_score || '--'}
                     </td>
                     <td className="px-6 py-4 text-xs">
-                      {assignment.due_date ? (
+                      {assignment.deadline ? (
                         <div className="flex items-center text-gray-700">
                           <Clock className="w-4 h-4 text-gray-400 mr-1.5" />
-                          <span className={assignment.assignment_status === 'overdue' ? 'text-red-600 font-bold' : ''}>
-                            {new Date(assignment.due_date).toLocaleDateString('vi-VN')}
+                          <span className={assignment.status === 'overdue' ? 'text-red-600 font-bold' : ''}>
+                            {new Date(assignment.deadline).toLocaleDateString('vi-VN')}
                           </span>
                         </div>
                       ) : (
