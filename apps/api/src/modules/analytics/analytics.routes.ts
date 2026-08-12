@@ -25,9 +25,4 @@ router.get('/class/:classId/topics', requireAuth, requireRole(['teacher']), asyn
 router.get('/class/:classId/students', requireAuth, requireRole(['teacher']), asyncWrapper(analyticsController.getTeacherClassStudents));
 router.get('/class/:classId/topics/:topicId/students', requireAuth, requireRole(['teacher']), asyncWrapper(analyticsController.getTeacherClassTopicStudents));
 router.get('/student/:studentId', requireAuth, requireRole(['teacher']), asyncWrapper(analyticsController.getTeacherStudentStats));
-
-// Parent routes
-router.get('/parent/children', requireAuth, requireRole(['parent']), asyncWrapper(analyticsController.getParentChildren));
-router.get('/parent/children/:studentId/weekly', requireAuth, requireRole(['parent']), asyncWrapper(analyticsController.getParentChildWeekly));
-
 export default router;

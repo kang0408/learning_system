@@ -10,7 +10,6 @@ import topicsRoutes from './modules/topics/topics.routes';
 import assignmentsRoutes from './modules/assignments/assignments.routes';
 import sessionsRoutes from './modules/sessions/sessions.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
-import parentRoutes from './modules/parent/parent.routes';
 import usersRoutes from './modules/users/users.routes';
 import sm2Routes from './modules/sm2/sm2.routes';
 const app = express();
@@ -34,7 +33,6 @@ app.use('/api/topics', topicsRoutes);
 app.use('/api/assignments', assignmentsRoutes);
 app.use('/api/sessions', sessionsRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/parents', parentRoutes);
 app.use('/api/sm2', sm2Routes);
 
 import * as Sentry from '@sentry/node';

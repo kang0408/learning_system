@@ -46,7 +46,7 @@ export const TeacherClassEditAssignmentFeature: React.FC = () => {
   });
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6 pb-16">
       <EditAssignmentHeader classId={classId || ''} />
 
       <EditAssignmentForm 

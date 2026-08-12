@@ -189,7 +189,7 @@ export default function TeacherLayout() {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pt-16 md:pt-0 relative">
         <div className="absolute top-0 left-0 w-full h-64 bg-slate-50 -z-10 pointer-events-none" />
-        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto min-h-full">
+        <div className="p-4 sm:p-6 md:p-8 max-w-8xl mx-auto min-h-full">
           <Outlet />
         </div>
       </main>

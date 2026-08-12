@@ -65,7 +65,7 @@ export const TeacherClassDetailFeature: React.FC = () => {
   }
 
   return (
-    <div className="space-y-12 max-w-7xl mx-auto px-4 sm:px-6 mb-16 animate-in fade-in duration-700 slide-in-from-bottom-4">
+    <div className="space-y-12 max-w-8xl mx-auto px-4 sm:px-6 mb-16 animate-in fade-in duration-700 slide-in-from-bottom-4">
       <ClassHeader 
         classDetails={classDetails} 
         activeTab={activeTab} 

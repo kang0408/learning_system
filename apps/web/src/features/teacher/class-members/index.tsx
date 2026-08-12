@@ -32,7 +32,7 @@ export const TeacherClassMembersFeature: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 animate-in fade-in duration-500">
+    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6 animate-in fade-in duration-500">
       <MembersHeader classId={id || ''} />
 
       <div className="flex flex-col opacity-100 transition-opacity duration-300">

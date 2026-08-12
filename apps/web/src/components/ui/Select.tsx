@@ -14,9 +14,10 @@ interface SelectProps {
   placeholder?: string;
   className?: string;
   icon?: React.ReactNode;
+  size?: 'default' | 'sm';
 }
 
-export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeholder = 'Select...', className = '', icon }) => {
+export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeholder = 'Select...', className = '', icon, size = 'default' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [direction, setDirection] = useState<'down' | 'up'>('down');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,7 +28,7 @@ export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeh
     if (isOpen && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
-      const estimatedHeight = 20 + options.length * 44;
+      const estimatedHeight = 20 + options.length * (size === 'sm' ? 36 : 44);
       
       if (spaceBelow < estimatedHeight && rect.top > estimatedHeight) {
         setDirection('up');
@@ -35,7 +36,7 @@ export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeh
         setDirection('down');
       }
     }
-  }, [isOpen, options.length]);
+  }, [isOpen, options.length, size]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,12 +48,16 @@ export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeh
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const sizeClasses = size === 'sm'
+    ? 'py-2.5 bg-gray-50 border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500'
+    : 'py-3.5 bg-white border-zinc-200 rounded-2xl text-base focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500';
+
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full ${icon ? 'pl-11' : 'pl-4'} pr-10 py-3.5 bg-white border border-zinc-200 rounded-2xl text-zinc-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all duration-300 flex items-center justify-between text-left`}
+        className={`w-full ${icon ? 'pl-11' : 'pl-4'} pr-10 border text-zinc-900 focus:outline-none transition-all duration-300 flex items-center justify-between text-left ${sizeClasses}`}
       >
         {icon && (
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
@@ -71,7 +76,7 @@ export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeh
 
       {isOpen && (
         <div 
-          className={`absolute z-50 w-full bg-white border border-zinc-100 rounded-2xl shadow-xl shadow-zinc-200/50 py-2 overflow-hidden animate-in fade-in duration-200 ${
+          className={`absolute z-50 w-full bg-white border border-zinc-100 shadow-xl shadow-zinc-200/50 py-2 overflow-hidden animate-in fade-in duration-200 ${size === 'sm' ? 'rounded-xl text-sm' : 'rounded-2xl'} ${
             direction === 'up' ? 'bottom-full mb-2 slide-in-from-bottom-2' : 'top-full mt-2 slide-in-from-top-2'
           }`}
         >
@@ -83,7 +88,7 @@ export const Select: React.FC<SelectProps> = ({ value, onChange, options, placeh
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`w-full px-4 py-2.5 flex items-center justify-between hover:bg-zinc-50 transition-colors ${
+              className={`w-full px-4 flex items-center justify-between hover:bg-zinc-50 transition-colors ${size === 'sm' ? 'py-2' : 'py-2.5'} ${
                 value === option.value ? 'bg-indigo-50/50 text-indigo-700' : 'text-zinc-700'
               }`}
             >

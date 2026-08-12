@@ -17,7 +17,7 @@ export default function TeacherQuestionBankFeature() {
   const [showImportModal, setShowImportModal] = useState(false);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6">
       <QuestionBankHeader
         totalTopics={topics.length}
         onOpenImport={() => setShowImportModal(true)}

@@ -24,7 +24,7 @@ export const TeacherDashboardFeature: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 mb-16">
+    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6 mb-16">
       <DashboardHeader 
         totalClasses={classes.length} 
         onCreateClick={() => setShowModal(true)} 

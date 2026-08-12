@@ -7,7 +7,7 @@ export default function TeacherProfileFeature() {
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6">
+    <div className="space-y-6 max-w-8xl mx-auto px-4 sm:px-6">
       <ProfileHeader />
 
       {message && (

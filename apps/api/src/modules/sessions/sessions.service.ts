@@ -224,8 +224,8 @@ export class SessionsService {
       sm2_quality: sm2Result ? sm2Result.q : -1 
     });
 
-    // [Best Practice Data Integrity]: CHỈ cập nhật SM-2 nếu thuật toán chạy thành công
-    if (sm2Result) {
+    // [Best Practice Data Integrity]: CHỈ cập nhật SM-2 nếu thuật toán chạy thành công VÀ bài tập có kiểu là adaptive
+    if (sm2Result && session?.assignment?.mode === 'adaptive') {
       await this.sessionsRepository.upsertSM2Progress(
         { student_id_question_id: { student_id: studentId, question_id } },
         {

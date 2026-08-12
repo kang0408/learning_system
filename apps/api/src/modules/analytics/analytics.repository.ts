@@ -351,33 +351,6 @@ export class AnalyticsRepository {
     `;
   }
 
-  // --- PARENT ---
-  async getParentChildrenStats(parentId: string): Promise<any[]> {
-    return this.prisma.$queryRaw<any[]>`
-      SELECT
-          u.full_name                                  AS student_name,
-          u.id                                         AS student_id,
-          COUNT(DISTINCT qs.id)::int                   AS total_sessions,
-          COUNT(sa.id)::int                            AS total_answers,
-          ROUND(
-              SUM(CASE WHEN sa.is_correct THEN 1 ELSE 0 END)
-              * 100.0 / NULLIF(COUNT(sa.id), 0), 2
-          )                                            AS overall_accuracy,
-          COUNT(DISTINCT CASE
-              WHEN qs.started_at >= NOW() - INTERVAL '7 days'
-              THEN DATE(qs.started_at)
-          END)::int                                    AS active_days_this_week
-      FROM users u
-      JOIN parent_student_links psl ON psl.student_id = u.id
-      JOIN quiz_sessions qs         ON qs.student_id  = u.id
-      JOIN session_answers sa       ON sa.session_id  = qs.id
-      WHERE
-          psl.parent_id = ${parentId}::uuid
-          AND psl.is_active = TRUE
-          AND qs.status = 'completed'
-      GROUP BY u.id, u.full_name;
-    `;
-  }
   async countCompletedSessions(studentId: string): Promise<number> {
     return this.prisma.quizSession.count({ where: { student_id: studentId, status: 'completed' } });
   }

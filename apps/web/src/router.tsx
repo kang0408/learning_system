@@ -5,7 +5,6 @@ import { useAuthStore } from './store/authStore';
 // Layouts
 import StudentLayout from './layouts/StudentLayout';
 import TeacherLayout from './layouts/TeacherLayout';
-import ParentLayout from './layouts/ParentLayout';
 
 // Pages
 import Register from './pages/auth/Register';
@@ -27,7 +26,6 @@ import TeacherClassEditAssignment from './pages/teacher/TeacherClassEditAssignme
 import QuestionBank from './pages/teacher/QuestionBank';
 import TeacherTopicDetail from './pages/teacher/TeacherTopicDetail';
 import TeacherProfile from './pages/teacher/TeacherProfile';
-import ParentDashboard from './pages/parent/ParentDashboard';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
   const { token, user } = useAuthStore();
@@ -40,7 +38,6 @@ const RootRedirect = () => {
   const { token, user } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
   if (user?.role === 'teacher') return <Navigate to="/teacher" replace />;
-  if (user?.role === 'parent') return <Navigate to="/parent" replace />;
   return <Navigate to="/student" replace />;
 };
 
@@ -115,14 +112,7 @@ export const router = createBrowserRouter([
     ]
   },
 
-  // Parent Routes
-  {
-    path: '/parent',
-    element: <ProtectedRoute role="parent"><ParentLayout /></ProtectedRoute>,
-    children: [
-      { index: true, element: <ParentDashboard /> },
-    ]
-  },
+
 
   // Global Routes
   { path: '/unauthorized', element: <NotFound /> },

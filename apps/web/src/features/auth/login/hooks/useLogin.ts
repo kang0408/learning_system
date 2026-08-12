@@ -20,7 +20,6 @@ export const useLogin = () => {
       
       // Redirect based on role
       if (user.role === 'teacher') navigate('/teacher');
-      else if (user.role === 'parent') navigate('/parent');
       else navigate('/student');
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || t('auth.login.errorLoginFailed');

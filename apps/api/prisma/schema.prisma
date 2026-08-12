@@ -26,8 +26,6 @@ model User {
   questions            Question[]
   sm2_progress         Sm2Progress[]
   quiz_sessions        QuizSession[]
-  parent_links         ParentStudentLink[] @relation("Parent")
-  student_links        ParentStudentLink[] @relation("Student")
   assignments          Assignment[]
   assigned_assignments AssignmentStudent[]
   topics               Topic[]
@@ -275,22 +273,6 @@ model SessionAnswer {
   @@index([session_id])
   @@index([question_id])
   @@map("session_answers")
-}
-
-model ParentStudentLink {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  parent_id  String   @db.Uuid
-  student_id String   @db.Uuid
-  linked_at  DateTime @default(now()) @db.Timestamptz
-  is_active  Boolean  @default(true)
-
-  parent  User @relation("Parent", fields: [parent_id], references: [id], onDelete: Cascade)
-  student User @relation("Student", fields: [student_id], references: [id], onDelete: Cascade)
-
-  @@unique([parent_id, student_id])
-  @@index([parent_id])
-  @@index([student_id])
-  @@map("parent_student_links")
 }
 
 model OtpCode {

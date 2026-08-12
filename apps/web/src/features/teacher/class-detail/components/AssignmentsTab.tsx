@@ -70,11 +70,11 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
             <thead className="bg-gray-50/50 text-gray-500 font-semibold uppercase text-xs tracking-wider">
               <tr>
                 <th className="px-6 py-3.5 text-left">{t('teacher.classDetail.assignment')}</th>
-                <th className="px-6 py-3.5 text-center w-32">{t('teacher.classDetail.mode')}</th>
+                <th className="px-6 py-3.5 text-center">{t('teacher.classDetail.mode')}</th>
                 <th className="px-6 py-3.5 text-center w-40">{t('teacher.classDetail.submissionProgress')}</th>
                 <th className="px-6 py-3.5 text-center w-40">{t('teacher.classDetail.classAvgScore')}</th>
                 <th className="px-6 py-3.5 text-left w-48">{t('teacher.classDetail.deadline')}</th>
-                <th className="px-6 py-3.5 text-center w-32">{t('teacher.classDetail.status')}</th>
+                <th className="px-6 py-3.5 text-center">{t('teacher.classDetail.status')}</th>
                 <th className="px-6 py-3.5 text-right w-40">{t('teacher.classDetail.actions')}</th>
               </tr>
             </thead>

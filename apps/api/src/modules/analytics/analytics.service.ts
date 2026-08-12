@@ -261,14 +261,4 @@ export class AnalyticsService {
       ...weakTopics
     };
   }
-
-  // --- PARENT DASHBOARD ---
-  async getParentChildren(parentId: string) {
-    const children = await this.analyticsRepository.getParentChildrenStats(parentId);
-    return children;
-  }
-
-  async getParentChildWeekly(parentId: string, studentId: string) {
-    throw new ApiError(501, 'Chưa implement');
-  }
 }

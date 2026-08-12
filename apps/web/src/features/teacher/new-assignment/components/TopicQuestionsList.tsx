@@ -13,6 +13,28 @@ interface TopicQuestionsListProps {
   onQuestionCheckChange: (questionId: string, checked: boolean, allTopicQIds: string[]) => void;
 }
 
+const getQuestionTypeStyle = (type: string) => {
+  switch (type) {
+    case 'multiple_choice': return 'bg-blue-50 text-blue-700 border border-blue-200';
+    case 'multi_select': return 'bg-purple-50 text-purple-700 border border-purple-200';
+    case 'true_false': return 'bg-pink-50 text-pink-700 border border-pink-200';
+    case 'fill_blank': return 'bg-amber-50 text-amber-700 border border-amber-200';
+    case 'matching': return 'bg-teal-50 text-teal-700 border border-teal-200';
+    default: return 'bg-gray-50 text-gray-700 border border-gray-200';
+  }
+};
+
+const getQuestionTypeLabel = (type: string, t: any) => {
+  switch (type) {
+    case 'multiple_choice': return t('teacher.newAssignment.typeMultipleChoice');
+    case 'multi_select': return t('teacher.newAssignment.typeMultiSelect');
+    case 'true_false': return t('teacher.newAssignment.typeTrueFalse');
+    case 'fill_blank': return t('teacher.newAssignment.typeFillBlank');
+    case 'matching': return t('teacher.newAssignment.typeMatching');
+    default: return type;
+  }
+};
+
 export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
   topic,
   isTopicChecked,
@@ -83,12 +105,8 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
                   <div className="flex-1">
                     <span className="text-gray-900 font-medium block mb-2 text-sm">{q.content}</span>
                     <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                      <span className={`px-2 py-0.5 rounded-md ${
-                        q.question_type === 'multiple_choice' 
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200' 
-                          : 'bg-pink-50 text-pink-700 border border-pink-200'
-                      }`}>
-                        {q.question_type === 'multiple_choice' ? t('teacher.newAssignment.typeMultipleChoice') : t('teacher.newAssignment.typeTrueFalse')}
+                      <span className={`px-2 py-0.5 rounded-md ${getQuestionTypeStyle(q.question_type)}`}>
+                        {getQuestionTypeLabel(q.question_type, t)}
                       </span>
                       {topic.name && (
                         <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200">

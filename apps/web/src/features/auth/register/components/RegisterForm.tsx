@@ -54,7 +54,6 @@ export const RegisterForm: React.FC = () => {
   const roleOptions = [
     { label: t('auth.register.roleStudent'), value: 'student', icon: <GraduationCap className="w-4 h-4" /> },
     { label: t('auth.register.roleTeacher'), value: 'teacher', icon: <Briefcase className="w-4 h-4" /> },
-    { label: t('auth.register.roleParent'), value: 'parent', icon: <Users className="w-4 h-4" /> },
   ];
 
   return (

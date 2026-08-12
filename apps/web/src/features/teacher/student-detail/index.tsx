@@ -21,7 +21,7 @@ export default function TeacherStudentDetailFeature() {
   const { data } = useTeacherStudentDetail(classId, studentId);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6">
+    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6">
       <StudentDetailHeader classId={classId} studentInfo={data.studentInfo} />
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">

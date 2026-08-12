@@ -140,6 +140,7 @@ export const NewAssignmentForm: React.FC<NewAssignmentFormProps> = ({ classId, t
           <Select
             value={form.mode}
             onChange={(value) => setForm({ ...form, mode: value })}
+            size="sm"
             options={[
               { value: 'adaptive', label: t('teacher.newAssignment.modeAdaptive') },
               { value: 'standard', label: t('teacher.newAssignment.modeStandard') },
@@ -188,17 +189,18 @@ export const NewAssignmentForm: React.FC<NewAssignmentFormProps> = ({ classId, t
 
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-700">{t('teacher.newAssignment.assignToLabel')}</label>
-          <select
+          <Select
             value={form.assignToAll ? 'all' : 'specific'}
-            onChange={e => {
-              const isAll = e.target.value === 'all';
+            onChange={(value) => {
+              const isAll = value === 'all';
               setForm({ ...form, assignToAll: isAll, student_ids: isAll ? [] : form.student_ids });
             }}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-          >
-            <option value="all">{t('teacher.newAssignment.assignAll')}</option>
-            <option value="specific">{t('teacher.newAssignment.assignSpecific')}</option>
-          </select>
+            size="sm"
+            options={[
+              { value: 'all', label: t('teacher.newAssignment.assignAll') },
+              { value: 'specific', label: t('teacher.newAssignment.assignSpecific') }
+            ]}
+          />
         </div>
       </div>
 
