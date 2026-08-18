@@ -125,21 +125,22 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
                   <TableCell className="text-xs text-slate-500 font-medium">
                     {formatDate(student.last_active_at)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
-                      <Link to={`/teacher/classes/${classId}/members/${student.student_id}`}>
-                        <Button variant="outline" size="sm">
+                      <Link to={`/teacher/classes/${classId}/members/${student.student_id}`} className="inline-flex">
+                        <Button variant="outline" size="sm" className="whitespace-nowrap">
                           {t('teacher.classDetail.details')}
                         </Button>
                       </Link>
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
                         onClick={() => setStudentToRemove({id: student.student_id, name: student.name})}
                         title={t('teacher.classDetail.removeStudentTitle')}
                         aria-label={t('teacher.classDetail.removeStudentTitle')}
                       >
-                        <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-600" aria-hidden="true" />
+                        <Trash2 className="w-4 h-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </TableCell>
