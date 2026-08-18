@@ -1,7 +1,7 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 // Ensure upload directory exists
 const uploadDir = path.join(process.cwd(), 'public/uploads/avatars');
@@ -15,9 +15,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    // user ID can be added in the controller logic if needed, 
-    // or just use uuid for the filename to avoid collisions
-    const uniqueName = `${uuidv4()}${ext}`;
+    const uniqueName = `${randomUUID()}${ext}`;
     cb(null, uniqueName);
   }
 });

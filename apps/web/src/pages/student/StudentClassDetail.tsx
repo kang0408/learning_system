@@ -1,4 +1,4 @@
-import React, { lazy } from 'react';
+import { lazy } from 'react';
 import { SuspenseLoader } from '@/components/ui/SuspenseLoader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 

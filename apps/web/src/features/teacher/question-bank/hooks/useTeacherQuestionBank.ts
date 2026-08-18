@@ -1,6 +1,5 @@
-import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teacherQuestionBankApi } from '../api/teacherQuestionBankApi';
-import type { CreateTopicPayload, CreateQuestionPayload } from '../types';
 
 export const useTopics = (searchTerm: string) => {
   return useSuspenseQuery({

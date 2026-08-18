@@ -14,6 +14,10 @@ const aiRepository = new AiRepository();
 const analyticsService = new AnalyticsService(analyticsRepository, aiRepository);
 const analyticsController = new AnalyticsController(analyticsService);
 
+// Admin routes
+router.get('/admin/system', requireAuth, requireRole(['admin']), asyncWrapper(analyticsController.getSystemAnalytics));
+router.get('/admin/system/stream', requireAuth, requireRole(['admin']), (req, res) => analyticsController.streamSystemAnalytics(req, res));
+
 // Student routes
 router.get('/student/me', requireAuth, requireRole(['student']), asyncWrapper(analyticsController.getStudentStats));
 router.get('/student/me/calendar', requireAuth, requireRole(['student']), asyncWrapper(analyticsController.getStudentCalendar));
@@ -25,4 +29,5 @@ router.get('/class/:classId/topics', requireAuth, requireRole(['teacher']), asyn
 router.get('/class/:classId/students', requireAuth, requireRole(['teacher']), asyncWrapper(analyticsController.getTeacherClassStudents));
 router.get('/class/:classId/topics/:topicId/students', requireAuth, requireRole(['teacher']), asyncWrapper(analyticsController.getTeacherClassTopicStudents));
 router.get('/student/:studentId', requireAuth, requireRole(['teacher']), asyncWrapper(analyticsController.getTeacherStudentStats));
+
 export default router;

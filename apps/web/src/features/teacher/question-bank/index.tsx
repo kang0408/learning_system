@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTopics } from './hooks/useTeacherQuestionBank';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { QuestionBankHeader } from './components/QuestionBankHeader';

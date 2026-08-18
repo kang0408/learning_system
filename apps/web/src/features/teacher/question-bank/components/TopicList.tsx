@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Folder, Search, ChevronRight, ChevronDown, FileQuestion } from 'lucide-react';
 import type { Topic } from '../types';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Input } from '@/components/ui/Input';
 
 interface TopicListProps {
   topics: Topic[];
@@ -28,11 +32,11 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, searchTerm, onSear
 
     return (
       <React.Fragment key={topic.id}>
-        <tr 
+        <TableRow 
           className={`hover:bg-indigo-50/40 transition-colors border-b border-gray-100 group cursor-pointer ${depth === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
           onClick={() => navigate(`/teacher/questions/topics/${topic.id}`)}
         >
-          <td className="p-4 align-top" style={{ paddingLeft: `${16 + depth * 32}px` }}>
+          <TableCell className="p-4 align-top" style={{ paddingLeft: `${16 + depth * 32}px` }}>
             <div className="flex items-start gap-2.5">
               {hasChildren ? (
                 <button
@@ -55,9 +59,9 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, searchTerm, onSear
                       {topic.name}
                     </span>
                     {topic.code && (
-                      <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium border border-gray-200">
+                      <Badge variant="secondary" size="sm">
                         {topic.code}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   {topic.description && (
@@ -66,17 +70,17 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, searchTerm, onSear
                 </div>
               </div>
             </div>
-          </td>
-          <td className="p-4 align-top w-32">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-sm font-medium border border-indigo-100">
-              <FileQuestion className="w-4 h-4" />
+          </TableCell>
+          <TableCell className="p-4 align-top w-32">
+            <Badge variant="indigo" size="sm" className="gap-1.5 font-medium">
+              <FileQuestion className="w-3.5 h-3.5" />
               {topic._count?.questions || 0}
-            </span>
-          </td>
-          <td className="p-4 align-top text-sm text-gray-500 text-right w-32">
+            </Badge>
+          </TableCell>
+          <TableCell className="p-4 align-top text-sm text-gray-500 text-right w-32">
             {new Date(topic.created_at).toLocaleDateString()}
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
         {hasChildren && isExpanded && topic.children!.map(child => renderRow(child, depth + 1))}
       </React.Fragment>
     );
@@ -86,47 +90,43 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, searchTerm, onSear
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex gap-4 items-center">
         <div className="relative flex-grow max-w-md">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input 
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Input 
             type="text" 
             placeholder={t('teacher.questionBank.topicList.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-gray-400"
+            className="pl-10 bg-white"
           />
         </div>
       </div>
       
       <div className="flex-1 overflow-x-auto">
         {topics.length > 0 ? (
-          <table className="w-full min-w-[600px] text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <th className="p-4 font-semibold">Cấu trúc Chủ đề</th>
-                <th className="p-4 font-semibold">Số câu hỏi</th>
-                <th className="p-4 font-semibold text-right">Ngày tạo</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="w-full min-w-[600px] text-left">
+            <TableHeader>
+              <TableRow className="bg-gray-50 border-b border-gray-200">
+                <TableHead className="p-4 font-semibold text-gray-500">Cấu trúc Chủ đề</TableHead>
+                <TableHead className="p-4 font-semibold text-gray-500">Số câu hỏi</TableHead>
+                <TableHead className="p-4 font-semibold text-gray-500 text-right">Ngày tạo</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {topics.map(t => renderRow(t, 0))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         ) : searchTerm ? (
-          <div className="p-16 text-center flex flex-col items-center">
-            <div className="w-16 h-16 bg-gray-50 rounded-full border border-gray-200 flex items-center justify-center mb-4">
-              <Search className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('teacher.questionBank.topicList.noTopicFound')}</h3>
-            <p className="text-sm text-gray-500">{t('teacher.questionBank.topicList.noTopicFoundDesc')}</p>
-          </div>
+          <EmptyState
+            icon={<Search className="w-8 h-8 text-gray-400" />}
+            title={t('teacher.questionBank.topicList.noTopicFound')}
+            description={t('teacher.questionBank.topicList.noTopicFoundDesc')}
+          />
         ) : (
-          <div className="p-16 text-center flex flex-col items-center">
-            <div className="w-16 h-16 bg-indigo-50 rounded-full border border-indigo-100 flex items-center justify-center mb-4">
-              <Folder className="w-8 h-8 text-indigo-500" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('teacher.questionBank.topicList.noTopic')}</h3>
-            <p className="text-sm text-gray-500">{t('teacher.questionBank.topicList.noTopicDesc')}</p>
-          </div>
+          <EmptyState
+            icon={<Folder className="w-8 h-8 text-indigo-500" />}
+            title={t('teacher.questionBank.topicList.noTopic')}
+            description={t('teacher.questionBank.topicList.noTopicDesc')}
+          />
         )}
       </div>
     </div>

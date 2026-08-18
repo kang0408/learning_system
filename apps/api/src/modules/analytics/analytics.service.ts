@@ -7,6 +7,12 @@ export class AnalyticsService {
     private readonly analyticsRepository: AnalyticsRepository,
     private readonly aiRepository: AiRepository
   ) {}
+
+  // --- ADMIN SYSTEM ANALYTICS ---
+  async getSystemAnalytics() {
+    return this.analyticsRepository.getRealTimeSystemMetrics();
+  }
+
   // --- STUDENT DASHBOARD ---
   async getStudentDashboard(studentId: string) {
     const totalSessions = await this.analyticsRepository.countCompletedSessions(studentId);
@@ -243,14 +249,12 @@ export class AnalyticsService {
   }
 
   async getTeacherStudentStats(teacherId: string, studentId: string) {
-    // Verify student is in at least one of the teacher's classes
     const membership = await this.analyticsRepository.findStudentInTeacherClasses(teacherId, studentId);
 
     if (!membership) {
       throw new ApiError(403, 'Học sinh này không thuộc bất kỳ lớp nào của bạn.');
     }
 
-    // Combine dashboard, calendar, and weak topics
     const dashboard = await this.getStudentDashboard(studentId);
     const calendar = await this.getStudentCalendar(studentId);
     const weakTopics = await this.getStudentWeakTopics(studentId);

@@ -1,10 +1,12 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AnalyticsService } from './analytics.service';
 import { BaseController } from '../../controllers/BaseController';
 
 export class AnalyticsController extends BaseController {
   constructor(private readonly analyticsService: AnalyticsService) {
     super();
+    this.getSystemAnalytics = this.getSystemAnalytics.bind(this);
+    this.streamSystemAnalytics = this.streamSystemAnalytics.bind(this);
     this.getStudentStats = this.getStudentStats.bind(this);
     this.getStudentCalendar = this.getStudentCalendar.bind(this);
     this.getStudentWeakTopics = this.getStudentWeakTopics.bind(this);
@@ -14,6 +16,40 @@ export class AnalyticsController extends BaseController {
     this.getTeacherClassTopicStudents = this.getTeacherClassTopicStudents.bind(this);
     this.getTeacherStudentStats = this.getTeacherStudentStats.bind(this);
   }
+
+  // --- ADMIN SYSTEM ANALYTICS ---
+  async getSystemAnalytics(req: Request, res: Response) {
+    const metrics = await this.analyticsService.getSystemAnalytics();
+    this.handleSuccess(res, metrics);
+  }
+
+  async streamSystemAnalytics(req: Request, res: Response): Promise<void> {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    if (typeof (res as any).flushHeaders === 'function') {
+      (res as any).flushHeaders();
+    }
+
+    const sendMetrics = async () => {
+      try {
+        const metrics = await this.analyticsService.getSystemAnalytics();
+        res.write(`data: ${JSON.stringify(metrics)}\n\n`);
+      } catch (err) {
+        res.write(`event: error\ndata: ${JSON.stringify({ error: 'Failed to fetch metrics' })}\n\n`);
+      }
+    };
+
+    await sendMetrics();
+    const intervalId = setInterval(sendMetrics, 3000);
+
+    req.on('close', () => {
+      clearInterval(intervalId);
+      res.end();
+    });
+  }
+
+  // --- STUDENT ---
   async getStudentStats(req: any, res: Response) {
     const stats = await this.analyticsService.getStudentDashboard(req.user.userId);
     this.handleSuccess(res, stats);
@@ -29,6 +65,7 @@ export class AnalyticsController extends BaseController {
     this.handleSuccess(res, data);
   }
 
+  // --- TEACHER ---
   async getTeacherClassStats(req: any, res: Response) {
     const { classId } = req.params;
     const stats = await this.analyticsService.getTeacherClassStats(req.user.userId, classId);
@@ -58,5 +95,4 @@ export class AnalyticsController extends BaseController {
     const stats = await this.analyticsService.getTeacherStudentStats(req.user.userId, studentId);
     this.handleSuccess(res, stats);
   }
-
 }

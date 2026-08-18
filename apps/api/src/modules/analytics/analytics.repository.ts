@@ -2,6 +2,88 @@ import { PrismaClient } from '@prisma/client';
 
 export class AnalyticsRepository {
   constructor(private readonly prisma: PrismaClient) {}
+
+  // --- ADMIN SYSTEM ANALYTICS ---
+  async getRealTimeSystemMetrics() {
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+    const [
+      totalUsers,
+      usersByRole,
+      activeUsersCount,
+      recentActiveUsers,
+      totalClasses,
+      totalQuestions,
+      totalQuizSessions,
+      activeQuizSessionsNow,
+      dbSizeResult,
+      dbConnectionsResult
+    ] = await Promise.all([
+      this.prisma.user.count({ where: { deleted_at: null } }),
+      this.prisma.user.groupBy({
+        by: ['role'],
+        where: { deleted_at: null },
+        _count: { id: true },
+      }),
+      this.prisma.user.count({ where: { is_active: true, deleted_at: null } }),
+      this.prisma.user.count({
+        where: { updated_at: { gte: fifteenMinsAgo }, deleted_at: null },
+      }),
+      this.prisma.class.count({ where: { deleted_at: null } }),
+      this.prisma.question.count({ where: { deleted_at: null } }),
+      this.prisma.quizSession.count(),
+      this.prisma.quizSession.count({ where: { status: 'in_progress' } }),
+      this.prisma.$queryRaw<{ size: string }[]>`
+        SELECT pg_size_pretty(pg_database_size(current_database())) as size
+      `.catch(() => [{ size: 'N/A' }]),
+      this.prisma.$queryRaw<{ count: bigint }[]>`
+        SELECT count(*) as count FROM pg_stat_activity WHERE datname = current_database()
+      `.catch(() => [{ count: BigInt(0) }]),
+    ]);
+
+    const memoryUsage = process.memoryUsage();
+    const cpuUsage = process.cpuUsage();
+    const uptimeSeconds = process.uptime();
+
+    return {
+      status: 'HEALTHY',
+      timestamp: new Date().toISOString(),
+      realtime: {
+        activeQuizSessionsNow,
+        recentActiveUsers15m: recentActiveUsers,
+      },
+      users: {
+        total: totalUsers,
+        active: activeUsersCount,
+        byRole: usersByRole.reduce((acc, item) => {
+          acc[item.role] = item._count.id;
+          return acc;
+        }, {} as Record<string, number>),
+      },
+      content: {
+        classes: totalClasses,
+        questions: totalQuestions,
+        quizSessions: totalQuizSessions,
+      },
+      database: {
+        databaseSize: dbSizeResult[0]?.size || 'Unknown',
+        activeConnections: Number(dbConnectionsResult[0]?.count || 0),
+      },
+      server: {
+        uptimeSeconds: Math.floor(uptimeSeconds),
+        memory: {
+          rssMB: Math.round(memoryUsage.rss / 1024 / 1024),
+          heapTotalMB: Math.round(memoryUsage.heapTotal / 1024 / 1024),
+          heapUsedMB: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+        },
+        cpuUsageUserMs: Math.round(cpuUsage.user / 1000),
+        cpuUsageSystemMs: Math.round(cpuUsage.system / 1000),
+        nodeVersion: process.version,
+        platform: process.platform,
+      },
+    };
+  }
+
   // --- STUDENT ---
 
   async findAllTopics() {

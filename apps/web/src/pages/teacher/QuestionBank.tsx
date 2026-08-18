@@ -1,15 +1,15 @@
-import React, { lazy } from 'react';
-import { SuspenseLoader } from '@/components/ui/SuspenseLoader';
+import { lazy } from 'react';
+import { TeacherSuspenseLoader } from '@/components/ui/TeacherSuspenseLoader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
-const TeacherQuestionBankFeature = lazy(() => import('@/features/teacher/question-bank'));
+const QuestionBankFeature = lazy(() => import('@/features/teacher/question-bank'));
 
 export default function QuestionBankPage() {
   return (
     <ErrorBoundary>
-      <SuspenseLoader>
-        <TeacherQuestionBankFeature />
-      </SuspenseLoader>
+      <TeacherSuspenseLoader>
+        <QuestionBankFeature />
+      </TeacherSuspenseLoader>
     </ErrorBoundary>
   );
 }

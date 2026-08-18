@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { TopicQuestionsList } from './TopicQuestionsList';
 import { useUpdateAssignment } from '../hooks/useTeacherEditAssignment';
 import type { Topic, ClassMember } from '../types';
 import { toast } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
 import { Select } from '@/components/ui/Select';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar';
 
 interface EditAssignmentFormProps {
   classId: string;
@@ -127,37 +133,34 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-      <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.titleLabel')} <span className="text-red-500">*</span></label>
-        <input
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
+      <div>
+        <Label required>{t('teacher.editAssignment.titleLabel')}</Label>
+        <Input
           required
           type="text"
           value={form.title}
           onChange={e => setForm({ ...form, title: e.target.value })}
-          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
           placeholder={t('teacher.editAssignment.titlePlaceholder')}
         />
       </div>
 
-      <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.descLabel')}</label>
-        <textarea
+      <div>
+        <Label>{t('teacher.editAssignment.descLabel')}</Label>
+        <Textarea
           value={form.description}
           onChange={e => setForm({ ...form, description: e.target.value })}
-          className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm resize-none"
           placeholder={t('teacher.editAssignment.descPlaceholder')}
           rows={4}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.modeLabel')}</label>
+        <div>
+          <Label>{t('teacher.editAssignment.modeLabel')}</Label>
           <Select
             value={form.mode}
             onChange={(value) => setForm({ ...form, mode: value })}
-            size="sm"
             options={[
               { value: 'adaptive', label: t('teacher.editAssignment.modeAdaptive') },
               { value: 'standard', label: t('teacher.editAssignment.modeStandard') },
@@ -166,53 +169,49 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.maxAttemptsLabel')}</label>
-          <input
+        <div>
+          <Label>{t('teacher.editAssignment.maxAttemptsLabel')}</Label>
+          <Input
             type="number"
             min="0"
             value={form.max_attempts}
             onChange={e => setForm({ ...form, max_attempts: parseInt(e.target.value) || 0 })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
             placeholder={t('teacher.editAssignment.noLimitPlaceholder')}
           />
-          <p className="text-xs text-gray-500">{t('teacher.editAssignment.noLimitHint')}</p>
+          <p className="text-xs text-slate-500 font-medium mt-1">{t('teacher.editAssignment.noLimitHint')}</p>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.timeLimitLabel')}</label>
-          <input
+        <div>
+          <Label>{t('teacher.editAssignment.timeLimitLabel')}</Label>
+          <Input
             type="number"
             min="0"
             value={form.time_limit}
             onChange={e => setForm({ ...form, time_limit: parseInt(e.target.value) || 0 })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
             placeholder={t('teacher.editAssignment.noLimitPlaceholder')}
           />
-          <p className="text-xs text-gray-500">{t('teacher.editAssignment.noLimitHint')}</p>
+          <p className="text-xs text-slate-500 font-medium mt-1">{t('teacher.editAssignment.noLimitHint')}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.deadlineLabel')}</label>
-          <input
+        <div>
+          <Label>{t('teacher.editAssignment.deadlineLabel')}</Label>
+          <Input
             type="datetime-local"
             value={form.deadline}
             onChange={e => setForm({ ...form, deadline: e.target.value })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
           />
         </div>
 
-        <div className="space-y-1.5">
-          <label className="block text-sm font-semibold text-gray-700">{t('teacher.editAssignment.assignToLabel')}</label>
+        <div>
+          <Label>{t('teacher.editAssignment.assignToLabel')}</Label>
           <Select
             value={form.assignToAll ? 'all' : 'specific'}
             onChange={(value) => {
               const isAll = value === 'all';
               setForm({ ...form, assignToAll: isAll, student_ids: isAll ? [] : form.student_ids });
             }}
-            size="sm"
             options={[
               { value: 'all', label: t('teacher.editAssignment.assignAll') },
               { value: 'specific', label: t('teacher.editAssignment.assignSpecific') }
@@ -222,18 +221,17 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
       </div>
 
       {!form.assignToAll && (
-        <div className="bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
-          <label className="block text-sm font-semibold text-indigo-900 mb-3">
+        <div className="bg-indigo-50/50 p-5 rounded-2xl border border-indigo-100">
+          <Label className="text-indigo-900 mb-3">
             {t('teacher.editAssignment.selectStudents', { selected: form.student_ids.length, total: members.length })}
-          </label>
-          <div className="bg-white rounded-xl border border-gray-200 max-h-[300px] overflow-y-auto space-y-1 p-2">
+          </Label>
+          <div className="bg-white rounded-xl border border-slate-200 max-h-[300px] overflow-y-auto space-y-1 p-2">
             {members.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center p-4">{t('teacher.editAssignment.noStudents')}</p>
+              <p className="text-sm text-slate-500 text-center p-4 font-medium">{t('teacher.editAssignment.noStudents')}</p>
             ) : (
               members.map((member) => (
-                <label key={member.student.id} className="flex items-center p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group">
-                  <input
-                    type="checkbox"
+                <div key={member.student.id} className="flex items-center p-2.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                  <Checkbox
                     checked={form.student_ids.includes(member.student.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -248,18 +246,17 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
                         }));
                       }
                     }}
-                    className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 mr-4"
                   />
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold mr-3 text-sm border border-slate-200">
-                      {member.student.full_name.charAt(0).toUpperCase()}
-                    </div>
+                  <div className="flex items-center ml-3">
+                    <Avatar size="sm" className="mr-3">
+                      <AvatarFallback name={member.student.full_name} />
+                    </Avatar>
                     <div>
-                      <span className="font-semibold text-gray-900 text-sm block">{member.student.full_name}</span>
-                      <span className="text-gray-500 text-xs">{member.student.email}</span>
+                      <span className="font-bold text-slate-900 text-sm block">{member.student.full_name}</span>
+                      <span className="text-slate-500 text-xs font-medium">{member.student.email}</span>
                     </div>
                   </div>
-                </label>
+                </div>
               ))
             )}
           </div>
@@ -267,7 +264,7 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-3">{t('teacher.editAssignment.selectTopicsLabel')}</label>
+        <Label className="mb-3">{t('teacher.editAssignment.selectTopicsLabel')}</Label>
         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
           {(() => {
             const renderTopicNode = (topic: Topic, depth: number, isParentChecked = false) => {
@@ -291,29 +288,29 @@ export const EditAssignmentForm: React.FC<EditAssignmentFormProps> = ({
             return topics.map(t => renderTopicNode(t, 0, false));
           })()}
           {topics.length === 0 && (
-            <p className="text-sm text-gray-500 p-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            <p className="text-sm text-slate-500 p-6 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 font-medium">
               {t('teacher.editAssignment.noTopics')}
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex justify-end pt-6 mt-6 border-t border-gray-100 gap-3">
-        <button
+      <div className="flex justify-end pt-6 mt-6 border-t border-slate-100 gap-3">
+        <Button
           type="button"
+          variant="outline"
           onClick={() => navigate(-1)}
-          className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-semibold hover:bg-gray-50 transition-colors text-sm"
         >
           {t('teacher.editAssignment.cancelBtn')}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
-          disabled={isPending}
-          className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-50 flex items-center transition-colors text-sm shadow-sm"
+          variant="primary"
+          isLoading={isPending}
         >
-          {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+          <Save className="w-4 h-4 mr-2" />
           {t('teacher.editAssignment.updateBtn')}
-        </button>
+        </Button>
       </div>
     </form>
   );

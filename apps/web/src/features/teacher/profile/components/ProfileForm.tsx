@@ -1,9 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Save, Loader2, Mail, Phone, MapPin, Briefcase, KeyRound } from 'lucide-react';
+import { Camera, Upload, Save, Mail, Phone, MapPin, Briefcase, KeyRound } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useUpdateTeacherProfile } from '../hooks/useTeacherProfile';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { useTranslation } from 'react-i18next';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
 
 interface ProfileFormProps {
   onSuccess: (message: string) => void;
@@ -67,23 +71,23 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Left column: Avatar */}
       <div className="lg:col-span-1 space-y-6">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center text-center transition duration-300">
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
           <div 
-            className="relative w-40 h-40 rounded-full border border-gray-200 bg-gray-50 cursor-pointer overflow-hidden shadow-sm group mb-5 hover:shadow-md transition-all"
+            className="relative w-40 h-40 rounded-full border border-gray-200 bg-slate-50 cursor-pointer overflow-hidden shadow-sm group mb-5 hover:shadow-md transition-all"
             onClick={() => fileInputRef.current?.click()}
           >
             {avatarPreview ? (
               <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 group-hover:text-indigo-500 transition-colors">
+              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors">
                 <Camera className="w-10 h-10 mb-2" />
-                <span className="font-semibold text-xs tracking-wider uppercase">{t('teacher.profile.selectAvatar')}</span>
+                <span className="font-bold text-xs tracking-wider uppercase">{t('teacher.profile.selectAvatar')}</span>
               </div>
             )}
 
-            <div className="absolute inset-0 bg-gray-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Upload className="w-8 h-8 text-white mb-1.5" />
-              <span className="font-medium text-white text-xs">{t('teacher.profile.changeAvatar')}</span>
+              <span className="font-semibold text-white text-xs">{t('teacher.profile.changeAvatar')}</span>
             </div>
           </div>
 
@@ -95,19 +99,20 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
             className="hidden" 
           />
 
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-slate-900">
             {formData.full_name || t('teacher.profile.noName')}
           </h2>
-          <p className="text-sm text-gray-500 mt-1 mb-6">{user?.email}</p>
+          <p className="text-sm text-slate-500 mt-1 mb-6 font-medium">{user?.email}</p>
 
-          <button 
+          <Button 
             type="button" 
+            variant="outline"
             onClick={() => setIsChangePasswordOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl transition-colors font-medium text-sm shadow-sm hover:shadow"
+            className="w-full"
           >
-            <KeyRound className="w-4 h-4" />
+            <KeyRound className="w-4 h-4 mr-2" />
             {t('teacher.profile.changePasswordBtn')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -118,21 +123,20 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
 
       {/* Right column: Form */}
       <div className="lg:col-span-2">
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition duration-300">
-          <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2.5 border-b border-gray-100 pb-4">
-            <Briefcase className="w-5 h-5 text-indigo-500" /> {t('teacher.profile.basicInfoTitle')}
+        <div className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
+          <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2.5 border-b border-slate-100 pb-4">
+            <Briefcase className="w-5 h-5 text-indigo-600" /> {t('teacher.profile.basicInfoTitle')}
           </h3>
           
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="full_name" className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.fullNameLabel')} <span className="text-red-500">*</span></label>
-              <input 
+              <Label htmlFor="full_name" required>{t('teacher.profile.fullNameLabel')}</Label>
+              <Input 
                 type="text" 
                 id="full_name"
                 name="full_name"
                 value={formData.full_name}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
                 placeholder={t('teacher.profile.fullNamePlaceholder')}
                 required
               />
@@ -140,26 +144,24 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.emailLabel')}</label>
-                <div className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 text-sm flex items-center cursor-not-allowed">
-                  <Mail className="w-4 h-4 mr-2.5 text-gray-400" />
+                <Label>{t('teacher.profile.emailLabel')}</Label>
+                <div className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 text-sm font-medium flex items-center cursor-not-allowed">
+                  <Mail className="w-4 h-4 mr-2.5 text-slate-400" />
                   {user?.email}
                 </div>
               </div>
 
               <div>
-                <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">{t('teacher.profile.phoneLabel')}</label>
+                <Label htmlFor="phone">{t('teacher.profile.phoneLabel')}</Label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <input 
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 flex items-center pointer-events-none" />
+                  <Input 
                     type="tel" 
                     id="phone"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
+                    className="pl-10"
                     placeholder={t('teacher.profile.phonePlaceholder')}
                   />
                 </div>
@@ -167,39 +169,30 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-sm font-semibold text-gray-700 mb-1.5">Địa chỉ hiện tại</label>
+              <Label htmlFor="address">Địa chỉ hiện tại</Label>
               <div className="relative">
-                <MapPin className="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400" />
-                <textarea 
+                <MapPin className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+                <Textarea 
                   id="address"
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm resize-none"
+                  className="pl-10"
                   placeholder="Nhập địa chỉ của bạn..."
                 />
               </div>
             </div>
 
-            <div className="pt-6 border-t border-gray-100 flex justify-end">
-              <button 
+            <div className="pt-6 border-t border-slate-100 flex justify-end">
+              <Button 
                 type="submit" 
-                disabled={isPending}
-                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-50 text-sm"
+                variant="primary"
+                isLoading={isPending}
               >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {t('teacher.profile.updatingBtn')}
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    {t('teacher.profile.updateBtn')}
-                  </>
-                )}
-              </button>
+                <Save className="w-4 h-4 mr-2" />
+                {t('teacher.profile.updateBtn')}
+              </Button>
             </div>
           </form>
         </div>
@@ -207,3 +200,4 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
     </div>
   );
 };
+

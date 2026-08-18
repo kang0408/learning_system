@@ -3,6 +3,8 @@ import { ChevronDown, ChevronUp, Loader2, Star } from 'lucide-react';
 import { useTopicQuestions } from '../hooks/useTeacherNewAssignment';
 import type { Topic } from '../types';
 import { useTranslation } from 'react-i18next';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Badge } from '@/components/ui/Badge';
 
 interface TopicQuestionsListProps {
   topic: Topic;
@@ -13,14 +15,14 @@ interface TopicQuestionsListProps {
   onQuestionCheckChange: (questionId: string, checked: boolean, allTopicQIds: string[]) => void;
 }
 
-const getQuestionTypeStyle = (type: string) => {
+const getQuestionTypeBadgeVariant = (type: string): 'default' | 'secondary' | 'warning' | 'indigo' | 'danger' => {
   switch (type) {
-    case 'multiple_choice': return 'bg-blue-50 text-blue-700 border border-blue-200';
-    case 'multi_select': return 'bg-purple-50 text-purple-700 border border-purple-200';
-    case 'true_false': return 'bg-pink-50 text-pink-700 border border-pink-200';
-    case 'fill_blank': return 'bg-amber-50 text-amber-700 border border-amber-200';
-    case 'matching': return 'bg-teal-50 text-teal-700 border border-teal-200';
-    default: return 'bg-gray-50 text-gray-700 border border-gray-200';
+    case 'multiple_choice': return 'default';
+    case 'multi_select': return 'indigo';
+    case 'true_false': return 'danger';
+    case 'fill_blank': return 'warning';
+    case 'matching': return 'secondary';
+    default: return 'secondary';
   }
 };
 
@@ -50,12 +52,10 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
   const allTopicQIds = questions?.map(q => q.id) || [];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden transition-all duration-200 hover:shadow-sm">
-      <div className="flex items-center p-4 hover:bg-gray-50 transition-colors">
-        <div className="mr-4" onClick={(e) => e.stopPropagation()}>
-          <input
-            type="checkbox"
-            className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer disabled:opacity-50"
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden transition-all duration-200 hover:shadow-sm">
+      <div className="flex items-center p-4 hover:bg-slate-50 transition-colors">
+        <div className="mr-3 flex items-center" onClick={(e) => e.stopPropagation()}>
+          <Checkbox
             checked={isTopicChecked || isImplicitlyChecked}
             disabled={isImplicitlyChecked}
             onChange={(e) => onTopicCheckChange(topic.id, e.target.checked, allTopicQIds)}
@@ -67,25 +67,25 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
         >
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-gray-900">{topic.name}</span>
+              <span className="font-bold text-slate-900 text-sm">{topic.name}</span>
               {isImplicitlyChecked && (
-                <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                <Badge variant="indigo" size="sm">
                   {t('teacher.newAssignment.includedInParent', 'Included')}
-                </span>
+                </Badge>
               )}
             </div>
-            <div className="text-xs text-gray-500 mt-0.5">{t('teacher.newAssignment.questionsCount', { count: topic._count?.questions || 0 })}</div>
+            <div className="text-xs text-slate-500 font-medium mt-0.5">{t('teacher.newAssignment.questionsCount', { count: topic._count?.questions || 0 })}</div>
           </div>
-          <div className="text-gray-400 p-1.5 rounded-full hover:bg-gray-100 hover:text-gray-600 transition-colors">
-            {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          <div className="text-slate-400 p-1.5 rounded-full hover:bg-slate-100 hover:text-slate-600 transition-colors">
+            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </div>
         </div>
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 bg-gray-50/50 p-4 space-y-3">
+        <div className="border-t border-slate-100 bg-slate-50/50 p-4 space-y-3">
           {isLoading ? (
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center text-sm text-slate-500 font-medium">
               <Loader2 className="w-4 h-4 mr-2 animate-spin text-indigo-500" /> {t('teacher.newAssignment.loading')}
             </div>
           ) : questions && questions.length > 0 ? (
@@ -94,27 +94,32 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
               const isChecked = isTopicChecked || isIndividuallyChecked;
 
               return (
-                <label key={q.id} className={`flex items-start cursor-pointer group bg-white p-3 rounded-xl border transition-colors shadow-sm ${isImplicitlyChecked ? 'border-indigo-200 bg-indigo-50/10' : 'border-gray-200 hover:border-indigo-300'}`}>
-                  <input
-                    type="checkbox"
-                    className="mt-0.5 mr-3 w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 cursor-pointer disabled:opacity-50"
-                    checked={isChecked || isImplicitlyChecked}
-                    disabled={isImplicitlyChecked}
-                    onChange={(e) => onQuestionCheckChange(q.id, e.target.checked, allTopicQIds)}
-                  />
+                <div 
+                  key={q.id} 
+                  className={`flex items-start p-3 rounded-xl border transition-colors shadow-sm bg-white ${
+                    isImplicitlyChecked ? 'border-indigo-200 bg-indigo-50/20' : 'border-slate-200 hover:border-indigo-300'
+                  }`}
+                >
+                  <div className="mr-3 mt-0.5 flex items-center">
+                    <Checkbox
+                      checked={isChecked || isImplicitlyChecked}
+                      disabled={isImplicitlyChecked}
+                      onChange={(e) => onQuestionCheckChange(q.id, e.target.checked, allTopicQIds)}
+                    />
+                  </div>
                   <div className="flex-1">
-                    <span className="text-gray-900 font-medium block mb-2 text-sm">{q.content}</span>
-                    <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                      <span className={`px-2 py-0.5 rounded-md ${getQuestionTypeStyle(q.question_type)}`}>
+                    <span className="text-slate-900 font-medium block mb-2 text-sm">{q.content}</span>
+                    <div className="flex flex-wrap gap-2 text-xs font-semibold items-center">
+                      <Badge variant={getQuestionTypeBadgeVariant(q.question_type)} size="sm">
                         {getQuestionTypeLabel(q.question_type, t)}
-                      </span>
+                      </Badge>
                       {topic.name && (
-                        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md border border-slate-200">
+                        <Badge variant="secondary" size="sm">
                           {topic.name}
-                        </span>
+                        </Badge>
                       )}
                       {q.difficulty !== undefined && q.difficulty !== null && (
-                        <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200">
+                        <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md border border-amber-200 text-xs">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star 
                               key={star} 
@@ -125,11 +130,11 @@ export const TopicQuestionsList: React.FC<TopicQuestionsListProps> = ({
                       )}
                     </div>
                   </div>
-                </label>
+                </div>
               );
             })
           ) : (
-            <p className="text-sm text-gray-500">{t('teacher.newAssignment.noQuestions')}</p>
+            <p className="text-sm text-slate-500 font-medium">{t('teacher.newAssignment.noQuestions')}</p>
           )}
         </div>
       )}

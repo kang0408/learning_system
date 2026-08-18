@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { Loader2, X } from 'lucide-react';
 import type { CreateClassPayload } from '../types';
 import { useTranslation } from 'react-i18next';
+import { Dialog } from '@/components/ui/Dialog';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
 
 interface CreateClassModalProps {
   onClose: () => void;
@@ -27,74 +31,56 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({ onClose, onS
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-md w-full p-6 relative">
-        
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <Dialog 
+      isOpen={true} 
+      onClose={onClose}
+      title={t('teacher.dashboard.modalTitle')}
+      description={t('teacher.dashboard.modalDesc')}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label required>{t('teacher.dashboard.classNameLabel')}</Label>
+          <Input
+            type="text"
+            value={newClassName}
+            onChange={(e) => setNewClassName(e.target.value)}
+            placeholder={t('teacher.dashboard.classNamePlaceholder')}
+            required
+          />
+        </div>
 
-        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('teacher.dashboard.modalTitle')}</h2>
-        <p className="text-sm text-gray-500 mb-6">{t('teacher.dashboard.modalDesc')}</p>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">{t('teacher.dashboard.classNameLabel')} <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={newClassName}
-              onChange={(e) => setNewClassName(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-              placeholder={t('teacher.dashboard.classNamePlaceholder')}
-              required
-            />
-          </div>
-          
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">{t('teacher.dashboard.subjectLabel')} <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={newClassSubject}
-              onChange={(e) => setNewClassSubject(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
-              placeholder={t('teacher.dashboard.subjectPlaceholder')}
-              required
-            />
-          </div>
-          
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-700">{t('teacher.dashboard.descriptionLabel')}</label>
-            <textarea
-              value={newClassDesc}
-              onChange={(e) => setNewClassDesc(e.target.value)}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm resize-none"
-              placeholder={t('teacher.dashboard.descriptionPlaceholder')}
-              rows={3}
-            />
-          </div>
-          
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-semibold hover:bg-gray-50 hover:text-gray-900 transition-colors text-sm"
-            >
-              {t('teacher.dashboard.cancelBtn')}
-            </button>
-            <button
-              type="submit"
-              disabled={isCreating || !newClassName.trim()}
-              className="flex-[2] px-4 py-2.5 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-sm text-sm"
-            >
-              {isCreating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
-              {t('teacher.dashboard.submitBtn')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div>
+          <Label required>{t('teacher.dashboard.subjectLabel')}</Label>
+          <Input
+            type="text"
+            value={newClassSubject}
+            onChange={(e) => setNewClassSubject(e.target.value)}
+            placeholder={t('teacher.dashboard.subjectPlaceholder')}
+            required
+          />
+        </div>
+
+        <div>
+          <Label>{t('teacher.dashboard.descriptionLabel')}</Label>
+          <Textarea
+            value={newClassDesc}
+            onChange={(e) => setNewClassDesc(e.target.value)}
+            placeholder={t('teacher.dashboard.descriptionPlaceholder')}
+            rows={3}
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <Button type="button" variant="outline" onClick={onClose}>
+            {t('teacher.dashboard.cancelBtn')}
+          </Button>
+          <Button type="submit" variant="primary" isLoading={isCreating} disabled={!newClassName.trim()}>
+            {t('teacher.dashboard.submitBtn')}
+          </Button>
+        </div>
+      </form>
+    </Dialog>
   );
 };
+
+

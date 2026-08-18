@@ -1,15 +1,15 @@
-import React, { lazy } from 'react';
-import { SuspenseLoader } from '@/components/ui/SuspenseLoader';
+import { lazy } from 'react';
+import { TeacherSuspenseLoader } from '@/components/ui/TeacherSuspenseLoader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const TeacherProfileFeature = lazy(() => import('@/features/teacher/profile'));
 
-export default function TeacherProfile() {
+export default function TeacherProfilePage() {
   return (
     <ErrorBoundary>
-      <SuspenseLoader>
+      <TeacherSuspenseLoader>
         <TeacherProfileFeature />
-      </SuspenseLoader>
+      </TeacherSuspenseLoader>
     </ErrorBoundary>
   );
 }

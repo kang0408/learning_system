@@ -1,5 +1,5 @@
-import React, { lazy } from 'react';
-import { SuspenseLoader } from '@/components/ui/SuspenseLoader';
+import { lazy } from 'react';
+import { TeacherSuspenseLoader } from '@/components/ui/TeacherSuspenseLoader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const TeacherStudentDetailFeature = lazy(() => import('@/features/teacher/student-detail'));
@@ -7,9 +7,9 @@ const TeacherStudentDetailFeature = lazy(() => import('@/features/teacher/studen
 export default function TeacherStudentDetailPage() {
   return (
     <ErrorBoundary>
-      <SuspenseLoader>
+      <TeacherSuspenseLoader>
         <TeacherStudentDetailFeature />
-      </SuspenseLoader>
+      </TeacherSuspenseLoader>
     </ErrorBoundary>
   );
 }

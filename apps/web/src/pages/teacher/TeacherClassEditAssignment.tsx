@@ -1,5 +1,5 @@
-import React, { lazy } from 'react';
-import { SuspenseLoader } from '@/components/ui/SuspenseLoader';
+import { lazy } from 'react';
+import { TeacherSuspenseLoader } from '@/components/ui/TeacherSuspenseLoader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 const TeacherClassEditAssignmentFeature = lazy(() => import('@/features/teacher/edit-assignment'));
@@ -7,9 +7,9 @@ const TeacherClassEditAssignmentFeature = lazy(() => import('@/features/teacher/
 export default function TeacherClassEditAssignmentPage() {
   return (
     <ErrorBoundary>
-      <SuspenseLoader>
+      <TeacherSuspenseLoader>
         <TeacherClassEditAssignmentFeature />
-      </SuspenseLoader>
+      </TeacherSuspenseLoader>
     </ErrorBoundary>
   );
 }

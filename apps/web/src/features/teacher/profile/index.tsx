@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileForm } from './components/ProfileForm';

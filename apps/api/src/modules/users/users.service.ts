@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import { ApiError } from '../../lib/ApiError';
 import { UsersRepository } from './users.repository';
-import { sendOTP } from '../../lib/mailer';
 
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
@@ -39,8 +38,6 @@ export class UsersService {
     return user;
   }
 
-
-
   async uploadAvatar(userId: string, avatar_url: string) {
     const user = await this.usersRepository.updateUser(userId, { avatar_url }, {
       id: true,
@@ -52,5 +49,102 @@ export class UsersService {
       created_at: true,
     });
     return user;
+  }
+
+  // --- Admin User CRUD Services ---
+
+  async getAdminUsersList(query: { page?: number; limit?: number; role?: string; is_active?: boolean; search?: string }) {
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    const skip = (page - 1) * limit;
+
+    const { items, total } = await this.usersRepository.findUsersPaginated({
+      skip,
+      take: limit,
+      role: query.role,
+      is_active: query.is_active,
+      search: query.search,
+    });
+
+    return {
+      items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async getAdminUserDetail(id: string) {
+    const user = await this.usersRepository.findUserDetailById(id);
+    if (!user) {
+      throw new ApiError(404, 'Không tìm thấy người dùng');
+    }
+    return user;
+  }
+
+  async adminCreateUser(data: { email: string; password: string; full_name: string; role: 'student' | 'teacher' | 'parent' | 'admin'; phone?: string; address?: string }) {
+    const existing = await this.usersRepository.findByEmail(data.email);
+    if (existing) {
+      throw new ApiError(400, 'Email này đã được sử dụng');
+    }
+
+    const password_hash = await bcrypt.hash(data.password, 10);
+    return this.usersRepository.createUser({
+      email: data.email,
+      password_hash,
+      full_name: data.full_name,
+      role: data.role,
+      phone: data.phone,
+      address: data.address,
+      is_active: true,
+    });
+  }
+
+  async adminUpdateUser(id: string, currentAdminId: string, data: { full_name?: string; role?: string; is_active?: boolean; phone?: string; address?: string }) {
+    if (id === currentAdminId && data.is_active === false) {
+      throw new ApiError(400, 'Cannot deactivate your own admin account');
+    }
+
+    const existing = await this.usersRepository.findUserById(id);
+    if (!existing) {
+      throw new ApiError(404, 'Không tìm thấy người dùng');
+    }
+
+    return this.usersRepository.updateUser(id, data);
+  }
+
+  async adminResetPassword(id: string, newPassword: string) {
+    const existing = await this.usersRepository.findUserById(id);
+    if (!existing) {
+      throw new ApiError(404, 'Không tìm thấy người dùng');
+    }
+
+    const password_hash = await bcrypt.hash(newPassword, 10);
+    return this.usersRepository.updateUser(id, { password_hash });
+  }
+
+  async adminDeleteUser(id: string, currentAdminId: string) {
+    if (id === currentAdminId) {
+      throw new ApiError(400, 'Cannot delete your own admin account');
+    }
+
+    const existing = await this.usersRepository.findUserById(id);
+    if (!existing) {
+      throw new ApiError(404, 'Không tìm thấy người dùng');
+    }
+
+    return this.usersRepository.softDeleteUser(id);
+  }
+
+  async adminRestoreUser(id: string) {
+    const existing = await this.usersRepository.findUserById(id);
+    if (!existing) {
+      throw new ApiError(404, 'Không tìm thấy người dùng');
+    }
+
+    return this.usersRepository.restoreUser(id);
   }
 }

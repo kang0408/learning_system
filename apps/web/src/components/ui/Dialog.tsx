@@ -1,18 +1,32 @@
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/utils/cn';
 
-interface DialogProps {
+export interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   description?: string;
   children: React.ReactNode;
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl';
+  className?: string;
 }
 
-export function Dialog({ isOpen, onClose, title, description, children }: DialogProps) {
+export function Dialog({ isOpen, onClose, title, description, children, maxWidth = 'md', className }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
+
+  const maxWidthClasses = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
+    '3xl': 'max-w-3xl',
+    '4xl': 'max-w-4xl',
+    '5xl': 'max-w-5xl',
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -45,9 +59,13 @@ export function Dialog({ isOpen, onClose, title, description, children }: Dialog
         aria-labelledby="dialog-title"
         aria-describedby={description ? "dialog-description" : undefined}
         tabIndex={-1}
-        className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 outline-none"
+        className={cn(
+          "bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 outline-none border border-slate-100",
+          maxWidthClasses[maxWidth],
+          className
+        )}
       >
-        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
+        <div className="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
           <div>
             <h2 id="dialog-title" className="text-lg font-bold text-gray-900">{title}</h2>
             {description && <p id="dialog-description" className="text-sm text-gray-500 mt-1">{description}</p>}
@@ -55,12 +73,12 @@ export function Dialog({ isOpen, onClose, title, description, children }: Dialog
           <button
             onClick={onClose}
             aria-label={t('common.ui.close')}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {children}
         </div>
       </div>
