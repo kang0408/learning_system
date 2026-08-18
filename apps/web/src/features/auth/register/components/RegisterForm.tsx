@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Mail, Lock, Loader2, ArrowRight, ShieldCheck, ArrowLeft, Users, GraduationCap, Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRegister } from '../hooks/useRegister';
-import { Select } from '../../../../components/ui/Select';
+import { AuthSelect } from '../../components/AuthSelect';
 
 export const RegisterForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -68,7 +68,7 @@ export const RegisterForm: React.FC = () => {
         <form onSubmit={onSubmitStep1} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-zinc-700">{t('auth.register.roleLabel')}</label>
-            <Select
+            <AuthSelect
               value={role}
               onChange={(val) => setRole(val)}
               options={roleOptions}
