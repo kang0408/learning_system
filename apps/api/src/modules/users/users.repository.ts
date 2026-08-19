@@ -23,14 +23,34 @@ export class UsersRepository {
     is_active?: boolean;
     search?: string;
   }) {
-    const where: Prisma.UserWhereInput = { deleted_at: null };
+    const where: Prisma.UserWhereInput = {};
     if (params.role) where.role = params.role;
-    if (params.is_active !== undefined) where.is_active = params.is_active;
-    if (params.search) {
+    
+    if (params.is_active === false) {
       where.OR = [
+        { is_active: false },
+        { deleted_at: { not: null } }
+      ];
+    } else if (params.is_active === true) {
+      where.is_active = true;
+      where.deleted_at = null;
+    }
+    // If params.is_active is undefined, no deleted_at filter is applied so all users (including soft deleted) are returned to Admin
+
+    if (params.search) {
+      const searchFilter: Prisma.UserWhereInput[] = [
         { email: { contains: params.search, mode: 'insensitive' } },
         { full_name: { contains: params.search, mode: 'insensitive' } },
       ];
+      if (where.OR) {
+        where.AND = [
+          { OR: where.OR },
+          { OR: searchFilter }
+        ];
+        delete where.OR;
+      } else {
+        where.OR = searchFilter;
+      }
     }
 
     const [items, total] = await Promise.all([
@@ -48,6 +68,7 @@ export class UsersRepository {
           phone: true,
           address: true,
           is_active: true,
+          deleted_at: true,
           created_at: true,
           updated_at: true,
         },
@@ -151,6 +172,17 @@ export class UsersRepository {
         role: true,
         is_active: true,
         deleted_at: true,
+      },
+    });
+  }
+
+  async hardDeleteUser(id: string) {
+    return this.prisma.user.delete({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        full_name: true,
       },
     });
   }

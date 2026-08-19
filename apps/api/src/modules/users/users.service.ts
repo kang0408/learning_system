@@ -147,4 +147,24 @@ export class UsersService {
 
     return this.usersRepository.restoreUser(id);
   }
+
+  async adminHardDeleteUser(id: string, currentAdminId: string) {
+    if (id === currentAdminId) {
+      throw new ApiError(400, 'Không thể xóa vĩnh viễn tài khoản Admin của chính mình');
+    }
+
+    const existing = await this.usersRepository.findUserById(id);
+    if (!existing) {
+      throw new ApiError(404, 'Không tìm thấy người dùng');
+    }
+
+    try {
+      return await this.usersRepository.hardDeleteUser(id);
+    } catch (err: any) {
+      if (err.code === 'P2003') {
+        throw new ApiError(400, 'Không thể xóa vĩnh viễn người dùng này vì họ đang sở hữu dữ liệu liên quan (Lớp học, Câu hỏi, Bài tập, Chủ đề). Hãy chuyển quyền hoặc xóa dữ liệu liên quan trước.');
+      }
+      throw err;
+    }
+  }
 }

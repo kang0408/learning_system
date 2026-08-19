@@ -26,6 +26,7 @@ export class UsersController extends BaseController {
     this.resetUserPassword = this.resetUserPassword.bind(this);
     this.deleteAdminUser = this.deleteAdminUser.bind(this);
     this.restoreAdminUser = this.restoreAdminUser.bind(this);
+    this.hardDeleteAdminUser = this.hardDeleteAdminUser.bind(this);
   }
 
   async getMe(req: AuthRequest, res: Response) {
@@ -144,6 +145,14 @@ export class UsersController extends BaseController {
   async restoreAdminUser(req: AuthRequest, res: Response) {
     const id = req.params.id as string;
     const user = await this.usersService.adminRestoreUser(id);
+    this.handleSuccess(res, user);
+  }
+
+  async hardDeleteAdminUser(req: AuthRequest, res: Response) {
+    if (!req.user) throw new ApiError(401, 'Unauthorized');
+
+    const id = req.params.id as string;
+    const user = await this.usersService.adminHardDeleteUser(id, req.user.userId);
     this.handleSuccess(res, user);
   }
 }

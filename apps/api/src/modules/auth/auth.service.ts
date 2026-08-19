@@ -4,7 +4,6 @@ import { AuthRepository } from './auth.repository';
 import { config } from '../../config';
 import { ApiError } from '../../lib/ApiError';
 import { sendOTP } from '../../lib/mailer';
-import crypto from 'crypto';
 
 export class AuthService {
   constructor(private readonly authRepository: AuthRepository) {}
@@ -57,6 +56,11 @@ export class AuthService {
     const user = await this.authRepository.findUserByEmail(data.email);
     if (!user) {
       throw new ApiError(401, 'Invalid credentials');
+    }
+
+    // Check if account is deactivated or soft-deleted
+    if (user.deleted_at || user.is_active === false) {
+      throw new ApiError(403, 'Tài khoản của bạn đã bị vô hiệu hóa hoặc xóa khỏi hệ thống');
     }
     
     const isValid = await bcrypt.compare(data.password, user.password_hash);

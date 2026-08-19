@@ -25,28 +25,49 @@ export class AnalyticsController extends BaseController {
 
   async streamSystemAnalytics(req: Request, res: Response): Promise<void> {
     res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    
     if (typeof (res as any).flushHeaders === 'function') {
       (res as any).flushHeaders();
     }
 
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const cleanup = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
     const sendMetrics = async () => {
+      if (res.writableEnded || res.destroyed) {
+        cleanup();
+        return;
+      }
       try {
         const metrics = await this.analyticsService.getSystemAnalytics();
-        res.write(`data: ${JSON.stringify(metrics)}\n\n`);
+        if (!res.writableEnded && !res.destroyed) {
+          res.write(`data: ${JSON.stringify(metrics)}\n\n`);
+        }
       } catch (err) {
-        res.write(`event: error\ndata: ${JSON.stringify({ error: 'Failed to fetch metrics' })}\n\n`);
+        if (!res.writableEnded && !res.destroyed) {
+          res.write(`event: error\ndata: ${JSON.stringify({ error: 'Failed to fetch metrics' })}\n\n`);
+        }
       }
     };
 
     await sendMetrics();
-    const intervalId = setInterval(sendMetrics, 3000);
+    intervalId = setInterval(sendMetrics, 3000);
 
-    req.on('close', () => {
-      clearInterval(intervalId);
-      res.end();
-    });
+    req.on('close', cleanup);
+    req.on('end', cleanup);
+    req.on('error', cleanup);
+    res.on('close', cleanup);
+    res.on('finish', cleanup);
+    res.on('error', cleanup);
   }
 
   // --- STUDENT ---

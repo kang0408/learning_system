@@ -832,6 +832,21 @@
         "logout": "Logout",
         "role": "Teacher"
       }
+    },
+    "admin": {
+      "nav": {
+        "system": "System Analytics",
+        "users": "User Management"
+      },
+      "menuTitle": "ADMIN SYSTEM",
+      "language": "Language",
+      "logout": "Logout",
+      "tooltips": {
+        "vietnamese": "Tiếng Việt",
+        "english": "English",
+        "logout": "Logout",
+        "role": "System Admin"
+      }
     }
   }
 }

@@ -5,6 +5,11 @@ import { useAuthStore } from './store/authStore';
 // Layouts
 import StudentLayout from './layouts/StudentLayout';
 import TeacherLayout from './layouts/TeacherLayout';
+import AdminLayout from './layouts/AdminLayout';
+
+// Pages
+import AdminSystemAnalytics from './pages/admin/AdminSystemAnalytics';
+import AdminUserManagement from './pages/admin/AdminUserManagement';
 
 // Pages
 import Register from './pages/auth/Register';
@@ -37,6 +42,7 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: 
 const RootRedirect = () => {
   const { token, user } = useAuthStore();
   if (!token) return <Navigate to="/login" replace />;
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />;
   if (user?.role === 'teacher') return <Navigate to="/teacher" replace />;
   return <Navigate to="/student" replace />;
 };
@@ -109,6 +115,17 @@ export const router = createBrowserRouter([
       { path: 'questions', element: <QuestionBank /> },
       { path: 'questions/topics/:topicId', element: <TeacherTopicDetail /> },
       { path: 'profile', element: <TeacherProfile /> },
+    ]
+  },
+
+  // Admin Routes
+  {
+    path: '/admin',
+    element: <ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>,
+    children: [
+      { index: true, element: <Navigate to="system" replace /> },
+      { path: 'system', element: <AdminSystemAnalytics /> },
+      { path: 'users', element: <AdminUserManagement /> },
     ]
   },
 

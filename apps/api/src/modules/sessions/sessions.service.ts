@@ -106,12 +106,14 @@ export class SessionsService {
       status: 'in_progress'
     });
 
-    const ttl = assignment.time_limit ? (assignment.time_limit * 60) + 600 : 86400; // time limit + 10 mins, or 24 hours
-    await redisClient.setEx(`session:${session.id}`, ttl, JSON.stringify({
-      questions: questionsList,
-      currentIndex: 0,
-      total: questionsList.length
-    }));
+    if (redisClient.isOpen) {
+      const ttl = assignment.time_limit ? (assignment.time_limit * 60) + 600 : 86400; // time limit + 10 mins, or 24 hours
+      await redisClient.setEx(`session:${session.id}`, ttl, JSON.stringify({
+        questions: questionsList,
+        currentIndex: 0,
+        total: questionsList.length
+      })).catch(() => {});
+    }
 
     return {
       session_id: session.id,
@@ -127,9 +129,13 @@ export class SessionsService {
   async submitAnswer(studentId: string, sessionId: string, data: any) {
     const { question_id, selected_option_id, response_time_ms } = data;
 
-    const cacheStr = await redisClient.get(`session:${sessionId}`);
-    if (!cacheStr) throw new ApiError(404, 'Session expired or not found in cache');
-    const cacheState = JSON.parse(cacheStr);
+    let cacheState: any = null;
+    if (redisClient.isOpen) {
+      const cacheStr = await redisClient.get(`session:${sessionId}`).catch(() => null);
+      if (cacheStr) {
+        try { cacheState = JSON.parse(cacheStr); } catch (_) {}
+      }
+    }
 
     const session = await this.sessionsRepository.findQuizSessionById(sessionId, true) as any;
     if (!session || session.status !== 'in_progress') throw new ApiError(400, 'Session not active');
@@ -146,8 +152,8 @@ export class SessionsService {
       }
     }
 
-    // Get question difficulty from cache
-    const currentQuestion = cacheState.questions.find((q: any) => q.id === question_id);
+    // Get question difficulty from cache or database fallback
+    const currentQuestion = cacheState?.questions?.find((q: any) => q.id === question_id);
     const difficulty = currentQuestion?.difficulty || 3;
 
     // Check correct answer
@@ -256,16 +262,20 @@ export class SessionsService {
       correct_q: isCorrect ? { increment: 1 } : undefined
     });
 
-    cacheState.currentIndex++;
     let nextQuestion = null;
-    if (cacheState.currentIndex < cacheState.total) {
-      nextQuestion = { ...cacheState.questions[cacheState.currentIndex], question_index: cacheState.currentIndex + 1 };
+    if (cacheState) {
+      cacheState.currentIndex++;
+      if (cacheState.currentIndex < cacheState.total) {
+        nextQuestion = { ...cacheState.questions[cacheState.currentIndex], question_index: cacheState.currentIndex + 1 };
+      }
     }
 
-    // Update cache
-    const ttl = await redisClient.ttl(`session:${sessionId}`);
-    if (ttl > 0) {
-      await redisClient.setEx(`session:${sessionId}`, ttl, JSON.stringify(cacheState));
+    // Update cache if open
+    if (redisClient.isOpen && cacheState) {
+      const ttl = await redisClient.ttl(`session:${sessionId}`).catch(() => 0);
+      if (ttl > 0) {
+        await redisClient.setEx(`session:${sessionId}`, ttl, JSON.stringify(cacheState)).catch(() => {});
+      }
     }
 
     let explanation = currentQuestion?.explanation || null;
@@ -312,8 +322,8 @@ export class SessionsService {
       next_review_in_days: sm2Result ? sm2Result.new_interval : (progress ? progress.interval_days : 1),
       next_question: nextQuestion,
       session_progress: {
-        answered: cacheState.currentIndex,
-        total: cacheState.total,
+        answered: cacheState ? cacheState.currentIndex : session.answered_q + 1,
+        total: cacheState ? cacheState.total : session.total_q,
         correct_so_far: session.correct_q + (isCorrect ? 1 : 0)
       }
     };
@@ -333,7 +343,9 @@ export class SessionsService {
       score
     });
 
-    await redisClient.del(`session:${sessionId}`);
+    if (redisClient.isOpen) {
+      await redisClient.del(`session:${sessionId}`).catch(() => {});
+    }
 
     // Topic performance logic
     const { performance_by_topic, weakestTopic } = await this.computeTopicPerformance(session.session_answers);
@@ -355,7 +367,9 @@ export class SessionsService {
     const session = await this.sessionsRepository.findQuizSessionById(sessionId);
     if (!session || session.student_id !== studentId) throw new ApiError(404, 'Session not found');
 
-    await redisClient.del(`session:${sessionId}`);
+    if (redisClient.isOpen) {
+      await redisClient.del(`session:${sessionId}`).catch(() => {});
+    }
 
     await this.sessionsRepository.updateQuizSession(sessionId, {
       status: 'abandoned',

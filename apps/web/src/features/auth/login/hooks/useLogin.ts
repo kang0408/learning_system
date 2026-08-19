@@ -19,7 +19,8 @@ export const useLogin = () => {
       login(token, user);
       
       // Redirect based on role
-      if (user.role === 'teacher') navigate('/teacher');
+      if (user.role === 'admin') navigate('/admin');
+      else if (user.role === 'teacher') navigate('/teacher');
       else navigate('/student');
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.response?.data?.message || t('auth.login.errorLoginFailed');

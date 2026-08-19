@@ -832,6 +832,21 @@
         "logout": "Đăng xuất",
         "role": "Giáo viên"
       }
+    },
+    "admin": {
+      "nav": {
+        "system": "Theo dõi hệ thống",
+        "users": "Quản lý người dùng"
+      },
+      "menuTitle": "HỆ THỐNG QUẢN TRỊ",
+      "language": "Ngôn ngữ",
+      "logout": "Đăng xuất",
+      "tooltips": {
+        "vietnamese": "Tiếng Việt",
+        "english": "English",
+        "logout": "Đăng xuất",
+        "role": "Quản trị viên"
+      }
     }
   }
 }

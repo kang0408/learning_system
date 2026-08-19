@@ -27,6 +27,7 @@ router.post('/admin', requireRole(['admin']), asyncWrapper(usersController.creat
 router.patch('/admin/:id', requireRole(['admin']), asyncWrapper(usersController.updateAdminUser));
 router.patch('/admin/:id/password', requireRole(['admin']), asyncWrapper(usersController.resetUserPassword));
 router.delete('/admin/:id', requireRole(['admin']), asyncWrapper(usersController.deleteAdminUser));
+router.delete('/admin/:id/permanent', requireRole(['admin']), asyncWrapper(usersController.hardDeleteAdminUser));
 router.post('/admin/:id/restore', requireRole(['admin']), asyncWrapper(usersController.restoreAdminUser));
 
 export default router;
