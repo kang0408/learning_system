@@ -1,4 +1,4 @@
-# 💻 @adaptive-lang/web - Frontend Single Page Application
+# 💻 @learning-system/web - Frontend Single Page Application
 
 High-performance, modern Single Page Application (SPA) for the **Adaptive Language Learning System**, built with **React 19**, **Vite 8**, **Tailwind CSS v4**, **TanStack Query v5**, **Zustand**, and **i18next**.
 

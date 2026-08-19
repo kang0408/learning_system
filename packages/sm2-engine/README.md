@@ -1,4 +1,4 @@
-# 🧠 @adaptive-lang/sm2-engine
+# 🧠 @learning-system/sm2-engine
 
 Pure TypeScript implementation of the **SuperMemo-2 (SM-2)** Spaced Repetition Algorithm, enhanced with **response-time scaling**, **difficulty-weighted quality scores**, and **question-type thresholds**.
 
@@ -30,7 +30,7 @@ $$I(n) = \begin{cases}
 ## 📦 Usage
 
 ```typescript
-import { calculateSM2 } from '@adaptive-lang/sm2-engine';
+import { calculateSM2 } from '@learning-system/sm2-engine';
 
 const result = calculateSM2({
   progress: {

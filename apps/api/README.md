@@ -1,4 +1,4 @@
-# 🚀 @adaptive-lang/api - Backend REST API
+# 🚀 @learning-system/api - Backend REST API
 
 High-performance Express & TypeScript REST API service powering the **Adaptive Language Learning System**, built with **Prisma ORM**, **PostgreSQL**, **Redis**, **Google Gemini AI**, and **SuperMemo-2 (SM-2)** algorithm integration.
 
@@ -121,7 +121,7 @@ apps/api/src/
 ## 🧠 Core Engines & Integrations
 
 ### 1. SuperMemo-2 (SM-2) Spaced Repetition Engine
-Located in `@adaptive-lang/sm2-engine`:
+Located in `@learning-system/sm2-engine`:
 - Calculates new **Easiness Factor ($EF$)** based on question response time, difficulty rating, and answer correctness.
 - Dynamically computes the **Inter-repetition Interval ($I$)** in days.
 - Automatically adjusts for lapses (resetting repetitions if response grade $q < 3$).
