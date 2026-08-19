@@ -1,4 +1,4 @@
-import { SM2_CONSTANTS, SM2Input, SM2Result, SM2_DEFAULTS } from '@adaptive-lang/types';
+import { SM2_CONSTANTS, SM2Input, SM2Result, SM2_DEFAULTS } from '@learning-system/types';
 
 export function calculateQualityScore(
   is_correct: boolean, 

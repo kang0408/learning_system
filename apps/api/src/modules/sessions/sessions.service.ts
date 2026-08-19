@@ -1,4 +1,4 @@
-import { updateSM2 } from '@adaptive-lang/sm2-engine';
+import { updateSM2 } from '@learning-system/sm2-engine';
 import redisClient from '../../lib/redis';
 import { SM2Repository } from '../sm2/sm2.repository';
 import { ApiError } from '../../lib/ApiError';

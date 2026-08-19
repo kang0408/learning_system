@@ -6,15 +6,15 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev --workspace=@adaptive-lang/api",
+    "dev:api": "npm run dev --workspace=@learning-system/api",
     "dev:web": "npm run dev --workspace=web",
-    "build:api": "npm run build --workspace=@adaptive-lang/api",
+    "build:api": "npm run build --workspace=@learning-system/api",
     "build:web": "npm run build --workspace=web",
     "build": "npm run build:api && npm run build:web",
     "docker:up": "docker compose up --build -d",
     "docker:down": "docker compose down",
     "docker:dev": "docker compose up -d postgres redis",
-    "db:migrate": "npm run prisma migrate dev --workspace=@adaptive-lang/api",
-    "db:seed": "npm run db:seed --workspace=@adaptive-lang/api"
+    "db:migrate": "npm run prisma migrate dev --workspace=@learning-system/api",
+    "db:seed": "npm run db:seed --workspace=@learning-system/api"
   }
 }

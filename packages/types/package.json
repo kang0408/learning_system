@@ -1,5 +1,5 @@
 {
-  "name": "@adaptive-lang/types",
+  "name": "@learning-system/types",
   "version": "1.0.0",
   "main": "src/index.ts"
 }

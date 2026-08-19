@@ -1,5 +1,5 @@
 {
-  "name": "@adaptive-lang/api",
+  "name": "@learning-system/api",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -31,8 +31,8 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@adaptive-lang/sm2-engine": "^1.0.0",
-    "@adaptive-lang/types": "^1.0.0",
+    "@learning-system/sm2-engine": "^1.0.0",
+    "@learning-system/types": "^1.0.0",
     "@google/genai": "^2.12.0",
     "@prisma/client": "^5.0.0",
     "@sentry/node": "^10.65.0",

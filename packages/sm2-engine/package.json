@@ -1,5 +1,5 @@
 {
-  "name": "@adaptive-lang/sm2-engine",
+  "name": "@learning-system/sm2-engine",
   "version": "1.0.0",
   "main": "src/sm2.ts",
   "scripts": {
@@ -12,6 +12,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@adaptive-lang/types": "*"
+    "@learning-system/types": "*"
   }
 }
