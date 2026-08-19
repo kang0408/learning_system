@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BarChart2, GraduationCap, BookOpen, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, BarChart2, GraduationCap, BookOpen, Compass, MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/DropdownMenu';
 import { Button } from '@/components/ui/Button';
 
+export type ClassDetailTab = 'analytics' | 'students' | 'assignments' | 'curriculum';
+
 interface ClassHeaderProps {
   classDetails: any;
-  activeTab: 'analytics' | 'students' | 'assignments';
-  onTabChange: (tab: 'analytics' | 'students' | 'assignments') => void;
+  activeTab: ClassDetailTab;
+  onTabChange: (tab: ClassDetailTab) => void;
   onEditClick: () => void;
   onDeleteClick: () => void;
 }
@@ -58,11 +60,11 @@ export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick,
       </div>
 
       <div 
-        className="flex border bg-white p-2 rounded-2xl shadow-sm border-gray-100 gap-1.5"
+        className="flex border bg-white p-2 rounded-2xl shadow-sm border-gray-100 gap-1.5 overflow-x-auto"
         role="tablist"
         aria-label="Class Management Tabs"
       >
-        {(['analytics', 'students', 'assignments'] as const).map(tab => {
+        {(['analytics', 'curriculum', 'assignments', 'students'] as const).map(tab => {
           const isSelected = activeTab === tab;
           return (
             <button
@@ -72,16 +74,23 @@ export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick,
               aria-controls={`${tab}-panel`}
               id={`${tab}-tab`}
               onClick={() => onTabChange(tab)}
-              className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-bold text-sm transition-all duration-300 flex-1 md:flex-initial focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
+              className={`flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-bold text-sm transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 ${
                 isSelected
                   ? 'bg-slate-900 text-white shadow-md shadow-slate-200'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               {tab === 'analytics' && <BarChart2 className="w-4 h-4" aria-hidden="true" />}
-              {tab === 'students' && <GraduationCap className="w-4 h-4" aria-hidden="true" />}
+              {tab === 'curriculum' && <Compass className="w-4 h-4" aria-hidden="true" />}
               {tab === 'assignments' && <BookOpen className="w-4 h-4" aria-hidden="true" />}
-              {tab === 'analytics' ? t('teacher.classDetail.analyticsTab') : tab === 'students' ? t('teacher.classDetail.studentsTab') : t('teacher.classDetail.assignmentsTab')}
+              {tab === 'students' && <GraduationCap className="w-4 h-4" aria-hidden="true" />}
+              {tab === 'analytics'
+                ? t('teacher.classDetail.analyticsTab')
+                : tab === 'curriculum'
+                ? t('teacher.classDetail.curriculumTab')
+                : tab === 'assignments'
+                ? t('teacher.classDetail.assignmentsTab')
+                : t('teacher.classDetail.studentsTab')}
             </button>
           );
         })}

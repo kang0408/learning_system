@@ -24,3 +24,5 @@ export interface AssignmentItem {
   max_attempts?: number;
   quiz_sessions?: QuizSession[];
 }
+
+export type * from './curriculum.types';

@@ -19,6 +19,7 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import StudentProfile from './pages/student/StudentProfile';
 import StudentClasses from './pages/student/StudentClasses';
 import StudentClassDetail from './pages/student/StudentClassDetail';
+import StudentCurriculumDetail from './pages/student/StudentCurriculumDetail';
 import QuizPage from './pages/student/QuizPage';
 import SessionResult from './pages/student/SessionResult';
 // Teacher Routes
@@ -88,7 +89,8 @@ export const router = createBrowserRouter([
       { index: true, element: <StudentDashboard /> },
       { path: 'profile', element: <StudentProfile /> },
       { path: 'classes', element: <StudentClasses /> },
-      { path: 'classes/:id', element: <StudentClassDetail /> }
+      { path: 'classes/:id', element: <StudentClassDetail /> },
+      { path: 'classes/:classId/curriculums/:curriculumId', element: <StudentCurriculumDetail /> }
     ]
   },
   {

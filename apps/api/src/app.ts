@@ -12,6 +12,7 @@ import sessionsRoutes from './modules/sessions/sessions.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
 import usersRoutes from './modules/users/users.routes';
 import sm2Routes from './modules/sm2/sm2.routes';
+import curriculumsRoutes from './modules/curriculums/curriculums.routes';
 import { metricsCollectorMiddleware } from './middlewares/metrics.middleware';
 
 const app = express();
@@ -31,6 +32,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/classes', classesRoutes);
+app.use('/api/classes/:classId/curriculums', curriculumsRoutes);
 app.use('/api/questions', questionsRoutes);
 app.use('/api/topics', topicsRoutes);
 app.use('/api/assignments', assignmentsRoutes);

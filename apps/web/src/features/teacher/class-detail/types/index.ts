@@ -43,3 +43,5 @@ export interface ClassAssignment {
   topic?: { name: string };
   _count?: { submissions: number };
 }
+
+export type * from './curriculum.types';

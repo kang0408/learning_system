@@ -52,6 +52,7 @@ model Class {
   members     ClassMember[]
   assignments Assignment[]
   ai_reports  AiReport[]
+  curriculums ClassCurriculum[]
 
   @@index([teacher_id])
   @@map("classes")
@@ -174,6 +175,7 @@ model Assignment {
   assignment_questions AssignmentQuestion[]
   quiz_sessions        QuizSession[]
   assigned_students    AssignmentStudent[]
+  curriculum_assignments CurriculumAssignment[]
 
   @@index([class_id])
   @@index([created_by])
@@ -305,4 +307,59 @@ model AiReport {
   @@index([class_id])
   @@map("ai_reports")
 }
+
+model ClassCurriculum {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  class_id     String    @db.Uuid
+  title        String    @db.VarChar(200)
+  content_html String    @db.Text
+  video_url    String?   @db.VarChar(500)
+  video_type   String?   @db.VarChar(20)
+  order_index  Int       @default(0) @db.SmallInt
+  is_published Boolean   @default(true)
+  created_at   DateTime  @default(now()) @db.Timestamptz
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz
+  deleted_at   DateTime? @db.Timestamptz
+
+  class        Class                  @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  materials    CurriculumMaterial[]
+  assignments  CurriculumAssignment[]
+
+  @@index([class_id])
+  @@index([class_id, order_index])
+  @@map("class_curriculums")
+}
+
+model CurriculumMaterial {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  curriculum_id String   @db.Uuid
+  title         String   @db.VarChar(200)
+  file_url      String   @db.VarChar(500)
+  file_type     String?  @db.VarChar(50)
+  file_size     Int?
+  order_index   Int      @default(0) @db.SmallInt
+  created_at    DateTime @default(now()) @db.Timestamptz
+
+  curriculum ClassCurriculum @relation(fields: [curriculum_id], references: [id], onDelete: Cascade)
+
+  @@index([curriculum_id])
+  @@map("curriculum_materials")
+}
+
+model CurriculumAssignment {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  curriculum_id String   @db.Uuid
+  assignment_id String   @db.Uuid
+  order_index   Int      @default(0) @db.SmallInt
+  created_at    DateTime @default(now()) @db.Timestamptz
+
+  curriculum ClassCurriculum @relation(fields: [curriculum_id], references: [id], onDelete: Cascade)
+  assignment Assignment      @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+
+  @@unique([curriculum_id, assignment_id])
+  @@index([curriculum_id])
+  @@index([assignment_id])
+  @@map("curriculum_assignments")
+}
+
 

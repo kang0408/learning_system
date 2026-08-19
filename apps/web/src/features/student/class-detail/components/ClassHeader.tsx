@@ -4,15 +4,27 @@ import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ClassDetailData } from '../types';
 
+export type StudentClassTab = 'curriculum' | 'assignments';
+
 interface ClassHeaderProps {
   classData: ClassDetailData;
+  activeTab: StudentClassTab;
+  onTabChange: (tab: StudentClassTab) => void;
+  curriculumsCount?: number;
+  assignmentsCount?: number;
 }
 
-export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
+export const ClassHeader: React.FC<ClassHeaderProps> = ({
+  classData,
+  activeTab,
+  onTabChange,
+  curriculumsCount = 0,
+  assignmentsCount = 0
+}) => {
   const { t } = useTranslation();
 
   return (
-    <div className="border-b-4 border-indigo-600 pb-12">
+    <div className="border-b-4 border-indigo-600 pb-8">
       <Link 
         to="/student/classes" 
         className="inline-flex items-center text-indigo-600 font-bold uppercase tracking-widest text-sm mb-12 hover:bg-indigo-600 hover:text-white px-3 py-1 border-2 border-transparent hover:border-indigo-600 transition-colors"
@@ -37,6 +49,33 @@ export const ClassHeader: React.FC<ClassHeaderProps> = ({ classData }) => {
             {classData.teacher?.full_name}
           </p>
         </div>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t-2 border-zinc-200">
+        <button
+          type="button"
+          onClick={() => onTabChange('curriculum')}
+          className={`font-black uppercase tracking-widest text-sm px-6 py-3 border-2 border-zinc-900 transition-all ${
+            activeTab === 'curriculum'
+              ? 'bg-zinc-900 text-white shadow-[4px_4px_0_0_#4f46e5]'
+              : 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-[4px_4px_0_0_#18181b]'
+          }`}
+        >
+          <span>{t('student.classDetail.curriculumTab')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onTabChange('assignments')}
+          className={`font-black uppercase tracking-widest text-sm px-6 py-3 border-2 border-zinc-900 transition-all ${
+            activeTab === 'assignments'
+              ? 'bg-zinc-900 text-white shadow-[4px_4px_0_0_#4f46e5]'
+              : 'bg-white text-zinc-900 hover:bg-zinc-100 shadow-[4px_4px_0_0_#18181b]'
+          }`}
+        >
+          <span>{t('student.classDetail.allAssignmentsTab')}</span>
+        </button>
       </div>
     </div>
   );

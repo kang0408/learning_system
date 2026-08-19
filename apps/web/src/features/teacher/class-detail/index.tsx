@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useClassDetailData, useClassMutations } from './hooks/useClassDetailData';
-import { ClassHeader } from './components/ClassHeader';
+import { ClassHeader, type ClassDetailTab } from './components/ClassHeader';
 import { AnalyticsTab } from './components/AnalyticsTab';
 import { StudentsTab } from './components/StudentsTab';
 import { AssignmentsTab } from './components/AssignmentsTab';
+import { CurriculumTab } from './components/CurriculumTab';
 import { EditClassModal } from './components/EditClassModal';
 import { DeleteClassModal } from './components/DeleteClassModal';
 import { toast } from '@/utils/toast';
@@ -16,8 +17,8 @@ export const TeacherClassDetailFeature: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = (searchParams.get('tab') as 'analytics' | 'students' | 'assignments') || 'analytics';
-  const setActiveTab = (tab: 'analytics' | 'students' | 'assignments') => setSearchParams({ tab });
+  const activeTab = (searchParams.get('tab') as ClassDetailTab) || 'analytics';
+  const setActiveTab = (tab: ClassDetailTab) => setSearchParams({ tab });
   
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -80,6 +81,13 @@ export const TeacherClassDetailFeature: React.FC = () => {
             classStats={classStats} 
             analytics={analytics} 
             classId={id || ''} 
+          />
+        )}
+
+        {activeTab === 'curriculum' && (
+          <CurriculumTab
+            classId={id || ''}
+            assignments={assignments}
           />
         )}
         
