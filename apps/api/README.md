@@ -40,7 +40,7 @@ apps/api/src/
 │   ├── auth/                # Register, login, refresh, logout
 │   ├── classes/             # Classroom management & join codes
 │   ├── curriculums/         # Lesson roadmap, video embeddings, material uploads
-│   ├── questions/           # Question CRUD, bulk CSV import
+│   ├── questions/           # Question CRUD, AI generation
 │   ├── sessions/            # Real-time quiz taking session engine
 │   ├── sm2/                 # Spaced repetition calculation endpoints
 │   ├── topics/              # Knowledge graph taxonomy
@@ -99,7 +99,6 @@ apps/api/src/
 |---|---|---|---|
 | `GET` | `/api/questions` | List questions with pagination and filters | Teacher / Admin |
 | `POST` | `/api/questions` | Create question manually | Teacher / Admin |
-| `POST` | `/api/questions/import-csv` | Bulk import questions via CSV upload | Teacher / Admin |
 | `POST` | `/api/questions/generate-ai` | Generate multiple-choice questions with Gemini AI | Teacher / Admin |
 
 ### 📝 Quiz Sessions & SM-2 (`/api/sessions`)

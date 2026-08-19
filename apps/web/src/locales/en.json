@@ -629,7 +629,7 @@
         "descLabel": "Description",
         "descPlaceholder": "Detailed description about this topic (optional)",
         "codeLabel": "Topic Code (Optional)",
-        "codeDesc": "Helps classify easily when importing CSV files.",
+        "codeDesc": "Topic identifier code (up to 6 characters).",
         "codePlaceholderExample": "EX: TOPIC1",
         "codePlaceholderAuto": "AUTO GENERATE",
         "cancel": "Cancel",

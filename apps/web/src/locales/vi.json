@@ -629,7 +629,7 @@
         "descLabel": "Mô tả",
         "descPlaceholder": "Mô tả chi tiết về chủ đề này (không bắt buộc)",
         "codeLabel": "Mã Chủ đề (Tùy chọn)",
-        "codeDesc": "Giúp dễ dàng phân loại khi import file CSV.",
+        "codeDesc": "Mã định danh chủ đề (tối đa 6 ký tự).",
         "codePlaceholderExample": "VÍ DỤ: TOPIC1",
         "codePlaceholderAuto": "TỰ ĐỘNG TẠO MÃ",
         "cancel": "Hủy",

@@ -5,7 +5,6 @@ import { QuestionBankHeader } from './components/QuestionBankHeader';
 import { TopicList } from './components/TopicList';
 import { CreateTopicModal } from './components/CreateTopicModal';
 import { CreateQuestionModal } from './components/CreateQuestionModal';
-import { ImportCsvModal } from './components/ImportCsvModal';
 
 export default function TeacherQuestionBankFeature() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,13 +13,11 @@ export default function TeacherQuestionBankFeature() {
 
   const [showTopicModal, setShowTopicModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
 
   return (
     <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6">
       <QuestionBankHeader
         totalTopics={topics.length}
-        onOpenImport={() => setShowImportModal(true)}
         onOpenCreateTopic={() => setShowTopicModal(true)}
         onOpenCreateQuestion={() => setShowQuestionModal(true)}
       />
@@ -41,11 +38,6 @@ export default function TeacherQuestionBankFeature() {
         isOpen={showQuestionModal} 
         onClose={() => setShowQuestionModal(false)} 
         topics={topics}
-      />
-      
-      <ImportCsvModal 
-        isOpen={showImportModal} 
-        onClose={() => setShowImportModal(false)} 
       />
     </div>
   );

@@ -1,19 +1,17 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Upload, Folder } from 'lucide-react';
+import { Plus, Folder } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
 interface QuestionBankHeaderProps {
   totalTopics: number;
-  onOpenImport: () => void;
   onOpenCreateTopic: () => void;
   onOpenCreateQuestion: () => void;
 }
 
 export const QuestionBankHeader: React.FC<QuestionBankHeaderProps> = ({
   totalTopics,
-  onOpenImport,
   onOpenCreateTopic,
   onOpenCreateQuestion
 }) => {
@@ -31,13 +29,6 @@ export const QuestionBankHeader: React.FC<QuestionBankHeaderProps> = ({
         <p className="text-sm text-slate-500 font-medium mt-1">{t('teacher.questionBank.header.description')}</p>
       </div>
       <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
-        <Button
-          variant="outline"
-          size="md"
-          onClick={onOpenImport}
-        >
-          <Upload className="w-4 h-4 mr-2" /> {t('teacher.questionBank.header.importCsv')}
-        </Button>
         <Button
           variant="outline"
           size="md"

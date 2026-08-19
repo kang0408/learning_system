@@ -37,7 +37,7 @@ An intelligent, multi-tenant language learning platform featuring **SuperMemo-2 
 
 ### 👩‍🏫 For Teachers
 - **Classroom & Student Management**: Generate join codes, track student participation, and manage enrollment.
-- **AI-Powered Question Bank**: Generate high-quality multiple-choice questions automatically using Google Gemini AI, with bulk CSV import and manual editing.
+- **AI-Powered Question Bank**: Generate high-quality multiple-choice questions automatically using Google Gemini AI, with comprehensive manual editing and topic taxonomy.
 - **Curriculum & Lesson Builder**: Visual drag-and-drop lesson reordering, rich text editor for lesson notes, video embedding, and material attachments.
 - **Knowledge Graph & Retention Analytics**: Spider charts and retention decay matrices across question topics to identify struggling students early.
 
