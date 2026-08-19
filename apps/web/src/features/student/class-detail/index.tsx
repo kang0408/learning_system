@@ -22,8 +22,6 @@ export const StudentClassDetailFeature: React.FC = () => {
         classData={classData}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        curriculumsCount={curriculums.length}
-        assignmentsCount={assignments.length}
       />
 
       <div role="tabpanel" id={`${activeTab}-panel`} aria-labelledby={`${activeTab}-tab`} className="animate-in fade-in duration-300">

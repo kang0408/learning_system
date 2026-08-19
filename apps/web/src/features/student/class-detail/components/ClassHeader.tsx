@@ -10,16 +10,12 @@ interface ClassHeaderProps {
   classData: ClassDetailData;
   activeTab: StudentClassTab;
   onTabChange: (tab: StudentClassTab) => void;
-  curriculumsCount?: number;
-  assignmentsCount?: number;
 }
 
 export const ClassHeader: React.FC<ClassHeaderProps> = ({
   classData,
   activeTab,
-  onTabChange,
-  curriculumsCount = 0,
-  assignmentsCount = 0
+  onTabChange
 }) => {
   const { t } = useTranslation();
 
