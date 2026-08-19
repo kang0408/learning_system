@@ -17,6 +17,9 @@ COPY apps/api/ ./apps/api/
 # Install all dependencies across workspace
 RUN npm ci
 
+# Build internal shared packages (@learning-system/types, @learning-system/sm2-engine)
+RUN npm run build:packages
+
 # Generate Prisma Client
 WORKDIR /app/apps/api
 RUN npx prisma generate
@@ -33,7 +36,10 @@ ENV PORT=4000
 
 # Copy workspace package manifests
 COPY package.json package-lock.json tsconfig.base.json ./
-COPY packages/ ./packages/
+
+# Copy compiled packages from builder (including compiled dist/ files)
+COPY --from=builder /app/packages ./packages
+
 COPY apps/api/package.json ./apps/api/
 COPY apps/api/prisma ./apps/api/prisma
 

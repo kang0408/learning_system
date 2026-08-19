@@ -1,8 +1,10 @@
 {
   "name": "@learning-system/sm2-engine",
   "version": "1.0.0",
-  "main": "src/sm2.ts",
+  "main": "dist/sm2.js",
+  "types": "dist/sm2.d.ts",
   "scripts": {
+    "build": "tsc",
     "test": "jest"
   },
   "devDependencies": {

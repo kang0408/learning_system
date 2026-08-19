@@ -8,7 +8,8 @@
   "scripts": {
     "dev:api": "npm run dev --workspace=@learning-system/api",
     "dev:web": "npm run dev --workspace=web",
-    "build:api": "npm run build --workspace=@learning-system/api",
+    "build:packages": "npm run build --workspace=@learning-system/types && npm run build --workspace=@learning-system/sm2-engine",
+    "build:api": "npm run build:packages && npm run build --workspace=@learning-system/api",
     "build:web": "npm run build --workspace=web",
     "build": "npm run build:api && npm run build:web",
     "start": "node apps/api/dist/server.js",
