@@ -2,9 +2,14 @@ import { useSystemAnalytics } from '../../features/admin/analytics/hooks/useSyst
 import { RealtimeHealthBanner } from '../../features/admin/analytics/components/RealtimeHealthBanner';
 import { MetricCards } from '../../features/admin/analytics/components/MetricCards';
 import { ServerMemoryCard } from '../../features/admin/analytics/components/ServerMemoryCard';
+import { AiOpsMetricsCard } from '../../features/admin/analytics/components/AiOpsMetricsCard';
+import { ApiTrafficCard } from '../../features/admin/analytics/components/ApiTrafficCard';
+import { DatabaseDeepCard } from '../../features/admin/analytics/components/DatabaseDeepCard';
 import { Activity, RefreshCw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function AdminSystemAnalytics() {
+  const { t } = useTranslation();
   const { metrics, loading, isLiveStream, error } = useSystemAnalytics();
 
   return (
@@ -16,22 +21,24 @@ export default function AdminSystemAnalytics() {
             <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-200">
               <Activity className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Theo Dõi Hệ Thống Real-time</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              {t('adminAnalytics.header.title')}
+            </h1>
           </div>
           <p className="text-sm font-semibold text-slate-500 mt-1">
-            Giám sát tài nguyên máy chủ, kết nối cơ sở dữ liệu và lượt học tập trực tuyến tức thì
+            {t('adminAnalytics.header.subtitle')}
           </p>
         </div>
       </div>
 
       {error && (
         <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-2xl flex items-center justify-between">
-          <span className="text-sm font-bold">{error}</span>
+          <span className="text-sm font-bold">{t('adminAnalytics.header.error')}</span>
           <button 
             onClick={() => window.location.reload()}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-rose-200 rounded-lg text-xs font-bold hover:bg-rose-100 transition-colors shadow-sm"
           >
-            <RefreshCw className="w-3.5 h-3.5" /> Tải lại
+            <RefreshCw className="w-3.5 h-3.5" /> {t('adminAnalytics.header.reload')}
           </button>
         </div>
       )}
@@ -41,6 +48,13 @@ export default function AdminSystemAnalytics() {
 
       {/* 4 Cards Overview */}
       <MetricCards metrics={metrics} loading={loading} />
+
+      {/* AI Operations & API Traffic Row */}
+      <div className="grid grid-cols-1 gap-6">
+        <AiOpsMetricsCard metrics={metrics} loading={loading} />
+        <ApiTrafficCard metrics={metrics} loading={loading} />
+        <DatabaseDeepCard metrics={metrics} loading={loading} />
+      </div>
 
       {/* RAM & CPU Performance Metrics */}
       <ServerMemoryCard metrics={metrics} loading={loading} />

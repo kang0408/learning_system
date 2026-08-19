@@ -848,5 +848,113 @@
         "role": "System Admin"
       }
     }
+  },
+  "adminAnalytics": {
+    "header": {
+      "title": "Real-time System Monitoring",
+      "subtitle": "Comprehensive real-time monitoring of server resources, AI Ops, API traffic, and PostgreSQL database",
+      "reload": "Reload",
+      "error": "Failed to load system snapshot metrics"
+    },
+    "banner": {
+      "systemStatus": "System Status:",
+      "lastUpdated": "Last updated:",
+      "liveSse": "Live SSE Stream (3s)",
+      "restSnapshot": "REST Snapshot Mode",
+      "subsystems": "Subsystems:",
+      "pgDb": "PostgreSQL DB",
+      "nodeRam": "Node RAM Heap",
+      "aiEngine": "AI Engine",
+      "apiGateway": "API Gateway"
+    },
+    "metrics": {
+      "realtimeLive": "Real-time Live",
+      "activeExams": "Active quiz sessions right now",
+      "active15m": "Active (last 15m):",
+      "users": "Users",
+      "totalUsers": "Total accounts in system",
+      "student": "Student",
+      "teacher": "Teacher",
+      "admin": "Admin",
+      "content": "System Content",
+      "totalQuestions": "Total questions in bank",
+      "classes": "Classes:",
+      "quizSessions": "Quiz sessions:",
+      "database": "Database",
+      "dbSize": "PostgreSQL Database size",
+      "activeConnections": "Active DB connections:"
+    },
+    "aiOps": {
+      "title": "AI & LLM Operations (AI Ops)",
+      "badge": "Gemini Engine",
+      "subtitle": "Monitor token consumption, latency, and AI content generation rate",
+      "service": "AI Service:",
+      "tokens": "Tokens Consumed",
+      "tokensDesc": "Tokens (Prompt + Completion)",
+      "generated": "Generated Content",
+      "auto": "Automated",
+      "reports": "reports",
+      "questions": "questions",
+      "latency": "Average Latency",
+      "fastStable": "Fast & stable response",
+      "errorRate": "Error / Fallback Rate",
+      "errorRateDesc": "Rate of failed or retried AI requests",
+      "low": "Low"
+    },
+    "apiTraffic": {
+      "title": "API & Network Traffic (API Traffic)",
+      "badge": "Rolling 60s",
+      "subtitle": "Monitor request throughput (RPS), P95 latency, and realtime SSE stream",
+      "gateway": "API Gateway:",
+      "rps": "Throughput (RPS)",
+      "total1m": "Total {{count}} requests in last 60s",
+      "p95": "P95 Latency:",
+      "statusDist": "HTTP Status Code Distribution",
+      "pct": "Ratio %",
+      "successRate": "Success rate:",
+      "subscribers": "SSE Live Subscribers",
+      "realtime": "Real-time",
+      "activeChannels": "Active Channels",
+      "subscribersDesc": "Number of admin & teacher tabs receiving realtime stream",
+      "frequency": "Stream frequency:"
+    },
+    "databaseDeep": {
+      "title": "Database Performance (PostgreSQL Deep)",
+      "badge": "pg_stat",
+      "subtitle": "Monitor RAM Buffer Cache Hit, SQL query latency, and Connection Pool status",
+      "postgres": "PostgreSQL:",
+      "cacheHit": "Cache Hit Ratio",
+      "cacheExcellent": "Excellent",
+      "cacheNeedsOpt": "Needs optimization",
+      "cacheDesc": "Ratio of queries read from RAM Buffer",
+      "queryLatency": "Query Latency (SQL)",
+      "realtime": "Realtime",
+      "superFast": "Ultra fast response",
+      "latencyDesc": "Execution time of probe query",
+      "activeXacts": "Active Transactions",
+      "transactions": "Transactions",
+      "slowQueries": "Slow queries (>200ms):",
+      "xactsDesc": "Transactions executing concurrently",
+      "sizeAndPool": "Storage & Pool",
+      "storage": "Storage",
+      "connections": "Connections:",
+      "active": "active",
+      "sizeDesc": "Disk size and client connections"
+    },
+    "serverMemory": {
+      "title": "Server & RAM Memory",
+      "subtitle": "Real-time RAM Heap monitoring chart",
+      "uptime": "Uptime:",
+      "days": "days",
+      "chartTitle": "RAM Heap Used Chart",
+      "chartDataset": "RAM Heap Used (MB)",
+      "rss": "RSS Memory:",
+      "ramStatus": "RAM Status:",
+      "alarm": "Critical",
+      "good": "Healthy",
+      "cpuTime": "CPU User / Sys Time",
+      "cpuDesc": "Total CPU time consumed",
+      "nodeEnv": "Node Environment"
+    }
   }
 }

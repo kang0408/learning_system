@@ -848,5 +848,113 @@
         "role": "Quản trị viên"
       }
     }
+  },
+  "adminAnalytics": {
+    "header": {
+      "title": "Theo Dõi Hệ Thống Real-time",
+      "subtitle": "Giám sát toàn diện tài nguyên máy chủ, AI Ops, lưu lượng API và cơ sở dữ liệu PostgreSQL thời gian thực",
+      "reload": "Tải lại",
+      "error": "Không thể tải dữ liệu snapshot hệ thống"
+    },
+    "banner": {
+      "systemStatus": "Trạng thái Hệ thống:",
+      "lastUpdated": "Cập nhật lần cuối:",
+      "liveSse": "Live SSE Stream (3s)",
+      "restSnapshot": "REST Snapshot Mode",
+      "subsystems": "Phân hệ:",
+      "pgDb": "PostgreSQL DB",
+      "nodeRam": "Node RAM Heap",
+      "aiEngine": "AI Engine",
+      "apiGateway": "API Gateway"
+    },
+    "metrics": {
+      "realtimeLive": "Real-time Live",
+      "activeExams": "Lượt thi đang làm trực tiếp",
+      "active15m": "Hoạt động (15p vừa qua):",
+      "users": "Người Dùng",
+      "totalUsers": "Tổng tài khoản trong hệ thống",
+      "student": "Học sinh",
+      "teacher": "Giáo viên",
+      "admin": "Admin",
+      "content": "Nội Dung Dữ Liệu",
+      "totalQuestions": "Tổng câu hỏi trong Ngân hàng",
+      "classes": "Lớp học:",
+      "quizSessions": "Lượt làm bài:",
+      "database": "Cơ Sở Dữ Liệu",
+      "dbSize": "Dung lượng PostgreSQL DB",
+      "activeConnections": "Kết nối DB hoạt động:"
+    },
+    "aiOps": {
+      "title": "Vận Hành AI & LLM (AI Ops)",
+      "badge": "Gemini Engine",
+      "subtitle": "Giám sát lượng token tiêu thụ, độ trễ và tỷ lệ tạo nội dung AI",
+      "service": "AI Service:",
+      "tokens": "Token Tiêu Thụ",
+      "tokensDesc": "Tokens (Prompt + Completion)",
+      "generated": "Nội Dung Đã Sinh",
+      "auto": "Tự động",
+      "reports": "báo cáo",
+      "questions": "câu hỏi",
+      "latency": "Độ Trễ Trung Bình",
+      "fastStable": "Phản hồi nhanh & ổn định",
+      "errorRate": "Tỷ Lệ Lỗi / Fallback",
+      "errorRateDesc": "Tỷ lệ yêu cầu AI lỗi hoặc retry",
+      "low": "Thấp"
+    },
+    "apiTraffic": {
+      "title": "Lưu Lượng API & Mạng (API Traffic)",
+      "badge": "Rolling 60s",
+      "subtitle": "Giám sát tốc độ xử lý request (RPS), độ trễ P95 và luồng SSE realtime",
+      "gateway": "API Gateway:",
+      "rps": "Tốc Độ Xử Lý (RPS)",
+      "total1m": "Tổng {{count}} requests trong 60s vừa qua",
+      "p95": "Độ trễ P95:",
+      "statusDist": "Phân Bổ Mã Phản Hồi HTTP",
+      "pct": "Tỷ lệ %",
+      "successRate": "Tỷ lệ thành công:",
+      "subscribers": "SSE Live Subscribers",
+      "realtime": "Real-time",
+      "activeChannels": "Active Channels",
+      "subscribersDesc": "Số lượng tab quản trị & giáo viên đang nhận luồng số liệu trực tiếp",
+      "frequency": "Tần suất stream:"
+    },
+    "databaseDeep": {
+      "title": "Hiệu Năng Cơ Sở Dữ Liệu (PostgreSQL Deep)",
+      "badge": "pg_stat",
+      "subtitle": "Giám sát bộ đệm RAM Cache Hit, độ trễ truy vấn SQL và tình trạng Connection Pool",
+      "postgres": "PostgreSQL:",
+      "cacheHit": "Cache Hit Ratio",
+      "cacheExcellent": "Xuất sắc",
+      "cacheNeedsOpt": "Cần tối ưu",
+      "cacheDesc": "Tỷ lệ truy vấn đọc từ RAM Buffer",
+      "queryLatency": "Độ Trễ Truy Vấn (SQL)",
+      "realtime": "Realtime",
+      "superFast": "Phản hồi cực nhanh",
+      "latencyDesc": "Thời gian thực thi truy vấn kiểm tra",
+      "activeXacts": "Active Transactions",
+      "transactions": "Giao dịch",
+      "slowQueries": "Truy vấn chậm (>200ms):",
+      "xactsDesc": "Giao dịch đang thực thi đồng thời",
+      "sizeAndPool": "Dung Lượng & Pool",
+      "storage": "Storage",
+      "connections": "Connections:",
+      "active": "active",
+      "sizeDesc": "Kích thước đĩa và kết nối máy khách"
+    },
+    "serverMemory": {
+      "title": "Máy Chủ & Bộ Nhớ RAM Server",
+      "subtitle": "Biểu đồ giám sát dung lượng RAM Heap theo thời gian thực",
+      "uptime": "Uptime:",
+      "days": "ngày",
+      "chartTitle": "Biểu đồ RAM Heap Used",
+      "chartDataset": "RAM Heap Used (MB)",
+      "rss": "RSS Memory:",
+      "ramStatus": "Trạng thái RAM:",
+      "alarm": "Báo động",
+      "good": "Tốt",
+      "cpuTime": "CPU User / Sys Time",
+      "cpuDesc": "Tổng thời gian CPU tiêu thụ",
+      "nodeEnv": "Node Environment"
+    }
   }
 }

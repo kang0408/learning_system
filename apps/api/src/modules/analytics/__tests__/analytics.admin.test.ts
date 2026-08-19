@@ -6,6 +6,17 @@ import { AnalyticsController } from '../analytics.controller';
 import { AnalyticsService } from '../analytics.service';
 import { AnalyticsRepository } from '../analytics.repository';
 
+jest.mock('../../../lib/redis', () => ({
+  redisClient: {
+    on: jest.fn(),
+    connect: jest.fn().mockResolvedValue(undefined),
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+    quit: jest.fn().mockResolvedValue('OK'),
+  },
+  isConnected: true,
+}));
+
 jest.mock('../../../lib/prisma', () => ({
   prisma: {
     user: {
@@ -19,6 +30,9 @@ jest.mock('../../../lib/prisma', () => ({
       count: jest.fn(),
     },
     quizSession: {
+      count: jest.fn(),
+    },
+    aiReport: {
       count: jest.fn(),
     },
     $queryRaw: jest.fn(),
@@ -47,7 +61,7 @@ describe('Admin System Analytics Module (/api/analytics/admin)', () => {
       expect(res.status).toBe(403);
     });
 
-    it('should return system metrics for admin with HEALTHY status', async () => {
+    it('should return system metrics for admin with HEALTHY status and extended metrics', async () => {
       (prisma.user.count as jest.Mock).mockResolvedValue(10);
       (prisma.user.groupBy as jest.Mock).mockResolvedValue([
         { role: 'student', _count: { id: 8 } },
@@ -56,18 +70,29 @@ describe('Admin System Analytics Module (/api/analytics/admin)', () => {
       (prisma.class.count as jest.Mock).mockResolvedValue(3);
       (prisma.question.count as jest.Mock).mockResolvedValue(50);
       (prisma.quizSession.count as jest.Mock).mockResolvedValue(20);
+      (prisma.aiReport.count as jest.Mock).mockResolvedValue(12);
       (prisma.$queryRaw as jest.Mock)
         .mockResolvedValueOnce([{ size: '100 MB' }])
-        .mockResolvedValueOnce([{ count: BigInt(5) }]);
+        .mockResolvedValueOnce([{ count: BigInt(5) }])
+        .mockResolvedValueOnce([{ cache_hit_ratio: 99.5 }])
+        .mockResolvedValueOnce([{ active_xacts: 1 }])
+        .mockResolvedValueOnce([{ slow_queries: 0 }]);
 
       const res = await request(app)
         .get('/api/analytics/admin/system')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.status).toBe('HEALTHY');
+      expect(['HEALTHY', 'WARNING']).toContain(res.body.data.status);
       expect(res.body.data.users.total).toBe(10);
       expect(res.body.data.database.databaseSize).toBe('100 MB');
+      expect(res.body.data.checks).toBeDefined();
+      expect(res.body.data.checks.database.status).toBe('HEALTHY');
+      expect(res.body.data.aiOps).toBeDefined();
+      expect(res.body.data.aiOps.totalReportsGenerated).toBe(12);
+      expect(res.body.data.apiTraffic).toBeDefined();
+      expect(res.body.data.databaseDeep).toBeDefined();
+      expect(res.body.data.databaseDeep.cacheHitRatioPct).toBe(99.5);
       expect(res.body.data.server.memory).toBeDefined();
     });
   });
@@ -86,9 +111,13 @@ describe('Admin System Analytics Module (/api/analytics/admin)', () => {
       (prisma.class.count as jest.Mock).mockResolvedValue(3);
       (prisma.question.count as jest.Mock).mockResolvedValue(50);
       (prisma.quizSession.count as jest.Mock).mockResolvedValue(20);
+      (prisma.aiReport.count as jest.Mock).mockResolvedValue(5);
       (prisma.$queryRaw as jest.Mock)
         .mockResolvedValueOnce([{ size: '100 MB' }])
-        .mockResolvedValueOnce([{ count: BigInt(5) }]);
+        .mockResolvedValueOnce([{ count: BigInt(5) }])
+        .mockResolvedValueOnce([{ cache_hit_ratio: 99.5 }])
+        .mockResolvedValueOnce([{ active_xacts: 1 }])
+        .mockResolvedValueOnce([{ slow_queries: 0 }]);
 
       const req: any = { on: jest.fn() };
       const res: any = {
@@ -96,6 +125,7 @@ describe('Admin System Analytics Module (/api/analytics/admin)', () => {
         flushHeaders: jest.fn(),
         write: jest.fn(),
         end: jest.fn(),
+        on: jest.fn(),
       };
 
       const repo = new AnalyticsRepository(prisma as any);

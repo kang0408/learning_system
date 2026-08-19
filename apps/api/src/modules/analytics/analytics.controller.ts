@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { AnalyticsService } from './analytics.service';
 import { BaseController } from '../../controllers/BaseController';
+import { registerSseConnection, unregisterSseConnection } from '../../middlewares/metrics.middleware';
 
 export class AnalyticsController extends BaseController {
   constructor(private readonly analyticsService: AnalyticsService) {
@@ -33,9 +34,15 @@ export class AnalyticsController extends BaseController {
       (res as any).flushHeaders();
     }
 
+    registerSseConnection();
+    let isCleanedUp = false;
     let intervalId: NodeJS.Timeout | null = null;
 
     const cleanup = () => {
+      if (!isCleanedUp) {
+        isCleanedUp = true;
+        unregisterSseConnection();
+      }
       if (intervalId) {
         clearInterval(intervalId);
         intervalId = null;
@@ -62,12 +69,16 @@ export class AnalyticsController extends BaseController {
     await sendMetrics();
     intervalId = setInterval(sendMetrics, 3000);
 
-    req.on('close', cleanup);
-    req.on('end', cleanup);
-    req.on('error', cleanup);
-    res.on('close', cleanup);
-    res.on('finish', cleanup);
-    res.on('error', cleanup);
+    if (typeof req.on === 'function') {
+      req.on('close', cleanup);
+      req.on('end', cleanup);
+      req.on('error', cleanup);
+    }
+    if (typeof res.on === 'function') {
+      res.on('close', cleanup);
+      res.on('finish', cleanup);
+      res.on('error', cleanup);
+    }
   }
 
   // --- STUDENT ---

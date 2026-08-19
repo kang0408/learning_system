@@ -12,8 +12,11 @@ import sessionsRoutes from './modules/sessions/sessions.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
 import usersRoutes from './modules/users/users.routes';
 import sm2Routes from './modules/sm2/sm2.routes';
+import { metricsCollectorMiddleware } from './middlewares/metrics.middleware';
+
 const app = express();
 
+app.use(metricsCollectorMiddleware);
 app.use(helmet({
   crossOriginResourcePolicy: false, // allow serving images cross-origin if needed
 }));
