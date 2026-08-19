@@ -6,6 +6,7 @@ export class AnalyticsRepository {
   // --- ADMIN SYSTEM ANALYTICS ---
   async getRealTimeSystemMetrics() {
     const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
 
     const [
       totalUsers,
@@ -32,7 +33,7 @@ export class AnalyticsRepository {
       this.prisma.class.count({ where: { deleted_at: null } }),
       this.prisma.question.count({ where: { deleted_at: null } }),
       this.prisma.quizSession.count(),
-      this.prisma.quizSession.count({ where: { status: 'in_progress' } }),
+      this.prisma.quizSession.count({ where: { status: 'in_progress', started_at: { gte: twoHoursAgo } } }),
       this.prisma.$queryRaw<{ size: string }[]>`
         SELECT pg_size_pretty(pg_database_size(current_database())) as size
       `.catch(() => [{ size: 'N/A' }]),

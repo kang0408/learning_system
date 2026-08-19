@@ -20,6 +20,37 @@ export class SessionsRepository {
     });
   }
 
+  async abandonStaleSessions(studentId?: string, assignmentId?: string) {
+    const whereClause: Prisma.QuizSessionWhereInput = {
+      status: 'in_progress',
+    };
+
+    if (studentId && assignmentId) {
+      whereClause.student_id = studentId;
+      whereClause.assignment_id = assignmentId;
+    } else {
+      // System-wide stale sessions older than 2 hours
+      whereClause.started_at = { lte: new Date(Date.now() - 2 * 60 * 60 * 1000) };
+    }
+
+    const staleSessions = await this.prisma.quizSession.findMany({
+      where: whereClause,
+      select: { id: true }
+    });
+
+    if (staleSessions.length > 0) {
+      await this.prisma.quizSession.updateMany({
+        where: whereClause,
+        data: {
+          status: 'abandoned',
+          finished_at: new Date(),
+        }
+      });
+    }
+
+    return staleSessions.map(s => s.id);
+  }
+
   async findAssignmentQuestions(assignmentId: string) {
     return this.prisma.assignmentQuestion.findMany({
       where: { assignment_id: assignmentId },

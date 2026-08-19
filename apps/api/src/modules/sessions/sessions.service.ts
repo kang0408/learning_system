@@ -50,6 +50,14 @@ export class SessionsService {
   }
 
   async startSession(studentId: string, assignmentId: string) {
+    // Automatically abandon any stale/unfinished in_progress sessions for this student & assignment
+    const staleIds = await this.sessionsRepository.abandonStaleSessions(studentId, assignmentId);
+    if (redisClient.isOpen && staleIds.length > 0) {
+      for (const sId of staleIds) {
+        await redisClient.del(`session:${sId}`).catch(() => {});
+      }
+    }
+
     const assignment = await this.sessionsRepository.findAssignmentById(assignmentId);
     if (!assignment || !assignment.is_published) throw new ApiError(404, 'Assignment not found or not published');
 
