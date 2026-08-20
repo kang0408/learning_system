@@ -29,7 +29,7 @@ export class AiService {
       const prompt = `Học sinh trả lời sai câu hỏi: "${questionContext}". Hãy giải thích ngắn gọn, dễ hiểu trong 2 câu vì sao đáp án này sai và gợi ý cách nhớ. Chỉ liệt kệ giải thích và cách nhớ, không có gì khác`;
       
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.6-flash',
         contents: prompt
       });
       
@@ -59,7 +59,7 @@ Hãy viết một đoạn tóm tắt ngắn (1-2 câu) khích lệ học sinh v�
 Trả về JSON định dạng: { "summary": "...", "focus_advice": "..." }`;
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.6-flash',
         contents: prompt
       });
 
@@ -87,7 +87,7 @@ Hãy viết một báo cáo cho giáo viên (1-2 câu) về tình trạng chung 
 Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "..." }`;
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.6-flash',
         contents: prompt
       });
 
@@ -153,7 +153,7 @@ ${typeInstruction}
 ${formatInstruction}`;
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.6-flash',
         contents: prompt,
         config: {
           responseMimeType: "application/json",
