@@ -101,6 +101,7 @@ Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "
       return null;
     }
   }
+
   /**
    * Generates quiz questions based on topic, type, quantity, and difficulty
    */
@@ -108,33 +109,47 @@ Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "
     try {
       let typeStr = '';
       let formatInstruction = '';
+      let typeInstruction = '';
+
       switch (params.question_type) {
         case 'multiple_choice':
           typeStr = 'trắc nghiệm (1 đáp án đúng trong 4 lựa chọn)';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "multiple_choice" cho tất cả câu hỏi được tạo ra!';
           break;
         case 'multi_select':
           typeStr = 'trắc nghiệm nhiều đáp án (có thể có nhiều đáp án đúng)';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "multi_select" cho tất cả câu hỏi được tạo ra!';
           formatInstruction = 'Đảm bảo có ít nhất 1 đáp án is_correct: true. Học sinh sẽ tích chọn các đáp án đúng.';
           break;
         case 'true_false':
           typeStr = 'đúng/sai (2 đáp án)';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "true_false" cho tất cả câu hỏi được tạo ra!';
           break;
         case 'fill_blank':
           typeStr = 'điền vào chỗ trống';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "fill_blank" cho tất cả câu hỏi được tạo ra!';
           formatInstruction = 'Với dạng điền vào chỗ trống, nội dung câu hỏi chứa "____" để điền. Mảng answer_options chứa 1 phần tử duy nhất là từ/cụm từ đúng đắn (is_correct: true).';
           break;
         case 'matching':
           typeStr = 'ghép cặp';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "matching" cho tất cả câu hỏi được tạo ra!';
           formatInstruction = 'Với dạng ghép cặp, bỏ trống mảng answer_options. Thay vào đó hãy trả về đối tượng metadata: { "pairs": [ { "leftText": "...", "rightText": "..." } ] } chứa ít nhất 3 cặp tương ứng nhau.';
           break;
-        default:
-          typeStr = 'tổng hợp đa dạng (trắc nghiệm, đúng/sai, điền từ, ghép cặp)';
-          formatInstruction = 'Chú ý định dạng: Ghép cặp dùng metadata.pairs và mảng answer_options rỗng. Điền từ có mảng answer_options chứa 1 đáp án đúng. Trắc nghiệm có 4 đáp án. Đúng/sai có 2 đáp án.';
+        default: // 'mixed'
+          typeStr = 'tổng hợp đa dạng (kết hợp các loại: trắc nghiệm multiple_choice, trắc nghiệm nhiều đáp án multi_select, đúng/sai true_false, điền từ fill_blank, ghép cặp matching)';
+          typeInstruction = 'QUAN TRỌNG: Với TỪNG câu hỏi, bạn BẮT BUỘC phải gán thuộc tính "question_type" là một trong các loại cụ thể sau: "multiple_choice", "multi_select", "true_false", "fill_blank", hoặc "matching". TUYỆT ĐỐI KHÔNG gán "mixed" vào question_type!';
+          formatInstruction = `Định dạng chi tiết theo từng loại:
+- "multiple_choice": có 4 answer_options, đúng 1 đáp án is_correct: true.
+- "multi_select": có 4 answer_options, 2 hoặc nhiều đáp án is_correct: true.
+- "true_false": có 2 answer_options (Đúng / Sai).
+- "fill_blank": nội dung câu hỏi chứa "____", answer_options chứa 1 đáp án là từ cần điền.
+- "matching": answer_options để rỗng [], thay vào đó trả về đối tượng metadata: { "pairs": [ { "leftText": "...", "rightText": "..." } ] } có ít nhất 3 cặp.`;
       }
+      
       const difficultyStr = params.difficulty ? `${params.difficulty}/5 sao` : 'ngẫu nhiên';
       
-      const prompt = `Bạn là một chuyên gia giáo dục. Hãy tạo ${params.quantity} câu hỏi dạng ${typeStr} cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết.
-QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "${params.question_type}" cho tất cả câu hỏi được tạo ra!
+      const prompt = `Bạn là một chuyên gia giáo dục hàng đầu. Hãy tạo ${params.quantity} câu hỏi dạng ${typeStr} cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết.
+${typeInstruction}
 ${formatInstruction}`;
 
       const response = await this.ai.models.generateContent({
@@ -184,7 +199,38 @@ ${formatInstruction}`;
       });
 
       const jsonString = response.text || "[]";
-      return JSON.parse(jsonString);
+      const parsedQuestions = JSON.parse(jsonString);
+
+      // Sanitize and auto-detect question_type defensively
+      const validTypes = new Set(['multiple_choice', 'multi_select', 'true_false', 'fill_blank', 'matching']);
+      
+      return parsedQuestions.map((q: any) => {
+        let qType = q.question_type;
+        if (!validTypes.has(qType)) {
+          // Auto-detect type based on question structure if Gemini returned 'mixed' or unknown type
+          if (q.metadata?.pairs && Array.isArray(q.metadata.pairs) && q.metadata.pairs.length > 0) {
+            qType = 'matching';
+          } else if (
+            Array.isArray(q.answer_options) && 
+            q.answer_options.length === 2 && 
+            (q.answer_options[0]?.content === 'Đúng' || q.answer_options[0]?.content === 'True')
+          ) {
+            qType = 'true_false';
+          } else if (q.content?.includes('____') && Array.isArray(q.answer_options) && q.answer_options.length === 1) {
+            qType = 'fill_blank';
+          } else if (Array.isArray(q.answer_options) && q.answer_options.filter((o: any) => o.is_correct).length > 1) {
+            qType = 'multi_select';
+          } else {
+            qType = 'multiple_choice';
+          }
+        }
+
+        return {
+          ...q,
+          question_type: qType,
+          difficulty: Math.max(1, Math.min(5, Number(q.difficulty) || 3)),
+        };
+      });
     } catch (error) {
       Sentry.captureException(error);
       throw error;
