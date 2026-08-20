@@ -27,7 +27,7 @@ describe('POST /api/auth/login', () => {
     });
 
     expect(res.status).toBe(200);
-    expect(res.body).toHaveProperty('token');
+    expect(res.body.data).toHaveProperty('token');
   });
 
   it('should reject login with 403 when user is deactivated (is_active = false)', async () => {

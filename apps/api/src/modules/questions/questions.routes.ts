@@ -27,9 +27,9 @@ router.post('/', requireAuth, requireRole(['teacher']), asyncWrapper(questionsCo
 router.get('/', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.getQuestions));
 router.post('/bulk', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.bulkCreateQuestions));
 router.post('/generate-ai', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.generateAiQuestions));
-// CSV import route disabled
-// router.post('/import', requireAuth, requireRole(['teacher']), upload.single('file'), asyncWrapper(questionsController.importCSV));
-// Topic routes removed (moved to topics module)
+router.post('/import', requireAuth, requireRole(['teacher']), upload.single('file'), asyncWrapper(questionsController.importCSV));
+router.post('/import-csv', requireAuth, requireRole(['teacher']), upload.single('file'), asyncWrapper(questionsController.importCSV));
+
 
 // Question routes
 router.get('/:id', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.getQuestionById));

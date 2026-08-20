@@ -66,6 +66,14 @@ export class SessionsRepository {
     });
   }
 
+  async findQuestionById(id: string) {
+    return this.prisma.question.findUnique({
+      where: { id },
+      include: { answer_options: true }
+    });
+  }
+
+
   async createQuizSession(data: Prisma.QuizSessionUncheckedCreateInput) {
     return this.prisma.quizSession.create({ data });
   }

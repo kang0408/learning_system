@@ -160,9 +160,13 @@ export class SessionsService {
       }
     }
 
-    // Get question difficulty from cache or database fallback
-    const currentQuestion = cacheState?.questions?.find((q: any) => q.id === question_id);
+    // Get question difficulty and type from cache or database fallback
+    let currentQuestion = cacheState?.questions?.find((q: any) => q.id === question_id);
+    if (!currentQuestion) {
+      currentQuestion = await this.sessionsRepository.findQuestionById(question_id);
+    }
     const difficulty = currentQuestion?.difficulty || 3;
+
 
     // Check correct answer
     const options = await this.sessionsRepository.findAnswerOptionsByQuestionId(question_id);

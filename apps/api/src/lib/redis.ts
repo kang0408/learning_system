@@ -29,8 +29,12 @@ redisClient.on('error', (err) => {
   console.warn('Redis Client Warning:', err.message);
 });
 
-redisClient.connect().catch(() => {
-  // Gracefully ignore error if local Redis server is not running
-});
+if (process.env.NODE_ENV !== 'test') {
+  redisClient.connect().catch(() => {
+    // Gracefully ignore error if local Redis server is not running
+  });
+}
 
+export { redisClient };
 export default redisClient;
+
