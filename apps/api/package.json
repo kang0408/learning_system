@@ -32,9 +32,9 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@google/genai": "^2.12.0",
     "@learning-system/sm2-engine": "^1.0.0",
     "@learning-system/types": "^1.0.0",
-    "@google/genai": "^2.12.0",
     "@prisma/client": "^5.0.0",
     "@sentry/node": "^10.65.0",
     "@sentry/profiling-node": "^10.65.0",
@@ -52,6 +52,7 @@
     "nodemailer": "^8.0.7",
     "papaparse": "^5.5.3",
     "redis": "^5.12.1",
+    "resend": "^6.20.0",
     "uuid": "^14.0.0",
     "zod": "^4.4.3"
   }

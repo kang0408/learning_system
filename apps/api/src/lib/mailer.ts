@@ -1,7 +1,11 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Helper to create appropriate transporter
-const getTransporter = () => {
+// Initialize Resend if API key exists
+const resendClient = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+// Helper to create appropriate SMTP transporter fallback
+const getSmtpTransporter = () => {
   const isGmail = 
     process.env.SMTP_HOST?.includes('gmail') || 
     process.env.SMTP_USER?.endsWith('@gmail.com');
@@ -34,6 +38,61 @@ const getFromAddress = () => {
   return `"Hệ thống học tập" <${user}>`;
 };
 
+// Generic mail dispatcher supporting Resend (HTTPS) & SMTP fallback
+const dispatchMail = async ({
+  to,
+  subject,
+  text,
+  html,
+}: {
+  to: string;
+  subject: string;
+  text?: string;
+  html?: string;
+}): Promise<boolean> => {
+  // Priority 1: Resend HTTP API (Port 443 - Perfect for Cloud like Railway / Vercel)
+  if (resendClient) {
+    try {
+      const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
+      const result = await resendClient.emails.send({
+        from: `Hệ thống học tập <${from}>`,
+        to: [to],
+        subject,
+        text: text || '',
+        html: html || undefined,
+      });
+
+      if (result.error) {
+        console.error('[Resend Error] Gửi mail thất bại:', result.error);
+        return false;
+      }
+
+      console.log(`✅ [Resend] Đã gửi mail thành công tới ${to} (ID: ${result.data?.id})`);
+      return true;
+    } catch (err) {
+      console.error('[Resend Error] Ngoại lệ khi gọi Resend API:', err);
+      return false;
+    }
+  }
+
+  // Priority 2: SMTP / Nodemailer fallback
+  try {
+    const transporter = getSmtpTransporter();
+    const info = await transporter.sendMail({
+      from: getFromAddress(),
+      to,
+      subject,
+      text,
+      html,
+    });
+    console.log(`✅ [SMTP] Đã gửi mail thành công tới ${to}: ${info.response || info.messageId}`);
+    return true;
+  } catch (error) {
+    console.error('[Email Error] Lỗi khi gửi mail qua SMTP:', error);
+    return false;
+  }
+};
+
 export const sendOTP = async (email: string, code: string, purpose: 'register' | 'forgot_password') => {
   console.log(`🔑 [OTP Server Log] Mã xác thực gửi tới ${email} (${purpose}): [ ${code} ]`);
   
@@ -45,21 +104,11 @@ export const sendOTP = async (email: string, code: string, purpose: 'register' |
     ? `Mã OTP xác thực đăng ký của bạn là: ${code}. Mã này có hiệu lực trong 5 phút.`
     : `Mã OTP khôi phục mật khẩu của bạn là: ${code}. Mã này có hiệu lực trong 5 phút.`;
 
-  try {
-    const transporter = getTransporter();
-    const info = await transporter.sendMail({
-      from: getFromAddress(),
-      to: email,
-      subject,
-      text,
-    });
-    
-    console.log(`✅ [Email] Đã gửi OTP thành công tới ${email}: ${info.response || info.messageId}`);
-    return true;
-  } catch (error) {
-    console.error('[Email Error] Lỗi khi gửi OTP qua SMTP:', error);
-    return false;
-  }
+  return dispatchMail({
+    to: email,
+    subject,
+    text,
+  });
 };
 
 export const sendNewAssignmentEmail = async (email: string, studentName: string, assignmentTitle: string, deadline: Date | null) => {
@@ -74,18 +123,11 @@ export const sendNewAssignmentEmail = async (email: string, studentName: string,
     </div>
   `;
 
-  try {
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: getFromAddress(),
-      to: email,
-      subject,
-      html,
-    });
-    console.log(`[Email] Gửi thông báo bài tập mới thành công tới ${email}`);
-  } catch (error) {
-    console.error(`[Email Error] Không thể gửi thông báo bài tập mới tới ${email}:`, error);
-  }
+  return dispatchMail({
+    to: email,
+    subject,
+    html,
+  });
 };
 
 export const sendDeadlineReminderEmail = async (email: string, studentName: string, assignmentTitle: string, deadline: Date) => {
@@ -98,16 +140,9 @@ export const sendDeadlineReminderEmail = async (email: string, studentName: stri
     </div>
   `;
 
-  try {
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: getFromAddress(),
-      to: email,
-      subject,
-      html,
-    });
-    console.log(`[Email] Gửi nhắc nhở hạn chót thành công tới ${email}`);
-  } catch (error) {
-    console.error(`[Email Error] Không thể gửi nhắc nhở hạn chót tới ${email}:`, error);
-  }
+  return dispatchMail({
+    to: email,
+    subject,
+    html,
+  });
 };
