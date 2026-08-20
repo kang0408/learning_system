@@ -125,10 +125,10 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className={`bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${step === 2 ? 'max-h-[90vh]' : ''}`}>
+      <div className={`bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl flex flex-col animate-in zoom-in-95 duration-200 ${step === 2 ? 'max-h-[90vh] overflow-hidden' : 'overflow-visible'}`}>
         
         {/* Header */}
-        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 bg-white shrink-0">
+        <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 bg-white shrink-0 rounded-t-2xl">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">
               <Sparkles className="w-5 h-5" />
@@ -151,7 +151,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
         </div>
 
         {/* Modal Body */}
-        <div className={`p-5 sm:p-6 flex-1 bg-slate-50/50 ${step === 2 ? 'overflow-y-auto' : ''}`}>
+        <div className={`p-5 sm:p-6 flex-1 bg-slate-50/50 ${step === 2 ? 'overflow-y-auto' : 'overflow-visible'}`}>
           {step === 1 ? (
             <form id="generate-ai-form" onSubmit={handleGenerate} className="space-y-5">
               {/* Chủ đề */}
@@ -335,7 +335,7 @@ export const GenerateAiQuestionsModal: React.FC<GenerateAiQuestionsModalProps> =
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0">
+        <div className={`p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex items-center justify-between shrink-0 ${step === 1 ? 'rounded-b-2xl' : ''}`}>
           <div>
             {step === 2 && (
               <Button

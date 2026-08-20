@@ -18,6 +18,7 @@ export interface SelectProps {
   size?: 'default' | 'sm' | 'lg';
   error?: boolean;
   disabled?: boolean;
+  direction?: 'auto' | 'down' | 'up';
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -30,6 +31,7 @@ export const Select: React.FC<SelectProps> = ({
   size = 'default',
   error,
   disabled = false,
+  direction: customDirection = 'auto',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [direction, setDirection] = useState<'down' | 'up'>('down');
@@ -39,9 +41,22 @@ export const Select: React.FC<SelectProps> = ({
 
   useEffect(() => {
     if (isOpen && containerRef.current) {
+      if (customDirection && customDirection !== 'auto') {
+        setDirection(customDirection);
+        return;
+      }
+
       const rect = containerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const estimatedHeight = 20 + options.length * 36;
+      const estimatedHeight = Math.min(240, 20 + options.length * 38);
+      
+      // Check nearest modal or scrollable parent
+      const parentContainer = containerRef.current.closest('.overflow-hidden, .overflow-y-auto, [role="dialog"]') as HTMLElement | null;
+      let spaceBelow = window.innerHeight - rect.bottom;
+      
+      if (parentContainer) {
+        const parentRect = parentContainer.getBoundingClientRect();
+        spaceBelow = Math.min(spaceBelow, parentRect.bottom - rect.bottom);
+      }
       
       if (spaceBelow < estimatedHeight && rect.top > estimatedHeight) {
         setDirection('up');
@@ -49,7 +64,7 @@ export const Select: React.FC<SelectProps> = ({
         setDirection('down');
       }
     }
-  }, [isOpen, options.length]);
+  }, [isOpen, options.length, customDirection]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -98,7 +113,7 @@ export const Select: React.FC<SelectProps> = ({
       {isOpen && (
         <div 
           className={cn(
-            'absolute z-50 w-full bg-white border border-slate-200 rounded-lg shadow-lg p-1 overflow-y-auto max-h-60 animate-in fade-in zoom-in-95 duration-150',
+            'absolute z-[60] w-full bg-white border border-slate-200 rounded-xl shadow-xl p-1 overflow-y-auto max-h-60 animate-in fade-in zoom-in-95 duration-150',
             direction === 'up' ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
           )}
         >
@@ -111,7 +126,7 @@ export const Select: React.FC<SelectProps> = ({
                 setIsOpen(false);
               }}
               className={cn(
-                'w-full px-3 py-2 flex items-center justify-between rounded-md transition-colors text-left text-sm',
+                'w-full px-3 py-2 flex items-center justify-between rounded-lg transition-colors text-left text-sm',
                 value === option.value
                   ? 'bg-indigo-50 text-indigo-700 font-semibold'
                   : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-normal'
