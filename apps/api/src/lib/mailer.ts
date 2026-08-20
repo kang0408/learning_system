@@ -11,9 +11,13 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER || 'test@ethereal.email',
     pass: process.env.SMTP_PASS || 'password',
   },
+  connectionTimeout: 5000, // 5 seconds timeout
+  greetingTimeout: 5000,
 });
 
 export const sendOTP = async (email: string, code: string, purpose: 'register' | 'forgot_password') => {
+  console.log(`🔑 [OTP Server Log] Mã xác thực gửi tới ${email} (${purpose}): [ ${code} ]`);
+  
   const subject = purpose === 'register' 
     ? 'Xác thực đăng ký tài khoản' 
     : 'Yêu cầu khôi phục mật khẩu';
@@ -37,7 +41,7 @@ export const sendOTP = async (email: string, code: string, purpose: 'register' |
     
     return true;
   } catch (error) {
-    console.error('[Email Error] Lỗi khi gửi OTP:', error);
+    console.error('[Email Error] Lỗi khi gửi OTP qua SMTP:', error);
     return false;
   }
 };
