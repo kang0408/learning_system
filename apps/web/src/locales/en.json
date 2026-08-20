@@ -425,6 +425,7 @@
       "lessonTitlePlaceholder": "e.g. Lesson 1: Overview of Present Perfect Tense",
       "lessonTitleRequired": "Please enter lesson title",
       "lessonContentRequired": "Please enter lesson content",
+      "contentPlaceholder": "Enter lesson content here (supports headings, lists, quotes, code...)...",
       "publishLessonCheckbox": "Publish this lesson for students immediately",
       "videoSectionTitle": "Video Lecture (Google Drive / YouTube / Vimeo / MP4)",
       "videoPlaceholder": "Paste Google Drive (view permission), YouTube, or Vimeo link...",

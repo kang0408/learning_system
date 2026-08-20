@@ -425,6 +425,7 @@
       "lessonTitlePlaceholder": "Ví dụ: Bài 1: Tổng quan về Thì Hiện Tại Hoành Thành",
       "lessonTitleRequired": "Vui lòng nhập tiêu đề bài học",
       "lessonContentRequired": "Vui lòng nhập nội dung bài học",
+      "contentPlaceholder": "Nhập nội dung bài học tại đây (hỗ trợ tiêu đề, danh sách, trích dẫn, mã code...)...",
       "publishLessonCheckbox": "Công khai bài học này cho học sinh xem ngay",
       "videoSectionTitle": "Video bài giảng (Google Drive / YouTube / Vimeo / MP4)",
       "videoPlaceholder": "Dán link Google Drive (quyền xem), YouTube, hoặc Vimeo...",
