@@ -439,6 +439,7 @@
       "deleteCurriculumConfirmBtn": "Delete Lesson",
       "deletingBtn": "Deleting...",
       "savingBtn": "Saving...",
+      "createBtn": "Create Lesson",
       "createLessonSuccess": "Lesson created successfully!",
       "updateLessonSuccess": "Lesson updated successfully!",
       "deleteLessonSuccess": "Lesson deleted successfully!",
