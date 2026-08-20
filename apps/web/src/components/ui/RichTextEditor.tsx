@@ -43,7 +43,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const isUpdatingFromProps = useRef(false);
   const [isCodeView, setIsCodeView] = useState(false);
-  const [rawHtml, setRawHtml] = useState(value);
+  const [rawHtml, setRawHtml] = useState(value || '');
 
   // Sync value from props to editor without losing cursor when user types
   useEffect(() => {
@@ -59,7 +59,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     if (editorRef.current) {
       isUpdatingFromProps.current = true;
       const html = editorRef.current.innerHTML;
-      const cleanHtml = html === '<p><br></p>' || html === '<br>' ? '' : html;
+      const cleanHtml = html === '<p><br></p>' || html === '<br>' || html === '<p></p>' ? '' : html;
       onChange(cleanHtml);
       setRawHtml(cleanHtml);
       setTimeout(() => {
@@ -68,15 +68,34 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, [onChange]);
 
-  const exec = (command: string, value: string | undefined = undefined) => {
+  // Execute standard execCommand while keeping editor focus
+  const exec = (command: string, val: string | undefined = undefined) => {
     if (isCodeView) return;
     editorRef.current?.focus();
-    document.execCommand(command, false, value);
+    try {
+      document.execCommand(command, false, val);
+    } catch (e) {
+      console.warn('execCommand failed:', command, e);
+    }
     handleInput();
   };
 
+  // Robust formatBlock handler for headings, quote, code
   const handleFormatBlock = (tag: string) => {
-    exec('formatBlock', `<${tag}>`);
+    if (isCodeView) return;
+    editorRef.current?.focus();
+    try {
+      // Try <tag> (Chrome/Edge standard)
+      document.execCommand('formatBlock', false, `<${tag}>`);
+    } catch {
+      try {
+        // Fallback for Firefox/Safari
+        document.execCommand('formatBlock', false, tag);
+      } catch (e) {
+        console.warn('formatBlock failed:', tag, e);
+      }
+    }
+    handleInput();
   };
 
   const handleInsertLink = () => {
@@ -93,6 +112,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     onChange(newHtml);
   };
 
+  // Helper for toolbar buttons to prevent focus blur on click
+  const preventBlur = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <div
       className={cn(
@@ -107,6 +131,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <div className="flex items-center gap-0.5 pr-1.5 border-r border-slate-200">
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('undo')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Hoàn tác (Ctrl+Z)"
@@ -115,6 +140,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('redo')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Làm lại (Ctrl+Y)"
@@ -127,34 +153,41 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200">
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => handleFormatBlock('h2')}
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors flex items-center gap-1 font-bold text-xs"
             title="Tiêu đề lớn (H2)"
           >
             <Heading1 className="w-4 h-4" />
+            <span>H2</span>
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => handleFormatBlock('h3')}
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors flex items-center gap-1 font-semibold text-xs"
             title="Tiêu đề vừa (H3)"
           >
             <Heading2 className="w-4 h-4" />
+            <span>H3</span>
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => handleFormatBlock('h4')}
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors flex items-center gap-1 font-medium text-xs"
             title="Tiêu đề nhỏ (H4)"
           >
             <Heading3 className="w-4 h-4" />
+            <span>H4</span>
           </button>
         </div>
 
-        {/* Basic Styles */}
+        {/* Basic Inline Styles */}
         <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200">
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('bold')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors font-bold"
             title="Đậm (Ctrl+B)"
@@ -163,6 +196,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('italic')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors italic"
             title="Nghiêng (Ctrl+I)"
@@ -171,6 +205,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('underline')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors underline"
             title="Gạch chân (Ctrl+U)"
@@ -179,6 +214,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('strikeThrough')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors line-through"
             title="Gạch ngang"
@@ -191,30 +227,34 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200">
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('insertUnorderedList')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
-            title="Danh sách dấu chấm"
+            title="Danh sách dấu chấm (Bullet List)"
           >
             <List className="w-4 h-4" />
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('insertOrderedList')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
-            title="Danh sách số"
+            title="Danh sách số (Numbered List)"
           >
             <ListOrdered className="w-4 h-4" />
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => handleFormatBlock('blockquote')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
-            title="Trích dẫn"
+            title="Trích dẫn (Quote)"
           >
             <Quote className="w-4 h-4" />
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => handleFormatBlock('pre')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Khối mã (Code)"
@@ -227,6 +267,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <div className="flex items-center gap-0.5 px-1.5 border-r border-slate-200">
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('justifyLeft')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Căn trái"
@@ -235,6 +276,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('justifyCenter')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Căn giữa"
@@ -243,6 +285,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('justifyRight')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Căn phải"
@@ -255,6 +298,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <div className="flex items-center gap-0.5 px-1.5">
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={handleInsertLink}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Chèn liên kết"
@@ -263,6 +307,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={preventBlur}
             onClick={() => exec('removeFormat')}
             className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 transition-colors"
             title="Xóa định dạng"
@@ -277,7 +322,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             type="button"
             onClick={() => setIsCodeView(!isCodeView)}
             className={cn(
-              'px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors',
+              'px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer',
               isCodeView
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
@@ -304,7 +349,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             value={rawHtml}
             onChange={handleRawHtmlChange}
             style={{ minHeight }}
-            className="w-full p-4 font-mono text-xs text-slate-800 focus:outline-none resize-y leading-relaxed bg-slate-900 text-slate-100"
+            className="w-full p-4 font-mono text-xs focus:outline-none resize-y leading-relaxed bg-slate-900 text-slate-100"
             placeholder="<html>Nhập mã HTML tại đây...</html>"
           />
         ) : (
@@ -316,7 +361,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             style={{ minHeight }}
             data-placeholder={placeholder}
             className={cn(
-              'p-4 text-sm text-slate-800 focus:outline-none overflow-y-auto leading-relaxed prose prose-sm max-w-none',
+              'p-4 text-sm text-slate-800 focus:outline-none overflow-y-auto leading-relaxed rich-text-content prose max-w-none',
               'empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400 empty:before:pointer-events-none'
             )}
           />

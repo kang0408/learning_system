@@ -124,7 +124,7 @@ export const StudentCurriculumDetailFeature: React.FC = () => {
               <span>{t('student.classDetail.lessonContent')}</span>
             </div>
             <div
-              className="p-6 md:p-8 border-2 border-zinc-900 bg-zinc-50/50 shadow-[4px_4px_0_0_#18181b] prose prose-zinc max-w-none text-zinc-800 leading-relaxed font-medium break-words"
+              className="p-6 md:p-8 border-2 border-zinc-900 bg-zinc-50/50 shadow-[4px_4px_0_0_#18181b] rich-text-content prose prose-zinc max-w-none text-zinc-800 leading-relaxed font-medium break-words"
               dangerouslySetInnerHTML={{ __html: curriculum.content_html }}
             />
           </div>

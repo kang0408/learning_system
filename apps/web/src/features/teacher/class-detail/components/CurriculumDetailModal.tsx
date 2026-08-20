@@ -133,7 +133,7 @@ export const CurriculumDetailModal: React.FC<CurriculumDetailModalProps> = ({
                 {t('teacher.classDetail.lessonContent')}
               </h4>
               <div
-                className="prose prose-sm sm:prose-base max-w-none text-slate-700 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-100 leading-relaxed break-words"
+                className="rich-text-content prose prose-sm sm:prose-base max-w-none text-slate-700 bg-slate-50/70 p-4 sm:p-5 rounded-xl border border-slate-100 leading-relaxed break-words"
                 dangerouslySetInnerHTML={{ __html: curriculum.content_html }}
               />
             </div>
