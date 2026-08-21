@@ -50,7 +50,43 @@ const dispatchMail = async ({
   text?: string;
   html?: string;
 }): Promise<boolean> => {
-  // Priority 1: Resend HTTP API (Port 443 - Perfect for Cloud like Railway / Vercel)
+  // Priority 1: Brevo HTTP API (Port 443 - Allows sending to any recipient without domain verification)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.SMTP_USER || 'trandanhkhang482004@gmail.com';
+      const senderName = process.env.BREVO_SENDER_NAME || 'Hệ thống học tập';
+
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': process.env.BREVO_API_KEY,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: senderName, email: senderEmail },
+          to: [{ email: to }],
+          subject: subject,
+          textContent: text || '',
+          htmlContent: html || (text ? `<p>${text}</p>` : undefined),
+        }),
+      });
+
+      const resData: any = await response.json();
+
+      if (!response.ok) {
+        console.error('[Brevo Error] Gửi mail thất bại:', resData);
+        // Fall through to next providers if Brevo fails
+      } else {
+        console.log(`✅ [Brevo] Đã gửi mail thành công tới ${to} (MessageId: ${resData.messageId})`);
+        return true;
+      }
+    } catch (err) {
+      console.error('[Brevo Error] Ngoại lệ khi gọi Brevo API:', err);
+    }
+  }
+
+  // Priority 2: Resend HTTP API (Port 443 - Best when custom domain is set up)
   if (resendClient) {
     try {
       const from = process.env.RESEND_FROM || 'onboarding@resend.dev';
@@ -64,14 +100,12 @@ const dispatchMail = async ({
 
       if (result.error) {
         console.error('[Resend Error] Gửi mail thất bại:', result.error);
-        return false;
+      } else {
+        console.log(`✅ [Resend] Đã gửi mail thành công tới ${to} (ID: ${result.data?.id})`);
+        return true;
       }
-
-      console.log(`✅ [Resend] Đã gửi mail thành công tới ${to} (ID: ${result.data?.id})`);
-      return true;
     } catch (err) {
       console.error('[Resend Error] Ngoại lệ khi gọi Resend API:', err);
-      return false;
     }
   }
 
