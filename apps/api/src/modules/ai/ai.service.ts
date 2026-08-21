@@ -3,6 +3,7 @@ import { AiCacheRepository } from './ai-cache.repository';
 import { AiRepository } from './ai.repository';
 import { config } from '../../config';
 import * as Sentry from '@sentry/node';
+import { generateContentWithFallback } from './gemini-fallback';
 
 export class AiService {
   private ai: GoogleGenAI;
@@ -25,12 +26,11 @@ export class AiService {
       const cached = await this.aiCacheRepo.get(cacheKey);
       if (cached) return cached;
 
-      // 2. Cache Miss -> Call Gemini API
+      // 2. Cache Miss -> Call Gemini API with Fallback
       const prompt = `Học sinh trả lời sai câu hỏi: "${questionContext}". Hãy giải thích ngắn gọn, dễ hiểu trong 2 câu vì sao đáp án này sai và gợi ý cách nhớ. Chỉ liệt kệ giải thích và cách nhớ, không có gì khác`;
       
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt
+      const { response } = await generateContentWithFallback(this.ai, {
+        contents: prompt,
       });
       
       const explanation = response.text;
@@ -58,9 +58,8 @@ ${JSON.stringify(stats)}
 Hãy viết một đoạn tóm tắt ngắn (1-2 câu) khích lệ học sinh và một lời khuyên tập trung cải thiện điểm yếu. 
 Trả về JSON định dạng: { "summary": "...", "focus_advice": "..." }`;
 
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt
+      const { response } = await generateContentWithFallback(this.ai, {
+        contents: prompt,
       });
 
       // Simple extraction of JSON from response (in case of markdown blocks)
@@ -86,9 +85,8 @@ ${JSON.stringify(stats)}
 Hãy viết một báo cáo cho giáo viên (1-2 câu) về tình trạng chung của lớp và một lời khuyên sư phạm để cải thiện.
 Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "..." }`;
 
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: prompt
+      const { response } = await generateContentWithFallback(this.ai, {
+        contents: prompt,
       });
 
       const text = response.text || "{}";
@@ -152,8 +150,7 @@ Trả về JSON định dạng: { "class_status": "...", "pedagogical_advice": "
 ${typeInstruction}
 ${formatInstruction}`;
 
-      const response = await this.ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+      const { response } = await generateContentWithFallback(this.ai, {
         contents: prompt,
         config: {
           responseMimeType: "application/json",

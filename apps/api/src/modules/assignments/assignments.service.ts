@@ -71,7 +71,7 @@ export class AssignmentsService {
 
   async getAssignments(teacherId: string, query: any) {
     const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 20;
+    const limit = query.limit !== undefined ? (parseInt(query.limit) || 100) : (query.class_id ? 100 : 20);
 
     const where: any = { created_by: teacherId, deleted_at: null };
     if (query.class_id) {
@@ -290,7 +290,7 @@ export class AssignmentsService {
 
   async getMyAssignments(studentId: string, query: any) {
     const page = parseInt(query.page) || 1;
-    const limit = parseInt(query.limit) || 20;
+    const limit = query.limit !== undefined ? (parseInt(query.limit) || 100) : (query.class_id ? 100 : 20);
     const status = query.status || 'all';
 
     const memberClasses = await this.assignmentsRepository.getStudentActiveClasses(studentId);

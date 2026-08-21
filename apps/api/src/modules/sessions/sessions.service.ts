@@ -4,13 +4,10 @@ import { SM2Repository } from '../sm2/sm2.repository';
 import { ApiError } from '../../lib/ApiError';
 import { SessionsRepository } from './sessions.repository';
 
-import { AiService } from '../ai/ai.service';
-
 export class SessionsService {
   constructor(
     private readonly sessionsRepository: SessionsRepository, 
-    private readonly sm2Repository: SM2Repository,
-    private readonly aiService: AiService
+    private readonly sm2Repository: SM2Repository
   ) {}
 
   private async computeTopicPerformance(answers: any[]) {
@@ -183,10 +180,23 @@ export class SessionsService {
       }
     } else if (qType === 'matching') {
       if (data.matching_pairs && currentQuestion?.metadata?.pairs) {
-        const correctPairs = currentQuestion.metadata.pairs;
-        isCorrect = correctPairs.length > 0 && correctPairs.every((cp: any) => 
-          data.matching_pairs.some((up: any) => up.leftId === cp.leftId && up.rightId === cp.rightId)
-        ) && data.matching_pairs.length === correctPairs.length;
+        const rawPairs = Array.isArray(currentQuestion.metadata.pairs) ? currentQuestion.metadata.pairs : [];
+        const normalize = (s: any) => String(s || '').trim().toLowerCase();
+
+        isCorrect = rawPairs.length > 0 && 
+          data.matching_pairs.length === rawPairs.length && 
+          rawPairs.every((cp: any, idx: number) => {
+            const expectedLeftId = cp.leftId || `left_${idx}`;
+            const expectedRightId = cp.rightId || `right_${idx}`;
+            const expectedLeftText = normalize(cp.leftText);
+            const expectedRightText = normalize(cp.rightText);
+
+            return data.matching_pairs.some((up: any) => {
+              if (up.leftId && up.rightId && up.leftId === expectedLeftId && up.rightId === expectedRightId) return true;
+              if (up.leftText && up.rightText && normalize(up.leftText) === expectedLeftText && normalize(up.rightText) === expectedRightText) return true;
+              return false;
+            });
+          });
       }
     } else {
       // multiple_choice or true_false
@@ -290,26 +300,7 @@ export class SessionsService {
       }
     }
 
-    let explanation = currentQuestion?.explanation || null;
-
-    if (!isCorrect && correctOpt) {
-      const questionContext = currentQuestion?.content || 'Unknown context';
-      try {
-        const aiExp = await Promise.race([
-          this.aiService.getExplanation(question_id, selected_option_id, questionContext),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000))
-        ]);
-        
-        if (aiExp) {
-          console.log('[sessions.service] Nhận được AI Explanation kịp thời!');
-          explanation = aiExp;
-        } else {
-          console.log('[sessions.service] AI Explanation bị Timeout (quá 5 giây), dùng mặc định!');
-        }
-      } catch (e) {
-        console.error('AI Explanation Error:', e);
-      }
-    }
+    const explanation = currentQuestion?.explanation || null;
 
     const fill_blank_correct_text = qType === 'fill_blank' && !isCorrect
       ? options.filter(o => o.is_correct).map(o => o.content).join(' hoặc ')

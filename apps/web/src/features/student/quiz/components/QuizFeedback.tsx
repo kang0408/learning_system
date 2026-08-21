@@ -76,7 +76,7 @@ export const QuizFeedback: React.FC<QuizFeedbackProps> = ({
               {matchingPairs && (
                 <ul className="flex flex-col gap-2">
                   {matchingPairs.map((pair, idx) => (
-                    <li key={idx} className="text-base font-bold text-green-800 bg-green-200/50 p-2 border border-green-300">
+                    <li key={`feedback_pair_${idx}`} className="text-base font-bold text-green-800 bg-green-200/50 p-2 border border-green-300">
                       {pair}
                     </li>
                   ))}
@@ -86,7 +86,7 @@ export const QuizFeedback: React.FC<QuizFeedbackProps> = ({
               {choiceTexts && (
                 <ul className="flex flex-col gap-2">
                   {choiceTexts.map((text, idx) => (
-                    <li key={idx} className="text-lg font-black text-green-800 uppercase">
+                    <li key={`feedback_choice_${idx}`} className="text-lg font-black text-green-800 uppercase">
                       {text}
                     </li>
                   ))}

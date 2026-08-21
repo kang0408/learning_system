@@ -16,7 +16,7 @@ export const studentClassDetailApi = {
   },
 
   getClassAssignments: async (id: string): Promise<AssignmentItem[]> => {
-    const res = await api.get(`/api/assignments/my?class_id=${id}&status=all`);
+    const res = await api.get(`/api/assignments/my?class_id=${id}&status=all&limit=100`);
     return res.data?.data || res.data;
   }
 };

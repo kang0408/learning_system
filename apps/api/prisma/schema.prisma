@@ -30,8 +30,10 @@ model User {
   assigned_assignments AssignmentStudent[]
   topics               Topic[]
   ai_reports           AiReport[]
+  ai_wizard_drafts     AiWizardDraft[]
 
   @@index([email])
+
   @@index([role])
   @@map("users")
 }
@@ -53,8 +55,10 @@ model Class {
   assignments Assignment[]
   ai_reports  AiReport[]
   curriculums ClassCurriculum[]
+  ai_wizard_drafts AiWizardDraft[]
 
   @@index([teacher_id])
+
   @@map("classes")
 }
 
@@ -361,5 +365,23 @@ model CurriculumAssignment {
   @@index([assignment_id])
   @@map("curriculum_assignments")
 }
+
+model AiWizardDraft {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teacher_id    String   @db.Uuid
+  class_id      String   @db.Uuid
+  step          String   @default("curriculum_ready") @db.VarChar(50)
+  document_name String?  @db.VarChar(255)
+  payload       Json
+  created_at    DateTime @default(now()) @db.Timestamptz
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  teacher       User     @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+  class         Class    @relation(fields: [class_id], references: [id], onDelete: Cascade)
+
+  @@unique([teacher_id, class_id])
+  @@map("ai_wizard_drafts")
+}
+
 
 

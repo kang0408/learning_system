@@ -41,7 +41,7 @@ export const teacherClassDetailApi = {
   },
   
   getClassAssignments: async (id: string) => {
-    const res = await api.get(`/api/assignments?class_id=${id}`);
+    const res = await api.get(`/api/assignments?class_id=${id}&limit=100`);
     return res.data.data || [];
   },
 

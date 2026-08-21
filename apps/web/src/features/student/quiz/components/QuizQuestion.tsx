@@ -14,6 +14,14 @@ interface QuizQuestionProps {
   onSelect: (payload: any) => void;
 }
 
+interface NormalizedPair {
+  id: string;
+  leftId: string;
+  leftText: string;
+  rightId: string;
+  rightText: string;
+}
+
 export const QuizQuestion: React.FC<QuizQuestionProps> = ({
   question,
   selectedOptionId,
@@ -34,25 +42,45 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
   const [localSelectedIds, setLocalSelectedIds] = useState<string[]>([]);
   
   // For matching
-  const [matchingRights, setMatchingRights] = useState<any[]>([]);
   const [placedRights, setPlacedRights] = useState<Record<string, string>>({});
+  const [selectedBankRightId, setSelectedBankRightId] = useState<string | null>(null);
   const [dragOverLeftId, setDragOverLeftId] = useState<string | null>(null);
   const [dragOverBank, setDragOverBank] = useState<boolean>(false);
+  const [draggedRightId, setDraggedRightId] = useState<string | null>(null);
+
+  // Normalize matching pairs to always ensure non-empty unique IDs and texts
+  const normalizedPairs = useMemo<NormalizedPair[]>(() => {
+    if (question?.question_type !== 'matching' || !question?.metadata?.pairs) return [];
+    const raw = Array.isArray(question.metadata.pairs) ? question.metadata.pairs : [];
+    return raw.map((p: any, idx: number) => ({
+      id: p.id || `pair_${idx}`,
+      leftId: p.leftId || `left_${idx}`,
+      leftText: p.leftText || '',
+      rightId: p.rightId || `right_${idx}`,
+      rightText: p.rightText || '',
+    }));
+  }, [question?.id, question?.metadata, question?.question_type]);
+
+  // Shuffled left items
+  const matchingLefts = useMemo(() => {
+    return [...normalizedPairs].sort(() => 0.5 - Math.random());
+  }, [normalizedPairs]);
+
+  // Shuffled right items for choice bank
+  const matchingRights = useMemo(() => {
+    return [...normalizedPairs].sort(() => 0.5 - Math.random());
+  }, [normalizedPairs]);
 
   useEffect(() => {
     setFillValue('');
     setLocalSelectedId(null);
     setLocalSelectedIds([]);
     setPlacedRights({});
+    setSelectedBankRightId(null);
     setDragOverLeftId(null);
     setDragOverBank(false);
-    
-    if (question?.question_type === 'matching' && question?.metadata?.pairs) {
-      setMatchingRights([...question.metadata.pairs].sort(() => Math.random() - 0.5));
-    } else {
-      setMatchingRights([]);
-    }
-  }, [question?.id, question?.metadata?.pairs, question?.question_type]);
+    setDraggedRightId(null);
+  }, [question?.id, question?.question_type]);
 
   const shuffledOptions = useMemo(() => {
     if (!question?.answer_options) return [];
@@ -62,14 +90,39 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
     return question.answer_options;
   }, [question?.id, question?.answer_options, question?.question_type]);
 
-  const matchingLefts = useMemo(() => {
-    if (question?.question_type !== 'matching' || !question?.metadata?.pairs) return [];
-    return [...question.metadata.pairs].sort(() => Math.random() - 0.5);
-  }, [question?.id, question?.metadata?.pairs, question?.question_type]);
-
   const unplacedRights = useMemo(() => {
-    return matchingRights.filter(r => !Object.values(placedRights).includes(r.rightId));
+    const placedRightIds = Object.values(placedRights);
+    return matchingRights.filter(r => !placedRightIds.includes(r.rightId));
   }, [matchingRights, placedRights]);
+
+  // Helper to place a right item into a left slot
+  const placeRightItem = (leftId: string, rightId: string) => {
+    if (feedback || submitting) return;
+    setPlacedRights(prev => {
+      const next = { ...prev };
+      // If rightId was already placed in another left slot, remove it from there
+      Object.keys(next).forEach(k => {
+        if (next[k] === rightId) delete next[k];
+      });
+      next[leftId] = rightId;
+      return next;
+    });
+    setSelectedBankRightId(null);
+    setDragOverLeftId(null);
+  };
+
+  // Helper to unplace a right item from any slot
+  const unplaceRightItem = (rightId: string) => {
+    if (feedback || submitting) return;
+    setPlacedRights(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(k => {
+        if (next[k] === rightId) delete next[k];
+      });
+      return next;
+    });
+    setDragOverBank(false);
+  };
 
   const renderFeedback = () => {
     if (feedback === 'incorrect') {
@@ -103,34 +156,39 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
         {question?.content}
       </h2>
 
+      {/* Fill in the Blank Question */}
       {question?.question_type === 'fill_blank' && (
         <div className="w-full pb-2 flex flex-col gap-3">
-           <input 
-             type="text" 
-             value={fillValue}
-             onChange={(e) => setFillValue(e.target.value)}
-             disabled={!!feedback || submitting}
-             className="w-full text-lg md:text-xl font-black tracking-tight p-3 md:p-4 border-4 border-zinc-900 focus:outline-none focus:border-indigo-600 transition-colors bg-white"
-             placeholder={t('student.quiz.typeAnswer')}
-             onKeyDown={(e) => {
-               if (e.key === 'Enter' && fillValue.trim() && !feedback && !submitting) onSelect({ fillText: fillValue });
-             }}
-           />
-           <button
-             disabled={!!feedback || submitting || !fillValue.trim()}
-             onClick={() => onSelect({ fillText: fillValue })}
-             className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
-           >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
-           </button>
-           {renderFeedback()}
+          <input 
+            type="text" 
+            value={fillValue}
+            onChange={(e) => setFillValue(e.target.value)}
+            disabled={!!feedback || submitting}
+            className="w-full text-lg md:text-xl font-black tracking-tight p-3 md:p-4 border-4 border-zinc-900 focus:outline-none focus:border-indigo-600 transition-colors bg-white"
+            placeholder={t('student.quiz.typeAnswer')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && fillValue.trim() && !feedback && !submitting) {
+                onSelect({ fillText: fillValue });
+              }
+            }}
+          />
+          <button
+            disabled={!!feedback || submitting || !fillValue.trim()}
+            onClick={() => onSelect({ fillText: fillValue })}
+            className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          >
+            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+          </button>
+          {renderFeedback()}
         </div>
       )}
 
+      {/* Multi Select Question */}
       {question?.question_type === 'multi_select' && (
         <div className="w-full pb-2 flex flex-col gap-3">
           <div className="grid grid-cols-1 gap-2 md:gap-3">
-            {shuffledOptions.map((opt) => {
+            {shuffledOptions.map((opt, idx) => {
+              const optionKey = opt.id || `opt_${idx}`;
               const isSelected = feedback || submitting ? selectedOptionIds.includes(opt.id) : localSelectedIds.includes(opt.id);
               const isCorrect = correctAnswerIds.includes(opt.id);
 
@@ -156,7 +214,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
               return (
                 <button
-                  key={opt.id}
+                  key={optionKey}
                   disabled={!!feedback || submitting}
                   onClick={() => {
                     if (localSelectedIds.includes(opt.id)) {
@@ -171,7 +229,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                     isSelected ? 'border-current bg-current' : 'border-zinc-900'
                   }`}>
                     {isSelected && (
-                      <div className={`w-2 h-2 md:w-2.5 md:h-2.5 bg-white`} />
+                      <div className="w-2 h-2 md:w-2.5 md:h-2.5 bg-white" />
                     )}
                   </div>
                   <span>{opt.content}</span>
@@ -180,20 +238,22 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
             })}
           </div>
           <button
-             disabled={!!feedback || submitting || localSelectedIds.length === 0}
-             onClick={() => onSelect({ optIds: localSelectedIds })}
-             className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
-           >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
-           </button>
-           {renderFeedback()}
+            disabled={!!feedback || submitting || localSelectedIds.length === 0}
+            onClick={() => onSelect({ optIds: localSelectedIds })}
+            className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          >
+            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+          </button>
+          {renderFeedback()}
         </div>
       )}
 
+      {/* Multiple Choice / True False Question */}
       {(question?.question_type === 'multiple_choice' || question?.question_type === 'true_false') && (
         <div className="w-full pb-2 flex flex-col gap-3">
           <div className="grid grid-cols-1 gap-2 md:gap-3 w-full">
-            {shuffledOptions.map((opt) => {
+            {shuffledOptions.map((opt, idx) => {
+              const optionKey = opt.id || `opt_${idx}`;
               const isSelected = feedback || submitting ? opt.id === selectedOptionId : opt.id === localSelectedId;
               const isCorrect = feedback ? opt.id === correctAnswerId : false;
 
@@ -219,7 +279,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
               return (
                 <button
-                  key={opt.id}
+                  key={optionKey}
                   disabled={!!feedback || submitting}
                   onClick={() => setLocalSelectedId(opt.id)}
                   className={`flex items-center justify-between p-2 md:p-3 text-left font-bold text-sm md:text-base transition-colors ${btnClass}`}
@@ -230,175 +290,210 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
             })}
           </div>
           <button
-             disabled={!!feedback || submitting || !localSelectedId}
-             onClick={() => onSelect({ optId: localSelectedId })}
-             className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
-           >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
-           </button>
-           {renderFeedback()}
+            disabled={!!feedback || submitting || !localSelectedId}
+            onClick={() => onSelect({ optId: localSelectedId })}
+            className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          >
+            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+          </button>
+          {renderFeedback()}
         </div>
       )}
 
+      {/* Matching Question with Drag & Drop AND Tap/Click-to-place */}
       {question?.question_type === 'matching' && (
         <div className="w-full pb-2 flex flex-col gap-3 md:gap-4">
           <div className="flex flex-col gap-2 md:gap-3 w-full">
-            {matchingLefts.map((left) => {
+            {matchingLefts.map((left, idx) => {
+              const leftKey = left.leftId || `left_${idx}`;
               const placedRightId = placedRights[left.leftId];
               const placedRight = matchingRights.find(r => r.rightId === placedRightId);
               
-              let containerClass = "flex items-stretch border-2 border-zinc-200 bg-zinc-50 rounded-lg overflow-hidden transition-colors";
-              let rightDropClass = "w-[45%] md:w-1/2 p-1.5 md:p-2 flex flex-col items-center justify-center border-l-2 border-zinc-200 min-h-[50px] bg-zinc-100 transition-colors relative";
+              let containerClass = "flex items-stretch border-2 border-zinc-900 bg-zinc-50 rounded-lg overflow-hidden transition-all shadow-[2px_2px_0_0_rgba(24,24,27,1)]";
+              let rightDropClass = "w-[50%] p-2 flex flex-col items-center justify-center border-l-2 border-zinc-900 min-h-[56px] bg-zinc-100 transition-all relative";
               
-              if (dragOverLeftId === left.leftId) {
-                 rightDropClass += " bg-indigo-50 border-indigo-300";
-                 containerClass += " border-indigo-300 ring-2 ring-indigo-100";
+              if (dragOverLeftId === left.leftId || (selectedBankRightId && !placedRight && !feedback && !submitting)) {
+                rightDropClass += " bg-indigo-50 border-indigo-600";
+                containerClass += " border-indigo-600 ring-2 ring-indigo-300";
               }
               
               if (feedback) {
-                 const isCorrectPair = question.metadata?.pairs?.find((p: any) => p.leftId === left.leftId && p.rightId === placedRightId);
-                 if (isCorrectPair) {
-                    containerClass = "flex items-stretch border-2 border-green-500 bg-green-50 rounded-lg overflow-hidden";
-                    rightDropClass = "w-[45%] md:w-1/2 p-1.5 md:p-2 flex flex-col items-center justify-center border-l-2 border-green-500 min-h-[50px] bg-green-100 relative";
-                 } else {
-                    containerClass = "flex items-stretch border-2 border-red-500 bg-red-50 rounded-lg overflow-hidden";
-                    rightDropClass = "w-[45%] md:w-1/2 p-1.5 md:p-2 flex flex-col items-center justify-center border-l-2 border-red-500 min-h-[50px] bg-red-100 relative";
-                 }
+                const isCorrectPair = normalizedPairs.some(
+                  p => p.leftId === left.leftId && p.rightId === placedRightId
+                );
+                if (isCorrectPair) {
+                  containerClass = "flex items-stretch border-2 border-green-600 bg-green-50 rounded-lg overflow-hidden";
+                  rightDropClass = "w-[50%] p-2 flex flex-col items-center justify-center border-l-2 border-green-600 min-h-[56px] bg-green-100 relative";
+                } else {
+                  containerClass = "flex items-stretch border-2 border-red-600 bg-red-50 rounded-lg overflow-hidden";
+                  rightDropClass = "w-[50%] p-2 flex flex-col items-center justify-center border-l-2 border-red-600 min-h-[56px] bg-red-100 relative";
+                }
               }
 
               return (
-                 <div key={left.leftId} className={containerClass}>
-                    <div className="w-[55%] md:w-1/2 p-2 md:p-3 text-xs md:text-sm font-semibold text-zinc-700 flex items-center leading-snug">
-                       {left.leftText}
-                    </div>
-                    <div 
-                       className={rightDropClass}
-                       onDragOver={(e) => { 
-                         e.preventDefault(); 
-                         if (!feedback && !submitting) setDragOverLeftId(left.leftId); 
-                       }}
-                       onDragLeave={() => { 
-                         if (dragOverLeftId === left.leftId) setDragOverLeftId(null); 
-                       }}
-                       onDrop={(e) => {
-                          e.preventDefault();
-                          if (feedback || submitting) return;
-                          const rightId = e.dataTransfer.getData('text/plain');
-                          if (rightId) {
-                             setPlacedRights(prev => {
-                                const next = { ...prev };
-                                Object.keys(next).forEach(k => {
-                                   if (next[k] === rightId) delete next[k];
-                                });
-                                next[left.leftId] = rightId;
-                                return next;
-                             });
+                <div key={leftKey} className={containerClass}>
+                  <div className="w-[50%] p-2 md:p-3 text-xs md:text-sm font-bold text-zinc-900 flex items-center leading-snug">
+                    {left.leftText}
+                  </div>
+                  <div 
+                    className={rightDropClass}
+                    onDragOver={(e) => { 
+                      e.preventDefault(); 
+                      e.dataTransfer.dropEffect = 'move';
+                      if (!feedback && !submitting) setDragOverLeftId(left.leftId); 
+                    }}
+                    onDragLeave={() => { 
+                      if (dragOverLeftId === left.leftId) setDragOverLeftId(null); 
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (feedback || submitting) return;
+                      const rightId = e.dataTransfer.getData('text/plain') || draggedRightId;
+                      if (rightId) {
+                        placeRightItem(left.leftId, rightId);
+                      }
+                      setDraggedRightId(null);
+                      setDragOverLeftId(null);
+                    }}
+                    onClick={() => {
+                      if (feedback || submitting) return;
+                      if (selectedBankRightId) {
+                        placeRightItem(left.leftId, selectedBankRightId);
+                      }
+                    }}
+                  >
+                    {placedRight ? (
+                      <div 
+                        draggable={!feedback && !submitting}
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', placedRight.rightId);
+                          e.dataTransfer.effectAllowed = 'move';
+                          setDraggedRightId(placedRight.rightId);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedRightId(null);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!feedback && !submitting) {
+                            unplaceRightItem(placedRight.rightId);
                           }
-                          setDragOverLeftId(null);
-                       }}
-                    >
-                       {placedRight ? (
-                          <div 
-                            draggable={!feedback && !submitting}
-                            onDragStart={(e) => {
-                               e.dataTransfer.setData('text/plain', placedRight.rightId);
-                               setTimeout(() => {
-                                 if (e.target && (e.target as HTMLElement).classList) {
-                                    (e.target as HTMLElement).classList.add('opacity-50');
-                                 }
-                               }, 0);
-                            }}
-                            onDragEnd={(e) => {
-                               if (e.target && (e.target as HTMLElement).classList) {
-                                  (e.target as HTMLElement).classList.remove('opacity-50');
-                               }
-                            }}
-                            className={`bg-white border-2 border-zinc-900 rounded-md p-1.5 md:p-2 w-full text-center text-xs md:text-sm font-bold shadow-sm transition-colors ${!feedback && !submitting ? 'cursor-grab active:cursor-grabbing hover:border-indigo-600' : 'cursor-default'}`}
-                          >
-                             {placedRight.rightText}
-                          </div>
-                       ) : (
-                          <span className="text-[10px] md:text-xs text-zinc-400 font-medium italic text-center px-1">
-                             {t('student.quiz.dragDropHere')}
-                          </span>
-                       )}
-                    </div>
-                 </div>
+                        }}
+                        title={!feedback && !submitting ? t('student.quiz.clickToUnplace', 'Nhấp để gỡ thẻ') : undefined}
+                        className={`bg-white border-2 border-zinc-900 rounded-md p-1.5 md:p-2 w-full text-center text-xs md:text-sm font-bold shadow-sm transition-all ${
+                          !feedback && !submitting 
+                            ? 'cursor-grab active:cursor-grabbing hover:border-indigo-600 hover:bg-indigo-50 hover:text-indigo-900 hover:scale-[1.02]' 
+                            : 'cursor-default'
+                        }`}
+                      >
+                        {placedRight.rightText}
+                      </div>
+                    ) : (
+                      <span className={`text-[10px] md:text-xs font-medium italic text-center px-1 transition-colors ${
+                        selectedBankRightId ? 'text-indigo-600 font-bold' : 'text-zinc-400'
+                      }`}>
+                        {selectedBankRightId ? t('student.quiz.clickToPlace', 'Nhấp vào đây để gắn') : t('student.quiz.dragDropHere')}
+                      </span>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
 
+          {/* Choice Bank */}
           {!feedback && (
             <div className="mt-1 md:mt-2">
-              <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5">{t('student.quiz.choiceList')}</h3>
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
+                  {t('student.quiz.choiceList')}
+                </h3>
+                <span className="text-[11px] text-zinc-500 font-medium italic">
+                  (Kéo thả hoặc nhấp chọn thẻ rồi nhấp vào ô tương ứng)
+                </span>
+              </div>
               <div 
-                 className="p-3 md:p-4 bg-zinc-100 rounded-lg border-2 border-dashed border-zinc-300 min-h-[60px] md:min-h-[80px] flex flex-wrap gap-2 items-center justify-center transition-colors"
-                 onDragOver={(e) => { 
-                   e.preventDefault(); 
-                   if (!submitting) setDragOverBank(true); 
-                 }}
-                 onDragLeave={() => setDragOverBank(false)}
-                 onDrop={(e) => {
-                    e.preventDefault();
-                    if (submitting) return;
-                    const rightId = e.dataTransfer.getData('text/plain');
-                    if (rightId) {
-                       setPlacedRights(prev => {
-                          const next = { ...prev };
-                          Object.keys(next).forEach(k => {
-                             if (next[k] === rightId) delete next[k];
-                          });
-                          return next;
-                       });
-                    }
-                    setDragOverBank(false);
-                 }}
-                 style={{ borderColor: dragOverBank ? '#6366f1' : undefined, backgroundColor: dragOverBank ? '#eef2ff' : undefined }}
+                className={`p-3 md:p-4 bg-zinc-100 rounded-lg border-2 border-dashed transition-all min-h-[64px] flex flex-wrap gap-2 items-center justify-center ${
+                  dragOverBank ? 'border-indigo-600 bg-indigo-50' : 'border-zinc-300'
+                }`}
+                onDragOver={(e) => { 
+                  e.preventDefault(); 
+                  e.dataTransfer.dropEffect = 'move';
+                  if (!submitting) setDragOverBank(true); 
+                }}
+                onDragLeave={() => setDragOverBank(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (submitting) return;
+                  const rightId = e.dataTransfer.getData('text/plain') || draggedRightId;
+                  if (rightId) {
+                    unplaceRightItem(rightId);
+                  }
+                  setDraggedRightId(null);
+                  setDragOverBank(false);
+                }}
               >
-                 {unplacedRights.length === 0 ? (
-                    <span className="text-zinc-400 font-medium text-xs">{t('student.quiz.allPlaced')}</span>
-                 ) : (
-                    unplacedRights.map(right => (
-                       <div 
-                          key={right.rightId}
-                          draggable={!submitting}
-                          onDragStart={(e) => {
-                             e.dataTransfer.setData('text/plain', right.rightId);
-                             setTimeout(() => {
-                               if (e.target && (e.target as HTMLElement).classList) {
-                                  (e.target as HTMLElement).classList.add('opacity-50');
-                               }
-                             }, 0);
-                          }}
-                          onDragEnd={(e) => {
-                             if (e.target && (e.target as HTMLElement).classList) {
-                                (e.target as HTMLElement).classList.remove('opacity-50');
-                             }
-                          }}
-                          className={`bg-white border-2 border-zinc-900 rounded-md px-2 py-1 md:px-3 md:py-1.5 text-xs md:text-sm font-bold shadow-[2px_2px_0px_rgba(24,24,27,1)] transition-all ${!submitting ? 'cursor-grab active:cursor-grabbing hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none hover:border-indigo-600' : ''}`}
-                       >
-                          {right.rightText}
-                       </div>
-                    ))
-                 )}
+                {unplacedRights.length === 0 ? (
+                  <span className="text-zinc-400 font-medium text-xs">
+                    {t('student.quiz.allPlaced')}
+                  </span>
+                ) : (
+                  unplacedRights.map((right, idx) => {
+                    const rightKey = right.rightId || `right_${idx}`;
+                    const isSelected = selectedBankRightId === right.rightId;
+                    return (
+                      <div 
+                        key={rightKey}
+                        draggable={!submitting}
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', right.rightId);
+                          e.dataTransfer.effectAllowed = 'move';
+                          setDraggedRightId(right.rightId);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedRightId(null);
+                        }}
+                        onClick={() => {
+                          if (submitting) return;
+                          setSelectedBankRightId(prev => prev === right.rightId ? null : right.rightId);
+                        }}
+                        className={`bg-white border-2 rounded-md px-3 py-1.5 text-xs md:text-sm font-bold transition-all select-none ${
+                          isSelected 
+                            ? 'border-indigo-600 bg-indigo-50 text-indigo-900 ring-2 ring-indigo-400 shadow-none scale-105' 
+                            : 'border-zinc-900 text-zinc-900 shadow-[2px_2px_0_0_rgba(24,24,27,1)] hover:border-indigo-600 hover:translate-y-[-1px]'
+                        } ${!submitting ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                      >
+                        {right.rightText}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
 
           <button
-             disabled={!!feedback || submitting || Object.keys(placedRights).length !== matchingLefts.length}
-             onClick={() => {
-               const pairs = Object.entries(placedRights).map(([leftId, rightId]) => ({ leftId, rightId }));
-               onSelect({ matchingPairs: pairs });
-             }}
-             className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2"
-           >
-             {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
-           </button>
-           {renderFeedback()}
+            disabled={!!feedback || submitting || Object.keys(placedRights).length !== matchingLefts.length}
+            onClick={() => {
+              const pairs = Object.entries(placedRights).map(([leftId, rightId]) => {
+                const leftItem = normalizedPairs.find(p => p.leftId === leftId);
+                const rightItem = normalizedPairs.find(p => p.rightId === rightId);
+                return {
+                  leftId,
+                  rightId,
+                  leftText: leftItem?.leftText || '',
+                  rightText: rightItem?.rightText || '',
+                };
+              });
+              onSelect({ matchingPairs: pairs });
+            }}
+            className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+          >
+            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+          </button>
+          {renderFeedback()}
         </div>
       )}
     </div>
   );
 };
-
