@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, X, Layers, ArrowLeft } from 'lucide-react';
+import { BookOpen, X } from 'lucide-react';
 import { toast } from '@/utils/toast';
 import { AiWizardUploadStep } from './AiWizardUploadStep';
 import { AiWizardLessonsStage } from './AiWizardLessonsStage';

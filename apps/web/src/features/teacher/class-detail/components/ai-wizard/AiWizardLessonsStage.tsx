@@ -5,10 +5,8 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  AlertCircle,
   Loader2,
   Layers,
-  Save,
   BookOpen,
   RefreshCw,
 } from 'lucide-react';
