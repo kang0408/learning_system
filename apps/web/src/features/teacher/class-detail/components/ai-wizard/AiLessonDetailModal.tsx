@@ -357,14 +357,14 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                             <div
                               key={optIdx}
                               onClick={() => handleToggleOptionCorrect(q.temp_id, optIdx)}
-                              className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
+                              className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs cursor-pointer transition-all ${
                                 opt.is_correct
                                   ? 'bg-emerald-50/80 border-emerald-300 text-emerald-950 font-bold shadow-sm'
                                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                               }`}
                             >
                               <div
-                                className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
                                   opt.is_correct
                                     ? 'bg-emerald-600 text-white'
                                     : 'border border-slate-300 text-slate-400'
@@ -376,8 +376,8 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                                   String.fromCharCode(65 + optIdx)
                                 )}
                               </div>
-                              <input
-                                type="text"
+                              <textarea
+                                rows={1}
                                 value={opt.content}
                                 onClick={(e) => e.stopPropagation()}
                                 onChange={(e) => {
@@ -387,7 +387,11 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                                     answer_options: updatedOpts,
                                   });
                                 }}
-                                className="flex-1 bg-transparent border-none outline-none font-inherit"
+                                onInput={(e: any) => {
+                                  e.target.style.height = 'auto';
+                                  e.target.style.height = `${e.target.scrollHeight}px`;
+                                }}
+                                className="flex-1 bg-transparent border-none outline-none font-inherit resize-none overflow-hidden text-xs sm:text-sm leading-relaxed break-words whitespace-pre-wrap min-h-[24px]"
                               />
                             </div>
                           ))}
