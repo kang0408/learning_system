@@ -8,6 +8,7 @@ interface DraggableCurriculumListProps {
   onPreview: (curriculum: ClassCurriculum) => void;
   onEdit: (curriculum: ClassCurriculum) => void;
   onDelete: (curriculum: ClassCurriculum) => void;
+  isReorderDisabled?: boolean;
 }
 
 export const DraggableCurriculumList: React.FC<DraggableCurriculumListProps> = ({
@@ -15,7 +16,8 @@ export const DraggableCurriculumList: React.FC<DraggableCurriculumListProps> = (
   onReorder,
   onPreview,
   onEdit,
-  onDelete
+  onDelete,
+  isReorderDisabled = false,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -78,6 +80,7 @@ export const DraggableCurriculumList: React.FC<DraggableCurriculumListProps> = (
           onPreview={onPreview}
           onEdit={onEdit}
           onDelete={onDelete}
+          isReorderDisabled={isReorderDisabled}
         />
       ))}
     </div>

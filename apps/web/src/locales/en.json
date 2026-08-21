@@ -444,7 +444,16 @@
       "createLessonSuccess": "Lesson created successfully!",
       "updateLessonSuccess": "Lesson updated successfully!",
       "deleteLessonSuccess": "Lesson deleted successfully!",
-      "reorderLessonSuccess": "Lesson order updated successfully!"
+      "reorderLessonSuccess": "Lesson order updated successfully!",
+      "searchCurriculumPlaceholder": "Search lessons by title, content, materials...",
+      "searchAssignmentsPlaceholder": "Search assignments by title, description...",
+      "noSearchLessons": "No lessons found",
+      "noSearchLessonsDesc": "No lessons match the search term \"{{term}}\". Please try another keyword.",
+      "noSearchAssignments": "No assignments found",
+      "noSearchAssignmentsDesc": "No assignments match the search term \"{{term}}\". Please try another keyword.",
+      "clearSearch": "Clear search",
+      "reorderDisabledNotice": "Drag & drop reordering is paused while searching",
+      "showingCount": "Showing {{count}} / {{total}} items"
     },
     "classMembers": {
       "title": "Student List",

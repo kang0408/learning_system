@@ -444,7 +444,16 @@
       "createLessonSuccess": "Tạo bài học thành công!",
       "updateLessonSuccess": "Cập nhật bài học thành công!",
       "deleteLessonSuccess": "Xóa bài học thành công!",
-      "reorderLessonSuccess": "Cập nhật thứ tự bài học thành công!"
+      "reorderLessonSuccess": "Cập nhật thứ tự bài học thành công!",
+      "searchCurriculumPlaceholder": "Tìm kiếm bài học theo tiêu đề, nội dung, tài liệu...",
+      "searchAssignmentsPlaceholder": "Tìm kiếm bài tập theo tiêu đề, mô tả...",
+      "noSearchLessons": "Không tìm thấy bài học nào",
+      "noSearchLessonsDesc": "Không có bài học nào khớp với từ khóa \"{{term}}\". Vui lòng thử từ khóa khác.",
+      "noSearchAssignments": "Không tìm thấy bài tập nào",
+      "noSearchAssignmentsDesc": "Không có bài tập nào khớp với từ khóa \"{{term}}\". Vui lòng thử từ khóa khác.",
+      "clearSearch": "Xóa tìm kiếm",
+      "reorderDisabledNotice": "Kéo thả sắp xếp bị tạm dừng khi đang tìm kiếm",
+      "showingCount": "Hiển thị {{count}} / {{total}} mục"
     },
     "classMembers": {
       "title": "Danh sách Học sinh",

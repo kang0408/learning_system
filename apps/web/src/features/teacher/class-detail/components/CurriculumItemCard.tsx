@@ -25,6 +25,7 @@ interface CurriculumItemCardProps {
   onPreview: (curriculum: ClassCurriculum) => void;
   onEdit: (curriculum: ClassCurriculum) => void;
   onDelete: (curriculum: ClassCurriculum) => void;
+  isReorderDisabled?: boolean;
 }
 
 export const CurriculumItemCard: React.FC<CurriculumItemCardProps> = ({
@@ -38,7 +39,8 @@ export const CurriculumItemCard: React.FC<CurriculumItemCardProps> = ({
   onDragEnd,
   onPreview,
   onEdit,
-  onDelete
+  onDelete,
+  isReorderDisabled = false,
 }) => {
   const { t } = useTranslation();
   const materialsCount = curriculum.materials?.length || 0;
@@ -61,10 +63,10 @@ export const CurriculumItemCard: React.FC<CurriculumItemCardProps> = ({
 
   return (
     <div
-      draggable
-      onDragStart={(e) => onDragStart(e, index)}
-      onDragOver={(e) => onDragOver(e, index)}
-      onDrop={(e) => onDrop(e, index)}
+      draggable={!isReorderDisabled}
+      onDragStart={(e) => !isReorderDisabled && onDragStart(e, index)}
+      onDragOver={(e) => !isReorderDisabled && onDragOver(e, index)}
+      onDrop={(e) => !isReorderDisabled && onDrop(e, index)}
       onDragEnd={onDragEnd}
       className={`group relative bg-white border rounded-2xl p-4 sm:p-5 transition-all duration-200 ${
         isDragging
@@ -77,8 +79,12 @@ export const CurriculumItemCard: React.FC<CurriculumItemCardProps> = ({
       <div className="flex items-start gap-3 sm:gap-4">
         {/* Drag Handle */}
         <div
-          className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors mt-0.5"
-          title={t('teacher.classDetail.reorderHint')}
+          className={`p-1.5 rounded-lg transition-colors mt-0.5 ${
+            isReorderDisabled
+              ? 'text-slate-300 cursor-not-allowed opacity-40'
+              : 'cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-700 hover:bg-slate-100'
+          }`}
+          title={isReorderDisabled ? t('teacher.classDetail.reorderDisabledNotice') : t('teacher.classDetail.reorderHint')}
         >
           <GripVertical className="w-5 h-5" />
         </div>
