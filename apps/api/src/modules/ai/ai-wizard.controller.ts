@@ -132,22 +132,32 @@ export class AiWizardController extends BaseController {
     const existingDraft = await this.aiWizardRepo.findActiveDraft(this.getUserId(req), class_id);
     const existingPayload = (existingDraft?.payload as any) || {};
 
+    const mergedLessons = (lessons as any[]).map((l) => {
+      const existingLesson = existingPayload.lessons?.find((el: any) => el.temp_id === l.temp_id);
+      return {
+        ...l,
+        status: l.status || existingLesson?.status || 'pending',
+        topics_count: l.topics_count ?? existingLesson?.topics_count ?? 0,
+        questions_count: l.questions_count ?? existingLesson?.questions_count ?? 0,
+      };
+    });
+
     const updatedPayload: WizardDraftPayload = {
       ...existingPayload,
       curriculum_title,
       description: description || existingPayload.description,
-      lessons: lessons as any,
+      lessons: mergedLessons,
     };
 
     const draft = await this.aiWizardRepo.saveOrUpdateDraft(
       this.getUserId(req),
       class_id,
-      'curriculum_ready',
+      existingDraft?.step || 'curriculum_ready',
       existingDraft?.document_name || null,
       updatedPayload
     );
 
-    return this.handleSuccess(res, { draft_id: draft.id, lessons });
+    return this.handleSuccess(res, { draft_id: draft.id, lessons: mergedLessons });
   }
 
   /**
@@ -199,19 +209,62 @@ export class AiWizardController extends BaseController {
       ? payload.lessons.filter((l) => lesson_temp_ids.includes(l.temp_id))
       : payload.lessons;
 
-    // Run batch with progress emitter
+    // Run batch with progress emitter & incremental draft saving
     const batchResult = await this.aiWizardService.generateBatchUnitsContent(
       lessonsToGenerate,
       payload.textChunks || {},
-      (progressEvent) => {
+      async (progressEvent) => {
         wizardEvents.emit('progress', {
           ...progressEvent,
           class_id,
         });
+
+        if (progressEvent.type === 'unit_completed' && progressEvent.lesson_temp_id) {
+          try {
+            const currentDraft = await this.aiWizardRepo.findActiveDraft(this.getUserId(req), class_id);
+            const currentPayload = (currentDraft?.payload as unknown as WizardDraftPayload) || payload;
+
+            const unitId = progressEvent.lesson_temp_id;
+            const updatedTopics = {
+              ...(currentPayload.topicsByLesson || {}),
+              [unitId]: progressEvent.topics || [],
+            };
+            const updatedQuestions = {
+              ...(currentPayload.questionsByLesson || {}),
+              [unitId]: progressEvent.questions || [],
+            };
+            const updatedLessons = (currentPayload.lessons || []).map((l) => {
+              if (l.temp_id === unitId) {
+                return {
+                  ...l,
+                  status: 'ready' as const,
+                  topics_count: progressEvent.topics?.length ?? l.topics_count,
+                  questions_count: progressEvent.questions?.length ?? l.questions_count,
+                };
+              }
+              return l;
+            });
+
+            await this.aiWizardRepo.saveOrUpdateDraft(
+              this.getUserId(req),
+              class_id,
+              'ready_for_review',
+              currentDraft?.document_name || existingDraft.document_name,
+              {
+                ...currentPayload,
+                lessons: updatedLessons,
+                topicsByLesson: updatedTopics,
+                questionsByLesson: updatedQuestions,
+              }
+            );
+          } catch (saveErr) {
+            console.error('Failed to incrementally save wizard draft unit', saveErr);
+          }
+        }
       }
     );
 
-    // Merge into draft payload
+    // Merge final batch result into draft payload
     const updatedTopicsByLesson = { ...(payload.topicsByLesson || {}), ...batchResult.topicsByLesson };
     const updatedQuestionsByLesson = { ...(payload.questionsByLesson || {}), ...batchResult.questionsByLesson };
 
@@ -266,6 +319,7 @@ export class AiWizardController extends BaseController {
       if (l.temp_id === lesson_temp_id) {
         return {
           ...l,
+          status: 'ready' as const,
           topics_count: topics.length,
           questions_count: questions.length,
         };

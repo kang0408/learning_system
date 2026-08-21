@@ -65,6 +65,13 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
   };
 
   const handleDeleteQuestion = (tempId: string) => {
+    if (
+      !window.confirm(
+        t('teacher.aiWizard.detailModal.deleteQuestionConfirm', 'Bạn có chắc chắn muốn xóa câu hỏi này?')
+      )
+    ) {
+      return;
+    }
     setQuestions((prev) => prev.filter((q) => q.temp_id !== tempId));
   };
 
@@ -113,7 +120,23 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
   };
 
   const handleDeleteTopic = (tempId: string) => {
-    setTopics((prev) => prev.filter((t) => t.temp_id !== tempId));
+    const topicToDelete = topics.find((t) => t.temp_id === tempId);
+    const confirmMessage = t(
+      'teacher.aiWizard.detailModal.deleteTopicConfirm',
+      `Bạn có chắc chắn muốn xóa chủ đề "${topicToDelete?.name || ''}" không? Các câu hỏi thuộc chủ đề này sẽ được chuyển sang chủ đề khác.`
+    );
+    if (!window.confirm(confirmMessage)) return;
+
+    setTopics((prevTopics) => {
+      const remaining = prevTopics.filter((t) => t.temp_id !== tempId);
+      const fallbackTopicId = remaining[0]?.temp_id || '';
+      setQuestions((prevQuestions) =>
+        prevQuestions.map((q) =>
+          q.topic_temp_id === tempId ? { ...q, topic_temp_id: fallbackTopicId } : q
+        )
+      );
+      return remaining;
+    });
   };
 
   const handleSaveAll = async () => {
@@ -214,7 +237,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                   >
                     {/* Question Header & Badges */}
                     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-xs flex items-center justify-center">
                           #{qIndex + 1}
                         </span>
@@ -224,6 +247,21 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/60">
                           {t('teacher.aiWizard.detailModal.difficultyLabel', { level: q.difficulty })}
                         </span>
+                        {topics.length > 0 && (
+                          <select
+                            value={q.topic_temp_id}
+                            onChange={(e) =>
+                              handleUpdateQuestion(q.temp_id, { topic_temp_id: e.target.value })
+                            }
+                            className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer max-w-[200px] truncate"
+                          >
+                            {topics.map((top) => (
+                              <option key={top.temp_id} value={top.temp_id}>
+                                {top.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
 
                       {/* Top Right Action: Regenerate & Delete */}

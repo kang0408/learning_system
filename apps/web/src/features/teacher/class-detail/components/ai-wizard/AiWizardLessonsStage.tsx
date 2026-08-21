@@ -86,6 +86,13 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
   };
 
   const handleDeleteCard = (tempId: string) => {
+    const lessonToDelete = lessons.find((l) => l.temp_id === tempId);
+    const confirmMessage = t(
+      'teacher.aiWizard.lessonsStage.deleteLessonConfirm',
+      `Bạn có chắc chắn muốn xóa bài học "${lessonToDelete?.title || ''}" khỏi lộ trình?`
+    );
+    if (!window.confirm(confirmMessage)) return;
+
     const filtered = lessons
       .filter((l) => l.temp_id !== tempId)
       .map((l, idx) => ({ ...l, order_index: idx + 1 }));

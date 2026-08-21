@@ -35,11 +35,35 @@ export function useAiWizard(classId: string) {
   useEffect(() => {
     if (draftQuery.data?.payload) {
       const p = draftQuery.data.payload;
-      setCurriculumTitle(p.curriculum_title || '');
-      setCurriculumDescription(p.description || '');
-      setLessons(p.lessons || []);
-      setTopicsByLesson(p.topicsByLesson || {});
-      setQuestionsByLesson(p.questionsByLesson || {});
+      setCurriculumTitle((prev) => prev || p.curriculum_title || '');
+      setCurriculumDescription((prev) => prev || p.description || '');
+
+      setLessons((prev) => {
+        if (!p.lessons || p.lessons.length === 0) return prev;
+        return p.lessons.map((fetchedLesson) => {
+          const local = prev.find((l) => l.temp_id === fetchedLesson.temp_id);
+          // If local state already has status 'ready', preserve ready status and counts if fetched is stale
+          if (local && local.status === 'ready' && fetchedLesson.status !== 'ready') {
+            return {
+              ...fetchedLesson,
+              status: 'ready',
+              topics_count: local.topics_count,
+              questions_count: local.questions_count,
+            };
+          }
+          return fetchedLesson;
+        });
+      });
+
+      setTopicsByLesson((prev) => ({
+        ...p.topicsByLesson,
+        ...prev,
+      }));
+
+      setQuestionsByLesson((prev) => ({
+        ...p.questionsByLesson,
+        ...prev,
+      }));
     }
   }, [draftQuery.data]);
 
@@ -197,6 +221,7 @@ export function useAiWizard(classId: string) {
           l.temp_id === variables.lessonTempId
             ? {
                 ...l,
+                status: 'ready',
                 topics_count: variables.topics.length,
                 questions_count: variables.questions.length,
               }
