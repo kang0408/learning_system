@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   X,
   Layers,
@@ -40,6 +41,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
   onSave,
   onRegenerateQuestion,
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'questions' | 'topics'>('questions');
   const [topics, setTopics] = useState<WizardTopic[]>(initialTopics || []);
   const [questions, setQuestions] = useState<WizardQuestion[]>(initialQuestions || []);
@@ -129,15 +131,15 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
   const getQuestionTypeLabel = (type: QuestionType) => {
     switch (type) {
       case 'multiple_choice':
-        return 'Trắc nghiệm 1 đáp án';
+        return t('teacher.aiWizard.detailModal.types.multiple_choice');
       case 'multi_select':
-        return 'Trắc nghiệm nhiều đáp án';
+        return t('teacher.aiWizard.detailModal.types.multi_select');
       case 'true_false':
-        return 'Đúng / Sai';
+        return t('teacher.aiWizard.detailModal.types.true_false');
       case 'fill_blank':
-        return 'Điền từ vào chỗ trống';
+        return t('teacher.aiWizard.detailModal.types.fill_blank');
       case 'matching':
-        return 'Nối cặp tương ứng';
+        return t('teacher.aiWizard.detailModal.types.matching');
       default:
         return type;
     }
@@ -151,7 +153,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
           <div className="space-y-1 min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-                Bài {lesson.order_index}
+                {t('teacher.aiWizard.detailModal.lessonBadge', { index: lesson.order_index })}
               </span>
               <h3 className="text-lg font-bold text-slate-900 truncate">{lesson.title}</h3>
             </div>
@@ -180,7 +182,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
             }`}
           >
             <FileQuestion className="w-4 h-4" />
-            Ngân Hàng Câu Hỏi ({questions.length})
+            {t('teacher.aiWizard.detailModal.tabQuestions', { count: questions.length })}
           </button>
           <button
             type="button"
@@ -192,7 +194,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
             }`}
           >
             <Layers className="w-4 h-4" />
-            Chủ Đề Kiến Thức ({topics.length})
+            {t('teacher.aiWizard.detailModal.tabTopics', { count: topics.length })}
           </button>
         </div>
 
@@ -220,7 +222,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                           {getQuestionTypeLabel(q.question_type)}
                         </span>
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/60">
-                          Độ khó: {q.difficulty}/5
+                          {t('teacher.aiWizard.detailModal.difficultyLabel', { level: q.difficulty })}
                         </span>
                       </div>
 
@@ -239,7 +241,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                           ) : (
                             <RefreshCw className="w-3.5 h-3.5" />
                           )}
-                          <span>Sinh lại câu này</span>
+                          <span>{t('teacher.aiWizard.detailModal.regenThisQuestion')}</span>
                         </button>
 
                         <button
@@ -256,7 +258,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                     {isShowPrompt && (
                       <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 space-y-2">
                         <label className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider">
-                          Yêu cầu chỉnh sửa khi sinh lại (Tùy chọn)
+                          {t('teacher.aiWizard.detailModal.regenPromptLabel')}
                         </label>
                         <div className="flex items-center gap-2">
                           <input
@@ -268,7 +270,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                                 [q.temp_id]: e.target.value,
                               })
                             }
-                            placeholder="Ví dụ: Tăng độ khó, đổi sang trắc nghiệm, tập trung vào thì hiện tại..."
+                            placeholder={t('teacher.aiWizard.detailModal.regenPromptPlaceholder')}
                             className="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
                           />
                           <Button
@@ -281,7 +283,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                             {isRegenerating ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />
                             ) : (
-                              'Bắt đầu sinh lại'
+                              t('teacher.aiWizard.detailModal.startRegenBtn')
                             )}
                           </Button>
                         </div>
@@ -291,7 +293,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                     {/* Question Content Input */}
                     <div className="space-y-1">
                       <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        Nội dung câu hỏi
+                        {t('teacher.aiWizard.detailModal.questionContentLabel')}
                       </label>
                       <textarea
                         rows={2}
@@ -310,7 +312,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                     {q.question_type !== 'matching' ? (
                       <div className="space-y-2 pt-1">
                         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                          <span>Phương án trả lời (Chọn phương án đúng)</span>
+                          <span>{t('teacher.aiWizard.detailModal.answerOptionsLabel')}</span>
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {q.answer_options.map((opt, optIdx) => (
@@ -357,7 +359,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                       /* Matching Question Pairs */
                       <div className="space-y-2 pt-1">
                         <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          Các cặp nối tương ứng
+                          {t('teacher.aiWizard.detailModal.matchingPairsLabel')}
                         </label>
                         <div className="space-y-1.5">
                           {(q.metadata?.pairs || []).map((pair, pIdx) => (
@@ -382,7 +384,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                     {q.explanation && (
                       <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 space-y-1">
                         <span className="font-bold text-slate-700 text-[11px] uppercase tracking-wider">
-                          Giải thích đáp án:
+                          {t('teacher.aiWizard.detailModal.explanationLabel')}
                         </span>
                         <p>{q.explanation}</p>
                       </div>
@@ -393,7 +395,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
 
               {questions.length === 0 && (
                 <div className="text-center py-8 text-slate-400 text-sm font-medium">
-                  Chưa có câu hỏi nào trong bài này.
+                  {t('teacher.aiWizard.detailModal.noQuestions')}
                 </div>
               )}
             </div>
@@ -404,7 +406,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <p className="text-xs text-slate-500 font-medium">
-                  Danh mục các chủ đề kiến thức được phân loại từ bài học.
+                  {t('teacher.aiWizard.detailModal.topicsDesc')}
                 </p>
                 <Button
                   variant="outline"
@@ -413,32 +415,32 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                   className="text-xs"
                 >
                   <Plus className="w-3.5 h-3.5 mr-1" />
-                  Thêm chủ đề
+                  {t('teacher.aiWizard.detailModal.addTopicBtn')}
                 </Button>
               </div>
 
               {isAddingTopic && (
                 <div className="bg-indigo-50/50 border border-indigo-200 rounded-2xl p-4 space-y-2">
                   <h5 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
-                    Thêm Chủ Đề Mới
+                    {t('teacher.aiWizard.detailModal.addNewTopicTitle')}
                   </h5>
                   <input
                     type="text"
                     value={newTopicName}
                     onChange={(e) => setNewTopicName(e.target.value)}
-                    placeholder="Tên chủ đề kiến thức (VD: Thì Hiện tại đơn)"
+                    placeholder={t('teacher.aiWizard.detailModal.topicNamePlaceholder')}
                     className="w-full text-xs font-semibold border border-slate-200 rounded-xl p-2.5 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <textarea
                     rows={2}
                     value={newTopicDesc}
                     onChange={(e) => setNewTopicDesc(e.target.value)}
-                    placeholder="Mô tả tóm tắt nội dung chủ đề..."
+                    placeholder={t('teacher.aiWizard.detailModal.topicDescPlaceholder')}
                     className="w-full text-xs border border-slate-200 rounded-xl p-2.5 bg-white outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <div className="flex justify-end gap-2">
                     <Button variant="primary" size="sm" onClick={handleAddTopic} className="text-xs">
-                      Lưu chủ đề
+                      {t('teacher.aiWizard.detailModal.saveTopicBtn')}
                     </Button>
                     <Button
                       variant="outline"
@@ -446,7 +448,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
                       onClick={() => setIsAddingTopic(false)}
                       className="text-xs"
                     >
-                      Hủy
+                      {t('teacher.aiWizard.lessonsStage.cancelBtn')}
                     </Button>
                   </div>
                 </div>
@@ -487,7 +489,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
         {/* Modal Footer */}
         <div className="p-4 sm:p-5 border-t border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50 shrink-0">
           <Button variant="outline" size="sm" onClick={onClose}>
-            Đóng
+            {t('teacher.aiWizard.detailModal.closeBtn')}
           </Button>
 
           <Button
@@ -500,12 +502,12 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
             {isSaving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Đang lưu...
+                {t('teacher.aiWizard.detailModal.saving')}
               </>
             ) : (
               <>
                 <Check className="w-4 h-4 mr-2" />
-                Lưu Thay Đổi
+                {t('teacher.aiWizard.detailModal.saveChanges')}
               </>
             )}
           </Button>
@@ -514,3 +516,4 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
     </div>
   );
 };
+

@@ -1,5 +1,6 @@
 import React from 'react';
-import { BookOpen, AlertCircle, Trash2, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { BookOpen, Trash2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { WizardDraft } from '../../types/aiWizard.types';
 
@@ -16,8 +17,9 @@ export const AiWizardResumeBanner: React.FC<AiWizardResumeBannerProps> = ({
   onDiscard,
   isDiscarding = false,
 }) => {
+  const { t } = useTranslation();
   const lessonCount = draft.payload?.lessons?.length || 0;
-  const draftTitle = draft.payload?.curriculum_title || 'Lộ trình đang tạo';
+  const draftTitle = draft.payload?.curriculum_title || t('teacher.aiWizard.resumeBanner.defaultDraftTitle');
 
   return (
     <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-indigo-50 border border-indigo-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
@@ -28,14 +30,14 @@ export const AiWizardResumeBanner: React.FC<AiWizardResumeBannerProps> = ({
         <div className="min-w-0 space-y-0.5">
           <div className="flex items-center gap-2">
             <h4 className="text-sm font-bold text-slate-900 truncate">
-              Bản nháp AI chưa hoàn tất: {draftTitle}
+              {t('teacher.aiWizard.resumeBanner.incompleteDraftTitle', { title: draftTitle })}
             </h4>
             <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-100/70 text-indigo-700">
-              {lessonCount} bài học
+              {t('teacher.aiWizard.resumeBanner.lessonCount', { count: lessonCount })}
             </span>
           </div>
           <p className="text-xs text-slate-500">
-            Bạn có một tiến trình tạo lộ trình bằng AI đã lưu tạm. Bạn có thể tiếp tục chỉnh sửa hoặc hủy để bắt đầu mới.
+            {t('teacher.aiWizard.resumeBanner.desc')}
           </p>
         </div>
       </div>
@@ -48,7 +50,7 @@ export const AiWizardResumeBanner: React.FC<AiWizardResumeBannerProps> = ({
           className="px-3 py-2 text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors disabled:opacity-40"
         >
           <Trash2 className="w-3.5 h-3.5 inline mr-1" />
-          Hủy bản nháp
+          {t('teacher.aiWizard.resumeBanner.discardDraft')}
         </button>
 
         <Button
@@ -57,10 +59,11 @@ export const AiWizardResumeBanner: React.FC<AiWizardResumeBannerProps> = ({
           onClick={onResume}
           className="shadow-sm shadow-indigo-100 text-xs"
         >
-          Tiếp tục tạo lộ trình
+          {t('teacher.aiWizard.resumeBanner.resume')}
           <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
         </Button>
       </div>
     </div>
   );
 };
+

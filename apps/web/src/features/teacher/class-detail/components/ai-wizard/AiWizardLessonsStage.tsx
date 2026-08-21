@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Play,
   Plus,
@@ -46,6 +47,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
   onDiscardDraft,
   isDiscarding,
 }) => {
+  const { t } = useTranslation();
   const [isAddingLesson, setIsAddingLesson] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newSummary, setNewSummary] = useState('');
@@ -126,24 +128,24 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
         <div className="flex items-center justify-between">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <BookOpen className="w-3.5 h-3.5" />
-            Thông Tin Lộ Trình
+            {t('teacher.aiWizard.lessonsStage.headerInfo')}
           </label>
           <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-0.5 rounded-full">
-            {lessons.length} Bài Học
+            {t('teacher.aiWizard.lessonsStage.lessonsCount', { count: lessons.length })}
           </span>
         </div>
         <input
           type="text"
           value={curriculumTitle}
           onChange={(e) => onUpdateHeader(e.target.value, curriculumDescription)}
-          placeholder="Tiêu đề giáo trình / lộ trình học"
+          placeholder={t('teacher.aiWizard.lessonsStage.curriculumTitlePlaceholder')}
           className="w-full text-base sm:text-lg font-bold text-slate-900 bg-white border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
         <input
           type="text"
           value={curriculumDescription}
           onChange={(e) => onUpdateHeader(curriculumTitle, e.target.value)}
-          placeholder="Mô tả lộ trình học (tùy chọn)"
+          placeholder={t('teacher.aiWizard.lessonsStage.curriculumDescPlaceholder')}
           className="w-full text-xs sm:text-sm text-slate-600 bg-white border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
       </div>
@@ -152,14 +154,14 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Danh sách bài học
+            {t('teacher.aiWizard.lessonsStage.lessonsListTitle')}
           </span>
           <span className="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
-            {readyCount}/{lessons.length} đã sẵn sàng
+            {t('teacher.aiWizard.lessonsStage.readyStatus', { ready: readyCount, total: lessons.length })}
           </span>
           {errorLessons.length > 0 && (
             <span className="text-xs font-semibold px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-full">
-              {errorLessons.length} bài cần thử lại
+              {t('teacher.aiWizard.lessonsStage.errorStatus', { count: errorLessons.length })}
             </span>
           )}
         </div>
@@ -174,7 +176,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
               className="text-xs border-amber-300 text-amber-800 bg-amber-50 hover:bg-amber-100"
             >
               <RefreshCw className="w-3.5 h-3.5 mr-1" />
-              Thử lại {errorLessons.length} bài lỗi
+              {t('teacher.aiWizard.lessonsStage.retryErrorLessons', { count: errorLessons.length })}
             </Button>
           )}
 
@@ -186,7 +188,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
             className="text-xs"
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
-            Thêm bài học
+            {t('teacher.aiWizard.lessonsStage.addLessonBtn')}
           </Button>
 
           <Button
@@ -199,12 +201,12 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
             {isGenerating ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                Đang tạo nội dung ({overallProgress}%)
+                {t('teacher.aiWizard.lessonsStage.generatingProgress', { percent: overallProgress })}
               </>
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 mr-1.5 fill-current" />
-                Tạo Chủ đề & Bài tập cho tất cả
+                {t('teacher.aiWizard.lessonsStage.generateAllBtn')}
               </>
             )}
           </Button>
@@ -217,7 +219,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
           <div className="flex items-center justify-between text-xs font-bold text-indigo-900">
             <span className="flex items-center gap-1.5">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
-              Đang phân tích và tạo câu hỏi song song...
+              {t('teacher.aiWizard.lessonsStage.generatingParallel')}
             </span>
             <span>{overallProgress}%</span>
           </div>
@@ -237,21 +239,21 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
           className="bg-indigo-50/40 border border-indigo-200 rounded-2xl p-4 space-y-3"
         >
           <h5 className="text-xs font-bold text-indigo-900 uppercase tracking-wider">
-            Thêm Bài Học Mới
+            {t('teacher.aiWizard.lessonsStage.addNewLessonTitle')}
           </h5>
           <input
             type="text"
             required
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Tiêu đề bài học (VD: Bài 3: Lịch sử và Văn hóa)"
+            placeholder={t('teacher.aiWizard.lessonsStage.lessonTitlePlaceholder')}
             className="w-full text-xs sm:text-sm font-semibold border border-slate-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
           />
           <textarea
             rows={2}
             value={newSummary}
             onChange={(e) => setNewSummary(e.target.value)}
-            placeholder="Tóm tắt nội dung kiến thức bài học"
+            placeholder={t('teacher.aiWizard.lessonsStage.lessonSummaryPlaceholder')}
             className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
           />
           <div className="flex items-center justify-between">
@@ -259,12 +261,12 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
               type="text"
               value={newPageRange}
               onChange={(e) => setNewPageRange(e.target.value)}
-              placeholder="Khoảng trang (VD: 30-42)"
+              placeholder={t('teacher.aiWizard.lessonsStage.pageRangePlaceholder')}
               className="w-48 text-xs border border-slate-200 rounded-xl px-3 py-1.5 bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
             />
             <div className="flex items-center gap-2">
               <Button type="submit" variant="primary" size="sm" className="text-xs">
-                Lưu bài học
+                {t('teacher.aiWizard.lessonsStage.saveLessonBtn')}
               </Button>
               <Button
                 type="button"
@@ -273,7 +275,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
                 onClick={() => setIsAddingLesson(false)}
                 className="text-xs"
               >
-                Hủy
+                {t('teacher.aiWizard.lessonsStage.cancelBtn')}
               </Button>
             </div>
           </div>
@@ -301,7 +303,9 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
         {lessons.length === 0 && (
           <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-2">
             <Layers className="w-8 h-8 text-slate-400 mx-auto" />
-            <p className="text-sm font-semibold text-slate-600">Chưa có bài học nào trong lộ trình</p>
+            <p className="text-sm font-semibold text-slate-600">
+              {t('teacher.aiWizard.lessonsStage.noLessonsInStage')}
+            </p>
             <Button
               variant="outline"
               size="sm"
@@ -309,7 +313,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
               className="text-xs"
             >
               <Plus className="w-3.5 h-3.5 mr-1" />
-              Thêm bài học đầu tiên
+              {t('teacher.aiWizard.lessonsStage.addFirstLesson')}
             </Button>
           </div>
         )}
@@ -324,7 +328,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
           className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors disabled:opacity-40"
         >
           <Trash2 className="w-4 h-4" />
-          <span>Hủy tiến trình làm lại từ đầu</span>
+          <span>{t('teacher.aiWizard.lessonsStage.discardAll')}</span>
         </button>
 
         <Button
@@ -337,12 +341,12 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
           {isCommitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Đang lưu vào lớp học...
+              {t('teacher.aiWizard.lessonsStage.commitSaving')}
             </>
           ) : (
             <>
               <CheckCircle2 className="w-4 h-4 mr-2" />
-              Lưu vào Lớp Học ({readyCount} bài đã hoàn tất)
+              {t('teacher.aiWizard.lessonsStage.commitSaveBtn', { count: readyCount })}
             </>
           )}
         </Button>
@@ -350,3 +354,4 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
     </div>
   );
 };
+

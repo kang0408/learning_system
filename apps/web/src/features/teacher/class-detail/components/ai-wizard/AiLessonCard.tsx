@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronUp,
   ChevronDown,
@@ -41,6 +42,7 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
   onRetry,
   isGeneratingAll = false,
 }) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(lesson.title);
   const [editSummary, setEditSummary] = useState(lesson.summary || '');
@@ -67,21 +69,24 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Đang sinh câu hỏi...
+            {t('teacher.aiWizard.lessonCard.generatingQuestions')}
           </span>
         );
       case 'ready':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            {lesson.questions_count} câu hỏi • {lesson.topics_count} chủ đề
+            {t('teacher.aiWizard.lessonCard.readyBadge', {
+              questions: lesson.questions_count,
+              topics: lesson.topics_count,
+            })}
           </span>
         );
       case 'error':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/80">
             <AlertCircle className="w-3.5 h-3.5" />
-            Lỗi phân tích
+            {t('teacher.aiWizard.lessonCard.errorBadge')}
           </span>
         );
       case 'pending':
@@ -89,7 +94,7 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/80">
             <Layers className="w-3.5 h-3.5" />
-            Chờ tạo nội dung
+            {t('teacher.aiWizard.lessonCard.pendingBadge')}
           </span>
         );
     }
@@ -144,7 +149,7 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
                   {lesson.page_range && (
                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
                       <BookOpen className="w-3 h-3" />
-                      Trang {lesson.page_range}
+                      {t('teacher.aiWizard.lessonCard.pageLabel', { range: lesson.page_range })}
                     </span>
                   )}
                   {getStatusBadge()}
@@ -161,14 +166,14 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder="Tiêu đề bài học"
+                  placeholder={t('teacher.aiWizard.lessonCard.titlePlaceholder')}
                   className="w-full text-xs sm:text-sm font-semibold border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
                 <textarea
                   rows={2}
                   value={editSummary}
                   onChange={(e) => setEditSummary(e.target.value)}
-                  placeholder="Tóm tắt nội dung bài học"
+                  placeholder={t('teacher.aiWizard.lessonCard.summaryPlaceholder')}
                   className="w-full text-xs border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
                 <div className="flex items-center gap-2">
@@ -176,7 +181,7 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
                     type="text"
                     value={editPageRange}
                     onChange={(e) => setEditPageRange(e.target.value)}
-                    placeholder="Khoảng trang (VD: 5-18)"
+                    placeholder={t('teacher.aiWizard.lessonCard.pageRangePlaceholder')}
                     className="w-40 text-xs border border-slate-200 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 outline-none"
                   />
                   <button
@@ -209,7 +214,7 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100/80 rounded-xl transition-colors shadow-sm"
               >
                 <FileQuestion className="w-3.5 h-3.5" />
-                <span>Xem & Sửa Câu Hỏi</span>
+                <span>{t('teacher.aiWizard.lessonCard.viewEditQuestions')}</span>
               </button>
             )}
 
@@ -221,7 +226,7 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                <span>Thử lại</span>
+                <span>{t('teacher.aiWizard.lessonCard.retry')}</span>
               </button>
             )}
 
@@ -255,3 +260,4 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
     </div>
   );
 };
+

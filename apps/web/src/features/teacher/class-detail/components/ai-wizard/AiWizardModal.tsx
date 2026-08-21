@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BookOpen, X, Layers, ArrowLeft } from 'lucide-react';
 import { toast } from '@/utils/toast';
 import { AiWizardUploadStep } from './AiWizardUploadStep';
@@ -18,6 +19,7 @@ interface AiWizardModalProps {
 }
 
 export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }) => {
+  const { t } = useTranslation();
   const {
     curriculumTitle,
     setCurriculumTitle,
@@ -45,9 +47,9 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
   const handleExtract = async (payload: { file?: File; documentText?: string }) => {
     try {
       await step1Mutation.mutateAsync(payload);
-      toast.success('Phân tích giáo trình và trích xuất lộ trình thành công!');
+      toast.success(t('teacher.aiWizard.modal.extractSuccess'));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || 'Có lỗi xảy ra khi phân tích tài liệu');
+      toast.error(err?.response?.data?.message || err?.message || t('teacher.aiWizard.modal.extractError'));
     }
   };
 
@@ -71,9 +73,9 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
   const handleStartBatchGen = async (lessonTempIds?: string[]) => {
     try {
       await startBatchGeneration(lessonTempIds);
-      toast.success('Đã hoàn thành sinh toàn bộ chủ đề và câu hỏi!');
+      toast.success(t('teacher.aiWizard.modal.batchGenSuccess'));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || 'Có lỗi xảy ra trong quá trình sinh nội dung');
+      toast.error(err?.response?.data?.message || err?.message || t('teacher.aiWizard.modal.batchGenError'));
     }
   };
 
@@ -89,9 +91,9 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
         topics,
         questions,
       });
-      toast.success('Đã lưu chi tiết bài học thành công!');
+      toast.success(t('teacher.aiWizard.modal.saveDetailSuccess'));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Lỗi khi lưu chi tiết bài học');
+      toast.error(err?.response?.data?.message || t('teacher.aiWizard.modal.saveDetailError'));
       throw err;
     }
   };
@@ -108,10 +110,10 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
         questionTempId,
         instruction,
       });
-      toast.success('Đã sinh lại câu hỏi thành công!');
+      toast.success(t('teacher.aiWizard.modal.regenQuestionSuccess'));
       return newQ;
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Lỗi khi sinh lại câu hỏi');
+      toast.error(err?.response?.data?.message || t('teacher.aiWizard.modal.regenQuestionError'));
       throw err;
     }
   };
@@ -122,18 +124,18 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
       const result = await commitMutation.mutateAsync();
       setCommitResult(result);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Có lỗi xảy ra khi lưu vào lớp học');
+      toast.error(err?.response?.data?.message || t('teacher.aiWizard.modal.commitError'));
     }
   };
 
   // Discard Draft
   const handleDiscardDraft = async () => {
-    if (window.confirm('Bạn có chắc chắn muốn hủy bản nháp và làm lại từ đầu?')) {
+    if (window.confirm(t('teacher.aiWizard.modal.discardConfirm'))) {
       try {
         await deleteDraftMutation.mutateAsync();
-        toast.success('Đã hủy bản nháp thành công');
+        toast.success(t('teacher.aiWizard.modal.discardSuccess'));
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || 'Lỗi khi hủy bản nháp');
+        toast.error(err?.response?.data?.message || t('teacher.aiWizard.modal.discardError'));
       }
     }
   };
@@ -153,12 +155,12 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
-                Trình Tạo Lộ Trình AI
+                {t('teacher.aiWizard.modal.title')}
               </h2>
               <p className="text-xs text-slate-500 font-medium">
                 {lessons.length === 0
-                  ? 'Bước 1: Phân tích giáo trình & trích xuất lộ trình'
-                  : 'Bước 2: Quản lý bài học & sinh ngân hàng câu hỏi'}
+                  ? t('teacher.aiWizard.modal.step1Subtitle')
+                  : t('teacher.aiWizard.modal.step2Subtitle')}
               </p>
             </div>
           </div>

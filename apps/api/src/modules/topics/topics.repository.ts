@@ -60,16 +60,50 @@ export class TopicsRepository {
     });
   }
 
+  async getAllDescendantTopicIds(topicIds: string[], teacherId: string): Promise<string[]> {
+    const allIds = new Set<string>(topicIds);
+    let currentParentIds = [...topicIds];
+
+    while (currentParentIds.length > 0) {
+      const children = await this.prisma.topic.findMany({
+        where: {
+          parent_id: { in: currentParentIds },
+          created_by: teacherId,
+          deleted_at: null,
+        },
+        select: { id: true },
+      });
+
+      if (children.length === 0) break;
+      const newChildIds = children.map((c) => c.id).filter((id) => !allIds.has(id));
+      if (newChildIds.length === 0) break;
+      newChildIds.forEach((id) => allIds.add(id));
+      currentParentIds = newChildIds;
+    }
+
+    return Array.from(allIds);
+  }
+
   async deleteTopicWithQuestions(topicId: string, teacherId: string) {
-    return this.prisma.$transaction([
-      this.prisma.topic.update({
-        where: { id: topicId },
-        data: { deleted_at: new Date() }
+    return this.deleteTopicsWithQuestionsBatch([topicId], teacherId);
+  }
+
+  async deleteTopicsWithQuestionsBatch(topicIds: string[], teacherId: string) {
+    const allTargetIds = await this.getAllDescendantTopicIds(topicIds, teacherId);
+    if (allTargetIds.length === 0) return { count: 0 };
+
+    const now = new Date();
+    await this.prisma.$transaction([
+      this.prisma.topic.updateMany({
+        where: { id: { in: allTargetIds }, created_by: teacherId, deleted_at: null },
+        data: { deleted_at: now }
       }),
       this.prisma.question.updateMany({
-        where: { topic_id: topicId, created_by: teacherId, deleted_at: null },
-        data: { deleted_at: new Date() }
+        where: { topic_id: { in: allTargetIds }, created_by: teacherId, deleted_at: null },
+        data: { deleted_at: now }
       })
     ]);
+
+    return { count: allTargetIds.length };
   }
 }

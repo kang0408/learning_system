@@ -57,7 +57,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
     mutationFn: () => teacherAiWizardApi.deleteDraft(classId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-wizard-draft', classId] });
-      toast.success('Đã hủy bản nháp AI thành công');
+      toast.success(t('teacher.aiWizard.curriculumTab.draftDiscardSuccess'));
     },
   });
 
@@ -131,7 +131,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
   };
 
   const handleDiscardDraft = () => {
-    if (window.confirm('Bạn có chắc chắn muốn hủy bản nháp AI này?')) {
+    if (window.confirm(t('teacher.aiWizard.curriculumTab.draftDiscardConfirm'))) {
       discardDraftMutation.mutate();
     }
   };
@@ -189,7 +189,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
             className="flex-1 sm:flex-initial text-indigo-600 border-indigo-200 hover:bg-indigo-50/60 shadow-sm"
           >
             <Sparkles className="w-4 h-4 mr-1.5 text-indigo-600" />
-            Tạo bằng AI
+            {t('teacher.aiWizard.curriculumTab.createWithAi')}
           </Button>
 
           <Button
@@ -223,7 +223,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
               className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
             >
               <Sparkles className="w-4 h-4 mr-1.5" />
-              Tạo tự động bằng AI
+              {t('teacher.aiWizard.curriculumTab.createAutoWithAi')}
             </Button>
             <Button variant="primary" size="md" onClick={handleOpenCreate}>
               <Plus className="w-4 h-4 mr-1.5" /> {t('teacher.classDetail.addLesson')}

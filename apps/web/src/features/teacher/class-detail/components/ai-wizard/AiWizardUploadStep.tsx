@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   UploadCloud,
   FileText,
@@ -18,6 +19,7 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
   onExtract,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [manualText, setManualText] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
@@ -50,12 +52,12 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
     const isValid = validExtensions.some((ext) => lowerName.endsWith(ext));
 
     if (!isValid) {
-      setErrorMsg('Vui lòng chọn file tài liệu định dạng PDF, DOCX, DOC hoặc TXT.');
+      setErrorMsg(t('teacher.aiWizard.uploadStep.fileTypeError'));
       return;
     }
 
     if (file.size > 25 * 1024 * 1024) {
-      setErrorMsg('Dung lượng file tối đa cho phép là 25MB.');
+      setErrorMsg(t('teacher.aiWizard.uploadStep.fileSizeError'));
       return;
     }
 
@@ -73,13 +75,13 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
     setErrorMsg(null);
     if (activeTab === 'upload') {
       if (!selectedFile) {
-        setErrorMsg('Vui lòng chọn hoặc kéo thả một file tài liệu.');
+        setErrorMsg(t('teacher.aiWizard.uploadStep.noFileError'));
         return;
       }
       await onExtract({ file: selectedFile });
     } else {
       if (!manualText.trim()) {
-        setErrorMsg('Vui lòng nhập nội dung giáo trình hoặc danh mục bài học.');
+        setErrorMsg(t('teacher.aiWizard.uploadStep.noTextError'));
         return;
       }
       await onExtract({ documentText: manualText });
@@ -94,11 +96,10 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
           <BookOpen className="w-6 h-6" />
         </div>
         <h3 className="text-xl font-bold text-slate-900">
-          Tạo Lộ Trình & Ngân Hàng Bài Tập Tự Động
+          {t('teacher.aiWizard.uploadStep.title')}
         </h3>
         <p className="text-sm text-slate-500 max-w-lg mx-auto">
-          Tải lên tài liệu giáo trình để hệ thống tự động phân tích cấu trúc chương trình,
-          trích xuất lộ trình bài học và sinh bộ câu hỏi tương ứng.
+          {t('teacher.aiWizard.uploadStep.desc')}
         </p>
       </div>
 
@@ -118,7 +119,7 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
             }`}
           >
             <UploadCloud className="w-4 h-4" />
-            Tải lên tài liệu
+            {t('teacher.aiWizard.uploadStep.tabUpload')}
           </button>
           <button
             type="button"
@@ -133,7 +134,7 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
             }`}
           >
             <FileText className="w-4 h-4" />
-            Nhập văn bản trực tiếp
+            {t('teacher.aiWizard.uploadStep.tabText')}
           </button>
         </div>
       </div>
@@ -175,10 +176,13 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
                 <UploadCloud className="w-7 h-7" />
               </div>
               <p className="text-sm font-semibold text-slate-800 mb-1">
-                Kéo thả file giáo trình vào đây hoặc <span className="text-indigo-600 underline">chọn từ máy tính</span>
+                {t('teacher.aiWizard.uploadStep.dragDropLabel')}{' '}
+                <span className="text-indigo-600 underline">
+                  {t('teacher.aiWizard.uploadStep.chooseFile')}
+                </span>
               </p>
               <p className="text-xs text-slate-400">
-                Hỗ trợ định dạng PDF, DOCX, DOC, TXT (Tối đa 25MB)
+                {t('teacher.aiWizard.uploadStep.supportedFormats')}
               </p>
             </div>
           ) : (
@@ -212,14 +216,14 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
       {activeTab === 'text' && (
         <div className="space-y-2">
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-            Nội dung mục lục / đề cương giáo trình
+            {t('teacher.aiWizard.uploadStep.manualTextLabel')}
           </label>
           <textarea
             rows={8}
             value={manualText}
             onChange={(e) => setManualText(e.target.value)}
             disabled={isLoading}
-            placeholder="Ví dụ:&#10;Bài 1: Cuộc sống gia đình - Từ vựng và ngữ pháp căn bản&#10;Bài 2: Con người và Môi trường - Cấu trúc câu và kỹ năng đọc hiểu..."
+            placeholder={t('teacher.aiWizard.uploadStep.manualTextPlaceholder')}
             className="w-full text-xs sm:text-sm font-mono border border-slate-200 rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none disabled:bg-slate-50"
           />
         </div>
@@ -230,7 +234,9 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
         <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5 text-center space-y-3">
           <div className="flex items-center justify-center gap-2.5 text-indigo-600">
             <Loader2 className="w-5 h-5 animate-spin" />
-            <span className="text-sm font-bold">Hệ thống đang phân tích tài liệu và nhận diện lộ trình...</span>
+            <span className="text-sm font-bold">
+              {t('teacher.aiWizard.uploadStep.analyzing')}
+            </span>
           </div>
           <div className="w-full bg-indigo-200/60 rounded-full h-1.5 overflow-hidden">
             <div className="bg-indigo-600 h-full w-2/3 animate-pulse" />
@@ -250,12 +256,12 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Đang phân tích...
+              {t('teacher.aiWizard.uploadStep.analyzingBtn')}
             </>
           ) : (
             <>
               <BookOpen className="w-4 h-4 mr-2" />
-              Phân tích Lộ trình
+              {t('teacher.aiWizard.uploadStep.extractBtn')}
             </>
           )}
         </Button>
@@ -263,3 +269,4 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
     </div>
   );
 };
+

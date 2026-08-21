@@ -37,3 +37,23 @@ export const useImportCsv = () => {
     },
   });
 };
+
+export const useDeleteTopic = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: teacherQuestionBankApi.deleteTopic,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });
+    },
+  });
+};
+
+export const useBatchDeleteTopics = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: teacherQuestionBankApi.batchDeleteTopics,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });
+    },
+  });
+};

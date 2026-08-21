@@ -13,6 +13,7 @@ const topicsService = new TopicsService(topicsRepository);
 const topicsController = new TopicsController(topicsService);
 
 router.post('/', requireAuth, requireRole(['teacher']), asyncWrapper(topicsController.createTopic));
+router.post('/batch-delete', requireAuth, requireRole(['teacher']), asyncWrapper(topicsController.batchDeleteTopics));
 router.get('/', requireAuth, requireRole(['teacher']), asyncWrapper(topicsController.getTopics));
 router.get('/:id', requireAuth, requireRole(['teacher']), asyncWrapper(topicsController.getTopicById));
 router.put('/:id', requireAuth, requireRole(['teacher']), asyncWrapper(topicsController.updateTopic));

@@ -37,7 +37,7 @@ export class TopicsService {
   }
 
   async getTopics(teacherId: string, query: any) {
-    const { search } = query;
+    const { search, has_questions } = query;
 
     const where: any = { 
       created_by: teacherId, 
@@ -49,8 +49,20 @@ export class TopicsService {
         ]
       }
     };
-    if (search) {
-      where.name = { contains: search, mode: 'insensitive' };
+
+    if (search && search.trim()) {
+      const term = search.trim();
+      where.OR = [
+        { name: { contains: term, mode: 'insensitive' } },
+        { code: { contains: term, mode: 'insensitive' } },
+        { description: { contains: term, mode: 'insensitive' } },
+      ];
+    }
+
+    if (has_questions === 'true') {
+      where.questions = { some: { deleted_at: null } };
+    } else if (has_questions === 'false') {
+      where.questions = { none: { deleted_at: null } };
     }
     
     const allTopics = await this.topicsRepository.findAllTopicsForTree(where);
@@ -110,8 +122,18 @@ export class TopicsService {
   async deleteTopic(topicId: string, teacherId: string) {
     await this.getTopicById(topicId, teacherId);
     
-    await this.topicsRepository.deleteTopicWithQuestions(topicId, teacherId);
+    const result = await this.topicsRepository.deleteTopicWithQuestions(topicId, teacherId);
 
-    return { success: true };
+    return { success: true, count: result.count };
+  }
+
+  async deleteTopicsBatch(topicIds: string[], teacherId: string) {
+    if (!topicIds || topicIds.length === 0) {
+      throw new ApiError(400, 'Danh sách topic cần xóa không được rỗng');
+    }
+
+    const result = await this.topicsRepository.deleteTopicsWithQuestionsBatch(topicIds, teacherId);
+
+    return { success: true, count: result.count };
   }
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CheckCircle2,
   BookOpen,
@@ -19,6 +20,8 @@ export const AiCommitSuccessModal: React.FC<AiCommitSuccessModalProps> = ({
   result,
   onClose,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl w-full max-w-md p-6 sm:p-8 text-center space-y-6">
@@ -30,10 +33,10 @@ export const AiCommitSuccessModal: React.FC<AiCommitSuccessModalProps> = ({
         {/* Title */}
         <div className="space-y-1">
           <h3 className="text-xl font-bold text-slate-900">
-            Lưu Lộ Trình Thành Công!
+            {t('teacher.aiWizard.successModal.title')}
           </h3>
           <p className="text-xs sm:text-sm text-slate-500">
-            Toàn bộ cấu trúc bài học, chủ đề kiến thức và bộ bài tập đã được tích hợp trực tiếp vào lớp học.
+            {t('teacher.aiWizard.successModal.desc')}
           </p>
         </div>
 
@@ -42,7 +45,7 @@ export const AiCommitSuccessModal: React.FC<AiCommitSuccessModalProps> = ({
           <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-3.5 space-y-1 text-left">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
               <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Bài học</span>
+              <span>{t('teacher.aiWizard.successModal.lessons')}</span>
             </div>
             <p className="text-xl font-bold text-slate-900">
               {result.curriculums_created}
@@ -52,7 +55,7 @@ export const AiCommitSuccessModal: React.FC<AiCommitSuccessModalProps> = ({
           <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-3.5 space-y-1 text-left">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
               <Layers className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Chủ đề</span>
+              <span>{t('teacher.aiWizard.successModal.topics')}</span>
             </div>
             <p className="text-xl font-bold text-slate-900">
               {result.topics_created}
@@ -62,7 +65,7 @@ export const AiCommitSuccessModal: React.FC<AiCommitSuccessModalProps> = ({
           <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-3.5 space-y-1 text-left">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
               <FileQuestion className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Câu hỏi</span>
+              <span>{t('teacher.aiWizard.successModal.questions')}</span>
             </div>
             <p className="text-xl font-bold text-slate-900">
               {result.questions_created}
@@ -72,7 +75,7 @@ export const AiCommitSuccessModal: React.FC<AiCommitSuccessModalProps> = ({
           <div className="bg-slate-50 border border-slate-200/70 rounded-2xl p-3.5 space-y-1 text-left">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
               <FileCheck className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Bài tập tự động</span>
+              <span>{t('teacher.aiWizard.successModal.assignments')}</span>
             </div>
             <p className="text-xl font-bold text-slate-900">
               {result.assignments_created}
@@ -87,10 +90,11 @@ export const AiCommitSuccessModal: React.FC<AiCommitSuccessModalProps> = ({
           onClick={onClose}
           className="w-full shadow-md shadow-indigo-100"
         >
-          <span>Xem Danh Sách Lộ Trình</span>
+          <span>{t('teacher.aiWizard.successModal.viewCurriculumList')}</span>
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
     </div>
   );
 };
+

@@ -11,6 +11,7 @@ export class TopicsController extends BaseController {
     this.getTopicById = this.getTopicById.bind(this);
     this.updateTopic = this.updateTopic.bind(this);
     this.deleteTopic = this.deleteTopic.bind(this);
+    this.batchDeleteTopics = this.batchDeleteTopics.bind(this);
   }
 
   async createTopic(req: any, res: Response) {
@@ -38,7 +39,16 @@ export class TopicsController extends BaseController {
   }
 
   async deleteTopic(req: any, res: Response) {
-    await this.topicsService.deleteTopic(req.params.id, req.user.userId);
-    this.handleSuccess(res, null);
+    const result = await this.topicsService.deleteTopic(req.params.id, req.user.userId);
+    this.handleSuccess(res, result);
+  }
+
+  async batchDeleteTopics(req: any, res: Response) {
+    const { topicIds } = req.body;
+    if (!Array.isArray(topicIds) || topicIds.length === 0) {
+      return res.status(400).json({ success: false, error: 'topicIds phải là mảng không rỗng' });
+    }
+    const result = await this.topicsService.deleteTopicsBatch(topicIds, req.user.userId);
+    this.handleSuccess(res, result);
   }
 }

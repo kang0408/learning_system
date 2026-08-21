@@ -22,5 +22,13 @@ export const teacherQuestionBankApi = {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return res.data.data;
+  },
+
+  deleteTopic: async (topicId: string): Promise<void> => {
+    await api.delete(`/api/topics/${topicId}`);
+  },
+
+  batchDeleteTopics: async (topicIds: string[]): Promise<void> => {
+    await api.post('/api/topics/batch-delete', { topicIds });
   }
 };
