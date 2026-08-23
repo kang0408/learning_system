@@ -9,6 +9,7 @@ import { AssignmentsTab } from './components/AssignmentsTab';
 import { CurriculumTab } from './components/CurriculumTab';
 import { EditClassModal } from './components/EditClassModal';
 import { DeleteClassModal } from './components/DeleteClassModal';
+import { ExportReportModal } from './components/ExportReportModal';
 import { toast } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +23,7 @@ export const TeacherClassDetailFeature: React.FC = () => {
   
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Single parallel request using Suspense
   const { data } = useClassDetailData(id || '');
@@ -73,6 +75,7 @@ export const TeacherClassDetailFeature: React.FC = () => {
         onTabChange={setActiveTab} 
         onEditClick={() => setShowEditModal(true)}
         onDeleteClick={() => setShowDeleteModal(true)}
+        onExportClick={() => setShowExportModal(true)}
       />
 
       <div role="tabpanel" id={`${activeTab}-panel`} aria-labelledby={`${activeTab}-tab`} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -124,6 +127,15 @@ export const TeacherClassDetailFeature: React.FC = () => {
           isDeleting={deleteClass.isPending}
           onClose={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteConfirm}
+        />
+      )}
+
+      {showExportModal && (
+        <ExportReportModal
+          classId={id || ''}
+          className={classDetails.name}
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
         />
       )}
     </div>

@@ -378,6 +378,7 @@
       "joinCode": "Mã tham gia lớp học:",
       "edit": "Chỉnh sửa",
       "deleteClass": "Xóa lớp học",
+      "exportReport": "Xuất Báo Cáo PDF",
       "analyticsTab": "Phân tích",
       "studentsTab": "Học sinh",
       "assignmentsTab": "Bài tập",
@@ -413,7 +414,7 @@
       "totalStudentsCount": "Tổng số: {{count}} học sinh",
       "rank": "Thứ hạng",
       "cumulativeScore": "Điểm tích lũy",
-      "sm2Progress": "Tiến độ SM2",
+      "sm2Progress": "Kiến thức thành thạo",
       "lastActivity": "Hoạt động cuối cùng",
       "actions": "Thao tác",
       "details": "Chi tiết",
@@ -748,6 +749,14 @@
       "descriptionPlaceholder": "Mô tả ngắn gọn về lớp học này (không bắt buộc)",
       "cancelBtn": "Hủy",
       "submitBtn": "Khởi tạo"
+    },
+    "classReport": {
+      "modalTitle": "Xuất Báo Cáo Toàn Diện Lớp Học",
+      "generating": "Đang tạo báo cáo PDF & phân tích AI chất lượng cao...",
+      "success": "Xuất báo cáo PDF thành công!",
+      "error": "Không thể xuất báo cáo PDF. Vui lòng thử lại sau.",
+      "processing": "Đang xử lý PDF...",
+      "downloadBtn": "Tải Báo Cáo PDF"
     },
     "editAssignment": {
       "title": "Chỉnh sửa bài tập",

@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, BarChart2, GraduationCap, BookOpen, Compass, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, BarChart2, GraduationCap, BookOpen, Compass, MoreVertical, Edit2, Trash2, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/Badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/DropdownMenu';
 import { Button } from '@/components/ui/Button';
 
-export type ClassDetailTab = 'analytics' | 'students' | 'assignments' | 'curriculum';
+export type ClassDetailTab = 'analytics' | 'curriculum' | 'assignments' | 'students';
 
 interface ClassHeaderProps {
   classDetails: any;
@@ -13,15 +13,16 @@ interface ClassHeaderProps {
   onTabChange: (tab: ClassDetailTab) => void;
   onEditClick: () => void;
   onDeleteClick: () => void;
+  onExportClick?: () => void;
 }
 
-export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick, onDeleteClick }: ClassHeaderProps) {
+export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick, onDeleteClick, onExportClick }: ClassHeaderProps) {
   const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition duration-300">
-        <div className="flex items-center mb-4 md:mb-0">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition duration-300 gap-4">
+        <div className="flex items-center mb-2 md:mb-0">
           <Link to="/teacher" className="mr-5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors" aria-label={t('teacher.classDetail.back')}>
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -41,22 +42,32 @@ export function ClassHeader({ classDetails, activeTab, onTabChange, onEditClick,
           </div>
         </div>
         
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button variant="outline" size="icon">
-              <MoreVertical className="w-5 h-5 text-slate-600" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="right">
-            <DropdownMenuItem onClick={onEditClick}>
-              <Edit2 className="w-4 h-4 mr-2" /> {t('teacher.classDetail.edit')}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem destructive onClick={onDeleteClick}>
-              <Trash2 className="w-4 h-4 mr-2" /> {t('teacher.classDetail.deleteClass')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-3 self-end md:self-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Button variant="outline" size="icon">
+                <MoreVertical className="w-5 h-5 text-slate-600" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="right" className="w-52">
+              {onExportClick && (
+                <>
+                  <DropdownMenuItem onClick={onExportClick}>
+                    <FileText className="w-4 h-4 mr-2.5 text-slate-500" /> {t('teacher.classDetail.exportReport', 'Xuất Báo Cáo PDF')}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem onClick={onEditClick}>
+                <Edit2 className="w-4 h-4 mr-2" /> {t('teacher.classDetail.edit')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem destructive onClick={onDeleteClick}>
+                <Trash2 className="w-4 h-4 mr-2" /> {t('teacher.classDetail.deleteClass')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div 

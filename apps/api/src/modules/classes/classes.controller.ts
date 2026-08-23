@@ -1,10 +1,16 @@
 import { Request, Response } from 'express';
 import { ClassesService } from './classes.service';
+import { ClassReportService } from './class-report.service';
+import { PdfGeneratorService } from './pdf-generator.service';
 import { BaseController } from '../../controllers/BaseController';
 import { createClassSchema, updateClassSchema, joinClassSchema } from './classes.schema';
 
 export class ClassesController extends BaseController {
-  constructor(private readonly classesService: ClassesService) {
+  constructor(
+    private readonly classesService: ClassesService,
+    private readonly classReportService?: ClassReportService,
+    private readonly pdfGeneratorService?: PdfGeneratorService
+  ) {
     super();
     this.createClass = this.createClass.bind(this);
     this.getTeacherClasses = this.getTeacherClasses.bind(this);
@@ -15,7 +21,10 @@ export class ClassesController extends BaseController {
     this.removeMember = this.removeMember.bind(this);
     this.joinClass = this.joinClass.bind(this);
     this.getMyClasses = this.getMyClasses.bind(this);
+    this.exportClassReportPdf = this.exportClassReportPdf.bind(this);
+    this.getClassReportData = this.getClassReportData.bind(this);
   }
+
   async createClass(req: any, res: Response) {
     const parseResult = createClassSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
@@ -67,5 +76,48 @@ export class ClassesController extends BaseController {
   async getMyClasses(req: any, res: Response) {
     const classes = await this.classesService.getMyClasses(req.user.userId);
     this.handleSuccess(res, classes);
+  }
+
+  async exportClassReportPdf(req: any, res: Response) {
+    if (!this.classReportService || !this.pdfGeneratorService) {
+      return res.status(500).json({ success: false, message: 'Report services not configured' });
+    }
+
+    const classId = req.params.id;
+    const teacherId = req.user.userId;
+
+    const reportData = await this.classReportService.getCompleteReportData(classId, teacherId);
+    if (!reportData) {
+      return res.status(404).json({ success: false, message: 'Class not found or access denied' });
+    }
+
+    const pdfBuffer = await this.pdfGeneratorService.generateClassReportPdf(reportData);
+
+    const safeClassName = (reportData.class_info.name || 'Lop_Hoc')
+      .replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '_')
+      .substring(0, 30);
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `Bao_Cao_Lop_${safeClassName}_${dateStr}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  }
+
+  async getClassReportData(req: any, res: Response) {
+    if (!this.classReportService) {
+      return res.status(500).json({ success: false, message: 'Report service not configured' });
+    }
+
+    const classId = req.params.id;
+    const teacherId = req.user.userId;
+
+    const reportData = await this.classReportService.getCompleteReportData(classId, teacherId);
+    if (!reportData) {
+      return res.status(404).json({ success: false, message: 'Class not found or access denied' });
+    }
+
+    this.handleSuccess(res, reportData);
   }
 }

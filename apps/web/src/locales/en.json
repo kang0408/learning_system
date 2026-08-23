@@ -378,6 +378,7 @@
       "joinCode": "Join Code:",
       "edit": "Edit",
       "deleteClass": "Delete Class",
+      "exportReport": "Export PDF Report",
       "analyticsTab": "Analytics",
       "studentsTab": "Students",
       "assignmentsTab": "Assignments",
@@ -413,7 +414,7 @@
       "totalStudentsCount": "Total: {{count}} students",
       "rank": "Rank",
       "cumulativeScore": "Cumulative Score",
-      "sm2Progress": "SM2 Progress",
+      "sm2Progress": "Mastered Knowledge",
       "lastActivity": "Last Activity",
       "actions": "Actions",
       "details": "Details",
@@ -747,6 +748,14 @@
       "descriptionPlaceholder": "Brief description of this class (optional)",
       "cancelBtn": "Cancel",
       "submitBtn": "Create"
+    },
+    "classReport": {
+      "modalTitle": "Export Comprehensive Class Report",
+      "generating": "Generating high quality PDF report & AI insights...",
+      "success": "PDF Report exported successfully!",
+      "error": "Failed to export PDF report. Please try again later.",
+      "processing": "Processing PDF...",
+      "downloadBtn": "Download PDF Report"
     },
     "editAssignment": {
       "title": "Edit Assignment",

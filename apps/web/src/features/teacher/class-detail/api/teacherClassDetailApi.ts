@@ -64,5 +64,28 @@ export const teacherClassDetailApi = {
     } else {
       await api.post(`/api/assignments/${assignmentId}/publish`);
     }
+  },
+
+  downloadClassReportPdf: async (classId: string, className?: string) => {
+    const res = await api.get(`/api/classes/${classId}/report/pdf`, {
+      responseType: 'blob',
+    });
+    
+    const blob = new Blob([res.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeName = (className || 'Lop_Hoc').replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '_');
+    const dateStr = new Date().toISOString().split('T')[0];
+    a.href = url;
+    a.download = `Bao_Cao_Lop_${safeName}_${dateStr}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
+
+  getClassReportData: async (classId: string) => {
+    const res = await api.get(`/api/classes/${classId}/report/data`);
+    return res.data.data;
   }
 };
