@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ClassesService } from './classes.service';
 import { ClassReportService } from './class-report.service';
+import { StudentReportService } from './student-report.service';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { BaseController } from '../../controllers/BaseController';
 import { createClassSchema, updateClassSchema, joinClassSchema } from './classes.schema';
@@ -9,7 +10,8 @@ export class ClassesController extends BaseController {
   constructor(
     private readonly classesService: ClassesService,
     private readonly classReportService?: ClassReportService,
-    private readonly pdfGeneratorService?: PdfGeneratorService
+    private readonly pdfGeneratorService?: PdfGeneratorService,
+    private readonly studentReportService?: StudentReportService
   ) {
     super();
     this.createClass = this.createClass.bind(this);
@@ -23,6 +25,8 @@ export class ClassesController extends BaseController {
     this.getMyClasses = this.getMyClasses.bind(this);
     this.exportClassReportPdf = this.exportClassReportPdf.bind(this);
     this.getClassReportData = this.getClassReportData.bind(this);
+    this.exportStudentReportPdf = this.exportStudentReportPdf.bind(this);
+    this.getStudentReportData = this.getStudentReportData.bind(this);
   }
 
   async createClass(req: any, res: Response) {
@@ -120,4 +124,48 @@ export class ClassesController extends BaseController {
 
     this.handleSuccess(res, reportData);
   }
+
+  async exportStudentReportPdf(req: any, res: Response) {
+    if (!this.studentReportService || !this.pdfGeneratorService) {
+      return res.status(500).json({ success: false, message: 'Student report services not configured' });
+    }
+
+    const { classId, studentId } = req.params;
+    const teacherId = req.user.userId;
+
+    const reportData = await this.studentReportService.getStudentReportData(classId, studentId, teacherId);
+    if (!reportData) {
+      return res.status(404).json({ success: false, message: 'Student report data not found or access denied' });
+    }
+
+    const pdfBuffer = await this.pdfGeneratorService.generateStudentReportPdf(reportData);
+
+    const safeStudentName = (reportData.student_info.name || 'Hoc_Sinh')
+      .replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '_')
+      .substring(0, 30);
+    const dateStr = new Date().toISOString().split('T')[0];
+    const filename = `Bao_Cao_Hoc_Sinh_${safeStudentName}_${dateStr}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    res.send(pdfBuffer);
+  }
+
+  async getStudentReportData(req: any, res: Response) {
+    if (!this.studentReportService) {
+      return res.status(500).json({ success: false, message: 'Student report service not configured' });
+    }
+
+    const { classId, studentId } = req.params;
+    const teacherId = req.user.userId;
+
+    const reportData = await this.studentReportService.getStudentReportData(classId, studentId, teacherId);
+    if (!reportData) {
+      return res.status(404).json({ success: false, message: 'Student report data not found or access denied' });
+    }
+
+    this.handleSuccess(res, reportData);
+  }
 }
+

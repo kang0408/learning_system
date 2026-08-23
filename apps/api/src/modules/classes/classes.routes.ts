@@ -3,6 +3,7 @@ import { ClassesController } from './classes.controller';
 import { ClassesService } from './classes.service';
 import { ClassesRepository } from './classes.repository';
 import { ClassReportService } from './class-report.service';
+import { StudentReportService } from './student-report.service';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { AnalyticsRepository } from '../analytics/analytics.repository';
 import { AiService } from '../ai/ai.service';
@@ -24,17 +25,23 @@ const aiRepository = new AiRepository();
 const aiService = new AiService(aiCacheRepository, aiRepository);
 
 const classReportService = new ClassReportService(prisma, analyticsRepository, aiService);
+const studentReportService = new StudentReportService(prisma, analyticsRepository, aiService);
 const pdfGeneratorService = new PdfGeneratorService();
 
 const classesController = new ClassesController(
   classesService,
   classReportService,
-  pdfGeneratorService
+  pdfGeneratorService,
+  studentReportService
 );
 
 // Teacher routes
 router.post('/', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.createClass));
 router.get('/', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.getTeacherClasses));
+
+// Student Diagnostic Report routes (Before generic /:id)
+router.get('/:classId/students/:studentId/report/pdf', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.exportStudentReportPdf));
+router.get('/:classId/students/:studentId/report/data', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.getStudentReportData));
 
 // Class Report routes (Must be before /:id generic param or specific)
 router.get('/:id/report/pdf', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.exportClassReportPdf));

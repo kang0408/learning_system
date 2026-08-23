@@ -17,5 +17,31 @@ export const teacherStudentDetailApi = {
       assignments: (assignRes.data.data || []) as StudentAssignment[],
       studentInfo: currentStudent ? currentStudent.student : null
     };
+  },
+
+  downloadStudentReportPdf: async (classId: string, studentId: string, studentName: string): Promise<void> => {
+    const response = await api.get(`/api/classes/${classId}/students/${studentId}/report/pdf`, {
+      responseType: 'blob'
+    });
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+
+    const safeName = (studentName || 'Hoc_Sinh').replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '_');
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `Bao_Cao_Hoc_Sinh_${safeName}_${dateStr}.pdf`);
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
+  getStudentReportData: async (classId: string, studentId: string): Promise<any> => {
+    const response = await api.get(`/api/classes/${classId}/students/${studentId}/report/data`);
+    return response.data?.data;
   }
 };
+

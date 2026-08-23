@@ -1,19 +1,21 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import type { StudentInfo } from '../types';
 
 interface StudentDetailHeaderProps {
   classId: string;
   studentInfo: StudentInfo | null;
+  onExportClick?: () => void;
 }
 
-export const StudentDetailHeader: React.FC<StudentDetailHeaderProps> = ({ classId, studentInfo }) => {
+export const StudentDetailHeader: React.FC<StudentDetailHeaderProps> = ({ classId, studentInfo, onExportClick }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition duration-300">
-      <div className="flex items-center mb-4 md:mb-0">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition duration-300 gap-4">
+      <div className="flex items-center">
         <Link 
           to={`/teacher/classes/${classId}?tab=students`} 
           className="mr-5 p-2 rounded-full hover:bg-slate-100 text-gray-400 hover:text-slate-900 transition-colors"
@@ -53,6 +55,19 @@ export const StudentDetailHeader: React.FC<StudentDetailHeaderProps> = ({ classI
           </div>
         </div>
       </div>
+
+      {onExportClick && (
+        <div className="self-end md:self-auto">
+          <Button
+            variant="outline"
+            onClick={onExportClick}
+            className="flex items-center gap-2 border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-sm px-4 py-2"
+          >
+            <FileText className="w-4 h-4 text-indigo-600" />
+            <span>{t('teacher.studentReport.exportBtn', 'Xuất Báo Cáo PDF')}</span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

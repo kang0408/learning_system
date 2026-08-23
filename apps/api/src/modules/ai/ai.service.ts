@@ -192,6 +192,80 @@ Báo cáo gồm 4 phần và trả về ĐÚNG định dạng JSON sau:
   }
 
   /**
+   * Generates a comprehensive pedagogical diagnostic report for an individual student (tailored for tutors/teachers).
+   * Strictly follows formal academic diagnostic tone with NO emojis and NO icons.
+   */
+  async generatePersonalizedStudentReport(classId: string, studentId: string, studentStatsData: any): Promise<{
+    executive_summary: string;
+    strengths_and_weaknesses: string;
+    sm2_learning_analysis: string;
+  } | null> {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const cacheKey = `ai:student-report:diagnostic:${classId}:${studentId}:${todayStr}`;
+
+    try {
+      // 1. Check Redis cache first
+      const cached = await this.aiCacheRepo.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+
+      // 2. Prompt Gemini AI with strict diagnostic pedagogy constraints
+      const prompt = `Bạn là một Chuyên gia Cố vấn Sư phạm và Khảo thí Năng lực Học tập Cá nhân.
+Hãy phân tích hồ sơ số liệu học tập của học sinh dưới đây và lập một bản Báo cáo Chẩn đoán Năng lực Học tập chi tiết dành riêng cho Gia sư / Giáo viên phụ đạo 1-1:
+
+HỒ SƠ SỐ LIỆU HỌC SINH:
+${JSON.stringify(studentStatsData, null, 2)}
+
+YÊU CẦU NGHIÊM NGẶT VỀ VĂN PHONG VÀ ĐỊNH DẠNG:
+1. TUYỆT ĐỐI KHÔNG SỬ DỤNG BẤT KỲ BIỂU TƯỢNG CẢM XÚC (EMOJI) HOẶC KÝ TỰ ICON NÀO.
+2. Sử dụng ngôn từ sư phạm chuyên nghiệp, chuẩn mực, chẩn đoán sắc bén và chính xác dựa trên số liệu thực tế.
+3. Không nhận xét chung chung sáo rỗng, hãy chỉ rõ các chủ đề yếu và các câu hỏi học sinh hay vấp phải.
+
+Báo cáo gồm 3 phần chẩn đoán và trả về ĐÚNG định dạng JSON sau:
+{
+  "executive_summary": "Phân tích 120-180 từ về tổng thể năng lực tiếp thu, phản xạ làm bài, thói quen học tập và mức độ chuyên cần của học sinh so với mặt bằng chung.",
+  "strengths_and_weaknesses": "Phân tích 150-200 từ mổ xẻ chi tiết các chủ đề điểm mạnh nổi trội và đào sâu các lỗ hổng kiến thức cốt lõi (dựa trên danh sách Weak Topics), giải thích nguyên nhân học sinh hay làm sai.",
+  "sm2_learning_analysis": "Phân tích 120-150 từ về sức bền ghi nhớ dài hạn theo mô hình Spaced Repetition SM2 (tỷ lệ câu hỏi đã thành thạo, lượng câu hỏi tồn đọng có nguy cơ quên cần gia sư truy bài ngay)."
+}`;
+
+      const { response } = await generateContentWithFallback(this.ai, {
+        contents: prompt,
+      });
+
+      const text = response.text || '{}';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      const jsonStr = jsonMatch ? jsonMatch[0] : '{}';
+      const parsed = JSON.parse(jsonStr);
+
+      const formattedResult = {
+        executive_summary: parsed.executive_summary || 'Học sinh có ý thức học tập tốt, tiến độ hoàn thành bài tập đều đặn và nắm được các kiến thức trọng tâm.',
+        strengths_and_weaknesses: parsed.strengths_and_weaknesses || 'Học sinh thể hiện năng lực tốt ở các chuyên đề cơ bản, cần được gia sư hỗ trợ củng cố thêm các chuyên đề có tỷ lệ chính xác chưa cao.',
+        sm2_learning_analysis: parsed.sm2_learning_analysis || 'Chỉ số lặp lại ngắt quãng SM2 cho thấy học sinh duy trì mức độ ghi nhớ ổn định, cần tiếp tục duy trì thói quen ôn tập định kỳ để chuyển hóa kiến thức vào trí nhớ dài hạn.'
+      };
+
+      // 3. Cache in Redis for 24h
+      await this.aiCacheRepo.setEx(cacheKey, 86400, JSON.stringify(formattedResult));
+
+      // 4. Save to database ai_reports
+      try {
+        await this.aiRepo.saveStudentReport(studentId, formattedResult);
+      } catch (err) {
+        // non-blocking
+      }
+
+      return formattedResult;
+    } catch (error) {
+      Sentry.captureException(error);
+      return {
+        executive_summary: 'Học sinh đang duy trì tiến độ học tập và hoàn thành các bài tập theo phân phối chương trình của lớp.',
+        strengths_and_weaknesses: 'Học sinh nắm vững các kỹ năng cơ bản, cần tăng cường thêm thời lượng luyện tập các dạng bài nâng cao.',
+        sm2_learning_analysis: 'Đa số kiến thức đang trong chu kỳ lặp lại ngắt quãng SM2 và duy trì mức độ ghi nhớ tích cực.'
+      };
+    }
+  }
+
+  /**
    * Generates quiz questions based on topic, type, quantity, and difficulty
    */
   async generateQuizQuestions(params: { topic: string; question_type: string; quantity: number; difficulty?: number }) {

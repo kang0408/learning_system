@@ -758,6 +758,15 @@
       "processing": "Đang xử lý PDF...",
       "downloadBtn": "Tải Báo Cáo PDF"
     },
+    "studentReport": {
+      "exportBtn": "Xuất Báo Cáo PDF",
+      "modalTitle": "Xuất Báo Cáo Chẩn Đoán Học Sinh",
+      "generating": "Đang tạo báo cáo chẩn đoán & phân tích AI học sinh...",
+      "success": "Xuất báo cáo học sinh PDF thành công!",
+      "error": "Không thể xuất báo cáo PDF học sinh. Vui lòng thử lại sau.",
+      "processing": "Đang xử lý PDF...",
+      "downloadBtn": "Tải Báo Cáo PDF"
+    },
     "editAssignment": {
       "title": "Chỉnh sửa bài tập",
       "badgeUpdate": "Cập nhật",

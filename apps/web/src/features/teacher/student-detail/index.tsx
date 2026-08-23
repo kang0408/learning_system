@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTeacherStudentDetail } from './hooks/useTeacherStudentDetail';
 import { StudentDetailHeader } from './components/StudentDetailHeader';
@@ -7,6 +7,7 @@ import { StudentSm2Status } from './components/StudentSm2Status';
 import { StudentWeakTopics } from './components/StudentWeakTopics';
 import { StudentAssignmentsList } from './components/StudentAssignmentsList';
 import { SkillTreeTable } from './components/analytics/SkillTreeTable';
+import { ExportStudentReportModal } from './components/ExportStudentReportModal';
 import { useTranslation } from 'react-i18next';
 
 const KnowledgeRadarChart = React.lazy(() => 
@@ -16,13 +17,19 @@ const KnowledgeRadarChart = React.lazy(() =>
 export default function TeacherStudentDetailFeature() {
   const { t } = useTranslation();
   const { id: classId, studentId } = useParams<{ id: string, studentId: string }>();
+  const [showExportModal, setShowExportModal] = useState(false);
+
   if (!classId || !studentId) return null;
 
   const { data } = useTeacherStudentDetail(classId, studentId);
 
   return (
     <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6">
-      <StudentDetailHeader classId={classId} studentInfo={data.studentInfo} />
+      <StudentDetailHeader 
+        classId={classId} 
+        studentInfo={data.studentInfo} 
+        onExportClick={() => setShowExportModal(true)}
+      />
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-8">
@@ -43,6 +50,16 @@ export default function TeacherStudentDetailFeature() {
           <StudentAssignmentsList assignments={data.assignments} />
         </div>
       </div>
+
+      {showExportModal && (
+        <ExportStudentReportModal
+          classId={classId}
+          studentId={studentId}
+          studentName={data.studentInfo?.full_name || 'Học sinh'}
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+        />
+      )}
     </div>
   );
 }

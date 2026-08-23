@@ -757,6 +757,15 @@
       "processing": "Processing PDF...",
       "downloadBtn": "Download PDF Report"
     },
+    "studentReport": {
+      "exportBtn": "Export PDF Report",
+      "modalTitle": "Export Student Diagnostic Report",
+      "generating": "Generating student diagnostic report & AI insights...",
+      "success": "Student PDF report exported successfully!",
+      "error": "Failed to export student PDF report. Please try again later.",
+      "processing": "Processing PDF...",
+      "downloadBtn": "Download PDF Report"
+    },
     "editAssignment": {
       "title": "Edit Assignment",
       "badgeUpdate": "Update",
