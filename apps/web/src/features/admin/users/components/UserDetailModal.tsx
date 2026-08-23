@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Award, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { UserItem, UserDetail } from '../types';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/Avatar';
 import { Dialog } from '../../../../components/ui/Dialog';
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export const UserDetailModal: React.FC<Props> = ({ isOpen, user, onClose, onFetchDetail }) => {
+  const { t } = useTranslation();
   const [detail, setDetail] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -32,10 +34,10 @@ export const UserDetailModal: React.FC<Props> = ({ isOpen, user, onClose, onFetc
   const avatarUrl = user.avatar_url ? `${import.meta.env.VITE_API_URL}${user.avatar_url}` : undefined;
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title="Chi tiết người dùng" maxWidth="lg">
+    <Dialog isOpen={isOpen} onClose={onClose} title={t('adminUsers.detailModal.title', 'Chi tiết người dùng')} maxWidth="lg">
       {loading ? (
         <div className="p-8 text-center animate-pulse text-sm font-bold text-slate-400">
-          Đang tải dữ liệu chi tiết...
+          {t('common.loading', 'Đang tải dữ liệu...')}
         </div>
       ) : (
         <div className="space-y-6">
@@ -47,14 +49,14 @@ export const UserDetailModal: React.FC<Props> = ({ isOpen, user, onClose, onFetc
             </Avatar>
 
             <div>
-              <h4 className="text-base font-extrabold text-slate-900">{user.full_name || 'Chưa đặt tên'}</h4>
+              <h4 className="text-base font-extrabold text-slate-900">{user.full_name || '---'}</h4>
               <p className="text-xs font-semibold text-slate-500">{user.email}</p>
               <div className="mt-1.5 flex items-center gap-2">
                 <Badge variant="indigo" size="sm">
-                  Vai trò: {user.role}
+                  {t('adminUsers.table.role', 'Vai trò')}: {t(`adminUsers.roles.${user.role}`, user.role)}
                 </Badge>
                 <Badge variant={user.is_active ? 'success' : 'danger'} size="sm">
-                  {user.is_active ? 'Đang hoạt động' : 'Vô hiệu hóa'}
+                  {user.is_active ? t('adminUsers.table.active', 'Đang hoạt động') : t('adminUsers.table.inactive', 'Vô hiệu hóa')}
                 </Badge>
               </div>
             </div>
@@ -63,23 +65,23 @@ export const UserDetailModal: React.FC<Props> = ({ isOpen, user, onClose, onFetc
           {/* Profile Info */}
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <span className="text-slate-400 font-bold text-[10px] block">Số điện thoại</span>
-              <span className="font-bold text-slate-900 mt-0.5 block">{user.phone || 'Chưa cung cấp'}</span>
+              <span className="text-slate-400 font-bold text-[10px] block">{t('adminUsers.table.phone', 'Số điện thoại')}</span>
+              <span className="font-bold text-slate-900 mt-0.5 block">{user.phone || '---'}</span>
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <span className="text-slate-400 font-bold text-[10px] block">Địa chỉ</span>
-              <span className="font-bold text-slate-900 mt-0.5 block">{user.address || 'Chưa cung cấp'}</span>
+              <span className="text-slate-400 font-bold text-[10px] block">{t('adminUsers.createModal.address', 'Địa chỉ')}</span>
+              <span className="font-bold text-slate-900 mt-0.5 block">{user.address || '---'}</span>
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <span className="text-slate-400 font-bold text-[10px] block">Ngày tham gia</span>
+              <span className="text-slate-400 font-bold text-[10px] block">{t('adminUsers.table.createdAt', 'Ngày tham gia')}</span>
               <span className="font-bold text-slate-900 mt-0.5 block">
-                {new Date(user.created_at).toLocaleString('vi-VN')}
+                {new Date(user.created_at).toLocaleDateString()}
               </span>
             </div>
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <span className="text-slate-400 font-bold text-[10px] block">Cập nhật gần nhất</span>
+              <span className="text-slate-400 font-bold text-[10px] block">{t('adminUsers.detailModal.lastLogin', 'Đăng nhập gần nhất')}</span>
               <span className="font-bold text-slate-900 mt-0.5 block">
-                {new Date(user.updated_at).toLocaleString('vi-VN')}
+                {new Date(user.updated_at).toLocaleDateString()}
               </span>
             </div>
           </div>
@@ -92,7 +94,7 @@ export const UserDetailModal: React.FC<Props> = ({ isOpen, user, onClose, onFetc
                 <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-center">
                   <BookOpen className="w-4 h-4 text-indigo-600 mx-auto" />
                   <span className="text-lg font-black text-slate-900 mt-1 block">{detail._count.classes}</span>
-                  <span className="text-[10px] font-bold text-slate-500">Lớp phụ trách</span>
+                  <span className="text-[10px] font-bold text-slate-500">{t('adminUsers.detailModal.managedClasses', 'Lớp phụ trách')}</span>
                 </div>
 
                 <div className="p-3 bg-amber-50/50 rounded-xl border border-amber-100 text-center">
@@ -114,7 +116,7 @@ export const UserDetailModal: React.FC<Props> = ({ isOpen, user, onClose, onFetc
 
       <div className="flex items-center justify-end pt-4 border-t border-slate-100 mt-6">
         <Button onClick={onClose} variant="outline">
-          Đóng
+          {t('adminUsers.detailModal.close', 'Đóng')}
         </Button>
       </div>
     </Dialog>

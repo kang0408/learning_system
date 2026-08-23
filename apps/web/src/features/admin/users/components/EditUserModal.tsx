@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { UserItem } from '../types';
 import { useAuthStore } from '../../../../store/authStore';
 import { Dialog, ConfirmDialog } from '../../../../components/ui/Dialog';
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit }) => {
+  const { t } = useTranslation();
   const currentUser = useAuthStore(state => state.user);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -31,10 +33,9 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
   const [error, setError] = useState<string | null>(null);
 
   const roleOptions = [
-    { label: 'Học sinh', value: 'student' },
-    { label: 'Giáo viên', value: 'teacher' },
-    { label: 'Phụ huynh', value: 'parent' },
-    { label: 'Quản trị viên', value: 'admin' },
+    { label: t('adminUsers.roles.student', 'Học sinh'), value: 'student' },
+    { label: t('adminUsers.roles.teacher', 'Giáo viên'), value: 'teacher' },
+    { label: t('adminUsers.roles.admin', 'Quản trị viên'), value: 'admin' },
   ];
 
   useEffect(() => {
@@ -63,12 +64,12 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
     setError(null);
     try {
       await onSubmit(user.id, formData);
-      toast.success('Cập nhật thông tin người dùng thành công!');
+      toast.success(t('adminUsers.editModal.success', 'Cập nhật thông tin người dùng thành công!'));
       setShowConfirm(false);
       onClose();
     } catch (err: any) {
       console.error('Update user error:', err);
-      const errMsg = err.response?.data?.error || 'Có lỗi xảy ra khi cập nhật người dùng';
+      const errMsg = err.response?.data?.error || t('common.error', 'Có lỗi xảy ra khi cập nhật người dùng');
       setError(errMsg);
       toast.error(errMsg);
       setShowConfirm(false);
@@ -79,15 +80,15 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
 
   return (
     <>
-      <Dialog isOpen={isOpen} onClose={onClose} title="Cập nhật thông tin người dùng">
+      <Dialog isOpen={isOpen} onClose={onClose} title={t('adminUsers.editModal.title', 'Chỉnh sửa thông tin người dùng')}>
         <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-          Email: <strong className="text-slate-900 font-bold">{user.email}</strong>
+          {t('adminUsers.editModal.emailReadOnly', 'Email')}: <strong className="text-slate-900 font-bold">{user.email}</strong>
         </div>
 
         {isSelf && (
           <div className="mb-4 p-3 bg-amber-50 text-amber-700 text-xs font-bold rounded-xl border border-amber-200 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            Bạn đang sửa tài khoản Admin của chính mình.
+            {t('adminUsers.editModal.selfEditWarning', 'Bạn đang sửa tài khoản Admin của chính mình.')}
           </div>
         )}
 
@@ -99,7 +100,7 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
 
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">Họ và tên (*)</Label>
+            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.fullName', 'Họ và tên')} (*)</Label>
             <Input
               type="text"
               required
@@ -109,7 +110,7 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
           </div>
 
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">Vai trò hệ thống (*)</Label>
+            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.role', 'Vai trò')} (*)</Label>
             <Select
               value={formData.role}
               onChange={(val) => setFormData({ ...formData, role: val })}
@@ -119,7 +120,7 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="mb-1.5 font-bold text-slate-700">Số điện thoại</Label>
+              <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.phone', 'Số điện thoại')}</Label>
               <Input
                 type="text"
                 value={formData.phone}
@@ -127,7 +128,7 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
               />
             </div>
             <div>
-              <Label className="mb-1.5 font-bold text-slate-700">Địa chỉ</Label>
+              <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.address', 'Địa chỉ')}</Label>
               <Input
                 type="text"
                 value={formData.address}
@@ -142,8 +143,8 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
               checked={formData.is_active}
               onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
               disabled={isSelf}
-              label="Trạng thái kích hoạt (is_active)"
-              description="Cho phép người dùng đăng nhập hệ thống"
+              label={t('adminUsers.editModal.status', 'Trạng thái hoạt động')}
+              description={t('adminUsers.editModal.statusDesc', 'Cho phép người dùng đăng nhập hệ thống')}
               className="w-full"
             />
           </div>
@@ -154,13 +155,14 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
               variant="outline"
               onClick={onClose}
             >
-              Hủy
+              {t('adminUsers.editModal.cancel', 'Hủy')}
             </Button>
             <Button
               type="submit"
               variant="primary"
+              isLoading={loading}
             >
-              Lưu thay đổi
+              {t('adminUsers.editModal.save', 'Lưu thay đổi')}
             </Button>
           </div>
         </form>
@@ -171,10 +173,10 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleConfirmEdit}
-        title="Xác nhận lưu thay đổi"
-        description={`Bạn có chắc chắn muốn cập nhật thông tin và vai trò cho người dùng ${user.full_name || user.email}?`}
-        confirmText="Xác nhận lưu"
-        cancelText="Quay lại"
+        title={t('adminUsers.confirm.editTitle', 'Xác nhận lưu thay đổi')}
+        description={t('adminUsers.confirm.editMessage', `Bạn có chắc chắn muốn cập nhật thông tin cho người dùng ${user.full_name || user.email}?`)}
+        confirmText={t('common.confirm', 'Xác nhận lưu')}
+        cancelText={t('common.cancel', 'Quay lại')}
         isLoading={loading}
       />
     </>

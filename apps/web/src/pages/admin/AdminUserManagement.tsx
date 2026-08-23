@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAdminUsers } from '../../features/admin/users/hooks/useAdminUsers';
 import { UserFilters } from '../../features/admin/users/components/UserFilters';
 import { UserTable } from '../../features/admin/users/components/UserTable';
@@ -13,6 +14,7 @@ import { Users, RefreshCw } from 'lucide-react';
 import type { UserItem } from '../../features/admin/users/types';
 
 export default function AdminUserManagement() {
+  const { t } = useTranslation();
   const {
     users,
     pagination,
@@ -47,7 +49,7 @@ export default function AdminUserManagement() {
 
   const handleRefresh = async () => {
     await fetchUsers();
-    toast.info('Đã cập nhật lại danh sách người dùng');
+    toast.info(t('adminUsers.header.refreshed', 'Đã cập nhật lại danh sách người dùng'));
   };
 
   const handleConfirmDelete = async () => {
@@ -55,10 +57,10 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       await deleteUser(userToDelete.id);
-      toast.success(`Đã xóa mềm tài khoản ${userToDelete.full_name || userToDelete.email} thành công!`);
+      toast.success(t('adminUsers.confirm.softDeleteSuccess', `Đã tạm khóa tài khoản ${userToDelete.full_name || userToDelete.email} thành công!`));
       setUserToDelete(null);
     } catch (err: any) {
-      const errMsg = err.response?.data?.error || 'Lỗi khi xóa người dùng';
+      const errMsg = err.response?.data?.error || t('common.error', 'Lỗi khi xóa người dùng');
       toast.error(errMsg);
     } finally {
       setActionLoading(false);
@@ -70,10 +72,10 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       await restoreUser(userToRestore.id);
-      toast.success(`Đã khôi phục tài khoản ${userToRestore.full_name || userToRestore.email} thành công!`);
+      toast.success(t('adminUsers.confirm.restoreSuccess', `Đã khôi phục tài khoản ${userToRestore.full_name || userToRestore.email} thành công!`));
       setUserToRestore(null);
     } catch (err: any) {
-      const errMsg = err.response?.data?.error || 'Lỗi khi khôi phục người dùng';
+      const errMsg = err.response?.data?.error || t('common.error', 'Lỗi khi khôi phục người dùng');
       toast.error(errMsg);
     } finally {
       setActionLoading(false);
@@ -85,10 +87,10 @@ export default function AdminUserManagement() {
     setActionLoading(true);
     try {
       await hardDeleteUser(userToPermanentDelete.id);
-      toast.success(`Đã xóa VĨNH VIỄN tài khoản ${userToPermanentDelete.full_name || userToPermanentDelete.email} khỏi hệ thống!`);
+      toast.success(t('adminUsers.confirm.permanentDeleteSuccess', `Đã xóa vĩnh viễn tài khoản ${userToPermanentDelete.full_name || userToPermanentDelete.email} khỏi hệ thống!`));
       setUserToPermanentDelete(null);
     } catch (err: any) {
-      const errMsg = err.response?.data?.error || 'Lỗi khi xóa vĩnh viễn người dùng';
+      const errMsg = err.response?.data?.error || t('common.error', 'Lỗi khi xóa vĩnh viễn người dùng');
       toast.error(errMsg);
     } finally {
       setActionLoading(false);
@@ -100,14 +102,16 @@ export default function AdminUserManagement() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-200">
-              <Users className="w-6 h-6" />
+              <Users className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Quản lý người dùng hệ thống</h1>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              {t('adminUsers.header.title', 'Quản Lý Người Dùng')}
+            </h1>
           </div>
           <p className="text-sm font-semibold text-slate-500 mt-1">
-            Quản lý tài khoản toàn bộ học sinh, giáo viên, phụ huynh và quản trị viên hệ thống
+            {t('adminUsers.header.subtitle', 'Danh sách tài khoản học sinh, giáo viên và quản trị viên trong hệ thống')}
           </p>
         </div>
 
@@ -118,7 +122,7 @@ export default function AdminUserManagement() {
           className="gap-2"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Làm mới
+          {t('adminUsers.header.refresh', 'Làm mới')}
         </Button>
       </div>
 
@@ -182,10 +186,13 @@ export default function AdminUserManagement() {
         isOpen={!!userToDelete}
         onClose={() => setUserToDelete(null)}
         onConfirm={handleConfirmDelete}
-        title="Xóa mềm tài khoản"
-        description={`Bạn có chắc chắn muốn xóa mềm tài khoản ${userToDelete?.full_name || userToDelete?.email}? Tài khoản sẽ chuyển sang trạng thái vô hiệu hóa.`}
-        confirmText="Xác nhận xóa"
-        cancelText="Hủy"
+        title={t('adminUsers.confirm.softDeleteTitle', 'Xác nhận khóa tài khoản')}
+        description={t('adminUsers.confirm.softDeleteMessage', {
+          name: userToDelete?.full_name || userToDelete?.email || '',
+          defaultValue: `Bạn có chắc chắn muốn tạm khóa tài khoản ${userToDelete?.full_name || userToDelete?.email}? Tài khoản sẽ chuyển sang trạng thái vô hiệu hóa.`
+        })}
+        confirmText={t('adminUsers.table.softDelete', 'Khóa tài khoản')}
+        cancelText={t('common.cancel', 'Hủy')}
         isDanger={true}
         isLoading={actionLoading}
       />
@@ -195,10 +202,13 @@ export default function AdminUserManagement() {
         isOpen={!!userToRestore}
         onClose={() => setUserToRestore(null)}
         onConfirm={handleConfirmRestore}
-        title="Khôi phục tài khoản"
-        description={`Khôi phục tài khoản người dùng ${userToRestore?.full_name || userToRestore?.email} và cho phép truy cập lại hệ thống?`}
-        confirmText="Xác nhận khôi phục"
-        cancelText="Hủy"
+        title={t('adminUsers.confirm.restoreTitle', 'Xác nhận khôi phục tài khoản')}
+        description={t('adminUsers.confirm.restoreMessage', {
+          name: userToRestore?.full_name || userToRestore?.email || '',
+          defaultValue: `Khôi phục tài khoản người dùng ${userToRestore?.full_name || userToRestore?.email} và cho phép truy cập lại hệ thống?`
+        })}
+        confirmText={t('adminUsers.table.restore', 'Khôi phục')}
+        cancelText={t('common.cancel', 'Hủy')}
         isDanger={false}
         isLoading={actionLoading}
       />
@@ -208,10 +218,13 @@ export default function AdminUserManagement() {
         isOpen={!!userToPermanentDelete}
         onClose={() => setUserToPermanentDelete(null)}
         onConfirm={handleConfirmPermanentDelete}
-        title="Xóa VĨNH VIỄN tài khoản"
-        description={`Bạn có chắc chắn muốn xóa VĨNH VIỄN tài khoản ${userToPermanentDelete?.full_name || userToPermanentDelete?.email} khỏi cơ sở dữ liệu? Thao tác này không thể khôi phục.`}
-        confirmText="Xóa vĩnh viễn"
-        cancelText="Hủy"
+        title={t('adminUsers.confirm.permanentDeleteTitle', 'Xác nhận xóa vĩnh viễn')}
+        description={t('adminUsers.confirm.permanentDeleteMessage', {
+          name: userToPermanentDelete?.full_name || userToPermanentDelete?.email || '',
+          defaultValue: `Bạn có chắc chắn muốn xóa VĨNH VIỄN tài khoản ${userToPermanentDelete?.full_name || userToPermanentDelete?.email} khỏi cơ sở dữ liệu? Thao tác này không thể hoàn tác.`
+        })}
+        confirmText={t('adminUsers.table.permanentDelete', 'Xóa vĩnh viễn')}
+        cancelText={t('common.cancel', 'Hủy')}
         isDanger={true}
         isLoading={actionLoading}
       />

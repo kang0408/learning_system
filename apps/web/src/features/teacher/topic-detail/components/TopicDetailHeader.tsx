@@ -1,8 +1,17 @@
 import React from 'react';
-import { ArrowLeft, Edit, Trash2, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeft, Edit2, Trash2, Plus, Sparkles, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { Topic } from '../types';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/DropdownMenu';
 
 interface TopicDetailHeaderProps {
   topic: Topic;
@@ -17,56 +26,60 @@ export const TopicDetailHeader: React.FC<TopicDetailHeaderProps> = ({
   onOpenEditTopic,
   onOpenDeleteTopic,
   onOpenCreateQuestion,
-  onOpenGenerateAi
+  onOpenGenerateAi,
 }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition duration-300">
-      <div className="flex items-center mb-6 md:mb-0">
-        <button 
-          onClick={() => navigate('/teacher/questions')} 
-          className="mr-5 p-2 rounded-full hover:bg-slate-100 text-gray-400 hover:text-slate-900 transition-colors"
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-gray-100 shadow-sm transition duration-300">
+      <div className="flex items-center mb-4 md:mb-0">
+        <button
+          onClick={() => navigate('/teacher/questions')}
+          className="mr-5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          aria-label={t('teacher.classDetail.back', 'Quay lại')}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900">{topic?.name}</h1>
-            <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{topic?.name}</h1>
+            <Badge variant="indigo" size="md">
               {t('teacher.topicDetail.headerBadge')}
-            </span>
+            </Badge>
           </div>
-          <p className="text-sm text-gray-500 mt-1">{topic?.description || t('teacher.topicDetail.headerNoDesc')}</p>
+          <p className="text-sm text-slate-500 font-medium mt-1">
+            {topic?.description || t('teacher.topicDetail.headerNoDesc')}
+          </p>
         </div>
       </div>
-      <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
-        <button
-          onClick={onOpenGenerateAi}
-          className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg border border-transparent hover:from-purple-700 hover:to-indigo-700 transition-colors text-sm shadow-sm"
-        >
-          <Sparkles className="w-4 h-4 mr-2" /> {t('teacher.topicDetail.headerBtnAi')}
-        </button>
-        <button
-          onClick={onOpenCreateQuestion}
-          className="flex items-center justify-center px-4 py-2 bg-slate-900 text-white font-medium rounded-lg border border-slate-800 hover:bg-slate-800 transition-colors text-sm shadow-sm"
-        >
-          <Plus className="w-4 h-4 mr-2" /> {t('teacher.topicDetail.headerBtnAdd')}
-        </button>
-        <button
-          onClick={onOpenEditTopic}
-          className="flex items-center justify-center px-4 py-2 bg-white text-gray-700 font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-sm shadow-sm"
-        >
-          <Edit className="w-4 h-4 mr-2" /> {t('teacher.topicDetail.headerBtnEdit')}
-        </button>
-        <button
-          onClick={onOpenDeleteTopic}
-          className="flex items-center justify-center px-4 py-2 bg-red-50 text-red-700 font-medium rounded-lg border border-red-100 hover:bg-red-100 transition-colors text-sm shadow-sm"
-        >
-          <Trash2 className="w-4 h-4 mr-2" /> {t('teacher.topicDetail.headerBtnDelete')}
-        </button>
-      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Button variant="outline" size="icon" aria-label="Tùy chọn chủ đề">
+            <MoreVertical className="w-5 h-5 text-slate-600" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="right">
+          <DropdownMenuItem onClick={onOpenGenerateAi}>
+            <Sparkles className="w-4 h-4 mr-2 text-purple-600" />
+            {t('teacher.topicDetail.headerBtnAi')}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onOpenCreateQuestion}>
+            <Plus className="w-4 h-4 mr-2 text-indigo-600" />
+            {t('teacher.topicDetail.headerBtnAdd')}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={onOpenEditTopic}>
+            <Edit2 className="w-4 h-4 mr-2 text-slate-600" />
+            {t('teacher.topicDetail.headerBtnEdit')}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem destructive onClick={onOpenDeleteTopic}>
+            <Trash2 className="w-4 h-4 mr-2" />
+            {t('teacher.topicDetail.headerBtnDelete')}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

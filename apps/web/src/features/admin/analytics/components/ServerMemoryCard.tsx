@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -11,7 +11,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { Cpu, Server, HardDrive, Clock, TrendingUp } from 'lucide-react';
+import { Server, HardDrive, Cpu, Clock, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SystemMetrics } from '../types';
 
@@ -45,14 +45,19 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
     if (metrics?.server?.memory) {
       const now = new Date();
       const currentLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
-      const timeStr = now.toLocaleTimeString(currentLocale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const timeStr = now.toLocaleTimeString(currentLocale, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+
       const newPoint: MemoryPoint = {
         time: timeStr,
         heapUsedMB: metrics.server.memory.heapUsedMB,
         heapTotalMB: metrics.server.memory.heapTotalMB,
       };
 
-      setHistory(prev => {
+      setHistory((prev) => {
         if (prev.length > 0 && prev[prev.length - 1].time === timeStr) {
           return prev;
         }
@@ -66,27 +71,24 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
     return <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-pulse h-80" />;
   }
 
-  const { memory, uptimeSeconds, nodeVersion, platform, cpuUsageUserMs, cpuUsageSystemMs } = metrics.server;
-
-  // Calculate percentage of Heap Used vs Heap Total
+  const { memory, uptimeSeconds, cpuUsageUserMs, cpuUsageSystemMs, nodeVersion, platform } = metrics.server;
   const heapPct = Math.min(100, Math.round((memory.heapUsedMB / memory.heapTotalMB) * 100));
 
-  // Format Uptime
   const days = Math.floor(uptimeSeconds / (3600 * 24));
   const hours = Math.floor((uptimeSeconds % (3600 * 24)) / 3600);
   const mins = Math.floor((uptimeSeconds % 3600) / 60);
-  const uptimeString = `${days > 0 ? `${days} ${t('adminAnalytics.serverMemory.days')} ` : ''}${hours}h ${mins}m`;
+  const uptimeString = `${days}d ${hours}h ${mins}m`;
 
   const currentLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
-  // Chart Data
-  const chartLabels = history.length > 0 ? history.map(h => h.time) : [new Date().toLocaleTimeString(currentLocale)];
-  const chartDataPoints = history.length > 0 ? history.map(h => h.heapUsedMB) : [memory.heapUsedMB];
+  const chartLabels = history.length > 0 ? history.map((h) => h.time) : [new Date().toLocaleTimeString(currentLocale)];
+  const chartDataPoints = history.length > 0 ? history.map((h) => h.heapUsedMB) : [memory.heapUsedMB];
+  const chartWarningThreshold = history.length > 0 ? history.map((h) => Math.round(h.heapTotalMB * 0.85)) : [Math.round(memory.heapTotalMB * 0.85)];
 
   const lineChartData = {
     labels: chartLabels,
     datasets: [
       {
-        label: t('adminAnalytics.serverMemory.chartDataset'),
+        label: t('adminAnalytics.serverMemory.heapUsed', 'RAM Đang Dùng'),
         data: chartDataPoints,
         borderColor: '#4f46e5',
         backgroundColor: 'rgba(79, 70, 229, 0.12)',
@@ -96,8 +98,16 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
         pointBackgroundColor: '#4f46e5',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 3.5,
+      },
+      {
+        label: t('adminAnalytics.serverMemory.threshold85', 'Ngưỡng cảnh báo 85%'),
+        data: chartWarningThreshold,
+        borderColor: 'rgba(239, 68, 68, 0.6)',
+        borderWidth: 1.5,
+        borderDash: [5, 5],
+        fill: false,
+        pointRadius: 0,
       },
     ],
   };
@@ -115,28 +125,19 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
         bodyFont: { family: "'Inter', sans-serif", size: 12 },
         padding: 10,
         cornerRadius: 8,
-        displayColors: false,
         callbacks: {
-          label: (context: any) => ` RAM Heap: ${context.parsed.y} MB`,
+          label: (context: any) => ` ${context.dataset.label}: ${context.parsed.y} MB`,
         },
       },
     },
     scales: {
       x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          font: { size: 10, weight: '600' },
-          color: '#94a3b8',
-          maxRotation: 0,
-        },
+        grid: { display: false },
+        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8', maxRotation: 0 },
       },
       y: {
         beginAtZero: false,
-        grid: {
-          color: 'rgba(226, 232, 240, 0.6)',
-        },
+        grid: { color: 'rgba(226, 232, 240, 0.6)' },
         ticks: {
           font: { size: 10, weight: '600' },
           color: '#94a3b8',
@@ -147,76 +148,73 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80">
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 hover:shadow-md transition-all flex flex-col justify-between">
       {/* Card Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
             <Server className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-slate-900">{t('adminAnalytics.serverMemory.title')}</h3>
-            <p className="text-xs font-semibold text-slate-500">{t('adminAnalytics.serverMemory.subtitle')}</p>
+            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-tight">
+              {t('adminAnalytics.serverMemory.title', 'Hiệu Năng Máy Chủ')}
+            </h3>
+            <p className="text-[11px] font-semibold text-slate-400">
+              {t('adminAnalytics.serverMemory.subtitle', 'Bộ nhớ RAM Heap & Thời gian CPU theo thời gian thực')}
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200">
-            <Clock className="w-4 h-4 text-slate-500" /> {t('adminAnalytics.serverMemory.uptime')} {uptimeString}
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">
+            <Clock className="w-3.5 h-3.5 text-slate-500" />
+            <span>{t('adminAnalytics.serverMemory.uptime', 'Thời gian hoạt động')}: {uptimeString}</span>
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        {/* Line Chart Section for RAM Heap Used */}
-        <div className="lg:col-span-2 space-y-3 bg-slate-50/70 p-4 rounded-xl border border-slate-100 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-indigo-600" />
-              <span className="text-xs font-bold text-slate-700">{t('adminAnalytics.serverMemory.chartTitle')}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-extrabold text-indigo-600 flex items-center gap-1 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
-                <TrendingUp className="w-3.5 h-3.5" />
-                {memory.heapUsedMB} MB
-              </span>
-              <span className="text-[11px] font-semibold text-slate-500">
-                / {memory.heapTotalMB} MB ({heapPct}%)
-              </span>
-            </div>
+      {/* Chart Section */}
+      <div className="my-4 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+            <HardDrive className="w-4 h-4 text-indigo-600" />
+            <span>{t('adminAnalytics.serverMemory.chartTitle', 'Biểu đồ bộ nhớ RAM Heap')}</span>
           </div>
-
-          {/* Line Chart Container */}
-          <div className="h-44 w-full pt-2">
-            <Line data={lineChartData} options={lineChartOptions} />
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" />
+              {memory.heapUsedMB} MB
+            </span>
+            <span className="text-[11px] font-semibold text-slate-400">
+              / {memory.heapTotalMB} MB ({heapPct}%)
+            </span>
           </div>
+        </div>
+        <div className="h-36 w-full">
+          <Line data={lineChartData} options={lineChartOptions} />
+        </div>
+      </div>
 
-          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-1 border-t border-slate-200/60">
-            <span>{t('adminAnalytics.serverMemory.rss')} <strong className="text-slate-900">{memory.rssMB} MB</strong></span>
-            <span>{t('adminAnalytics.serverMemory.ramStatus')} <strong className={heapPct > 85 ? 'text-rose-600' : 'text-emerald-600'}>{heapPct > 85 ? t('adminAnalytics.serverMemory.alarm') : t('adminAnalytics.serverMemory.good')}</strong></span>
+      {/* CPU & Node Runtime Footer */}
+      <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-3 text-xs font-semibold text-slate-500">
+        <div className="flex items-center gap-2">
+          <Cpu className="w-4 h-4 text-indigo-500 shrink-0" />
+          <div>
+            <span className="text-[10px] uppercase text-slate-400 block">
+              {t('adminAnalytics.serverMemory.cpuTime', 'Thời gian CPU')}
+            </span>
+            <strong className="text-slate-900 font-mono">
+              {Math.round(cpuUsageUserMs / 1000)}s / {Math.round(cpuUsageSystemMs / 1000)}s
+            </strong>
           </div>
         </div>
 
-        {/* CPU & Node Runtime Specs */}
-        <div className="flex flex-col gap-4">
-          <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100 flex-1 flex flex-col justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-indigo-500" /> {t('adminAnalytics.serverMemory.cpuTime')}
+        <div className="flex items-center gap-2 justify-end">
+          <div className="text-right">
+            <span className="text-[10px] uppercase text-slate-400 block">
+              {t('adminAnalytics.serverMemory.runtime', 'Môi trường thực thi')}
             </span>
-            <div className="my-2 text-xl font-black text-slate-900">
-              {Math.round(cpuUsageUserMs / 1000)}s <span className="text-xs font-semibold text-slate-400">/ {Math.round(cpuUsageSystemMs / 1000)}s</span>
-            </div>
-            <span className="text-[11px] font-semibold text-slate-400">{t('adminAnalytics.serverMemory.cpuDesc')}</span>
-          </div>
-
-          <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100 flex-1 flex flex-col justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-              <Server className="w-4 h-4 text-purple-500" /> {t('adminAnalytics.serverMemory.nodeEnv')}
-            </span>
-            <div className="my-2 text-lg font-black text-slate-900 truncate">
-              {nodeVersion}
-            </div>
-            <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">{platform}</span>
+            <strong className="text-slate-900 font-mono">{nodeVersion} - {platform}</strong>
           </div>
         </div>
       </div>

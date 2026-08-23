@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { UserItem } from '../types';
 import { Dialog, ConfirmDialog } from '../../../../components/ui/Dialog';
 import { Input } from '../../../../components/ui/Input';
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit }) => {
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -26,8 +28,9 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPassword || newPassword.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự');
-      toast.error('Mật khẩu phải có ít nhất 6 ký tự');
+      const minLengthErr = t('auth.passwordMinLength', 'Mật khẩu phải có ít nhất 6 ký tự');
+      setError(minLengthErr);
+      toast.error(minLengthErr);
       return;
     }
     setError(null);
@@ -51,7 +54,7 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
       }, 1500);
     } catch (err: any) {
       console.error('Reset password error:', err);
-      const errMsg = err.response?.data?.error || 'Có lỗi xảy ra khi đặt lại mật khẩu';
+      const errMsg = err.response?.data?.error || t('common.error', 'Có lỗi xảy ra khi đặt lại mật khẩu');
       setError(errMsg);
       toast.error(errMsg);
       setShowConfirm(false);
@@ -62,9 +65,9 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
 
   return (
     <>
-      <Dialog isOpen={isOpen} onClose={onClose} title="Đặt lại mật khẩu người dùng">
+      <Dialog isOpen={isOpen} onClose={onClose} title={t('adminUsers.resetModal.title', 'Đặt lại mật khẩu người dùng')}>
         <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-          Đổi mật khẩu cho: <strong className="text-slate-900 font-bold">{user.full_name || user.email}</strong> ({user.email})
+          {t('adminUsers.resetModal.forUser', 'Đổi mật khẩu cho:')} <strong className="text-slate-900 font-bold">{user.full_name || user.email}</strong> ({user.email})
         </div>
 
         {error && (
@@ -82,14 +85,14 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
 
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">Mật khẩu mới (*)</Label>
+            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.resetModal.newPassword', 'Mật khẩu mới')} (*)</Label>
             <Input
               type="password"
               required
               minLength={6}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Nhập mật khẩu mới..."
+              placeholder="••••••••"
             />
           </div>
 
@@ -99,13 +102,13 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
               variant="outline"
               onClick={onClose}
             >
-              Hủy
+              {t('adminUsers.resetModal.cancel', 'Hủy')}
             </Button>
             <Button
               type="submit"
               variant="warning"
             >
-              Xác nhận đổi mật khẩu
+              {t('adminUsers.resetModal.submit', 'Xác nhận đổi mật khẩu')}
             </Button>
           </div>
         </form>
@@ -116,10 +119,10 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={handleConfirmReset}
-        title="Xác nhận đặt lại mật khẩu"
-        description={`Bạn có chắc chắn muốn đặt lại mật khẩu mới cho tài khoản ${user.email}?`}
-        confirmText="Xác nhận đổi mật khẩu"
-        cancelText="Quay lại"
+        title={t('adminUsers.confirm.resetTitle', 'Xác nhận đặt lại mật khẩu')}
+        description={t('adminUsers.confirm.resetMessage', `Bạn có chắc chắn muốn đặt lại mật khẩu mới cho tài khoản ${user.email}?`)}
+        confirmText={t('adminUsers.resetModal.submit', 'Xác nhận đổi mật khẩu')}
+        cancelText={t('common.cancel', 'Quay lại')}
         isDanger={true}
         isLoading={loading}
       />

@@ -5,6 +5,7 @@ import { Input } from '../../../../components/ui/Input';
 import { Label } from '../../../../components/ui/Label';
 import { Button } from '../../../../components/ui/Button';
 import { toast } from '../../../../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -25,10 +27,9 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
   const [error, setError] = useState<string | null>(null);
 
   const roleOptions = [
-    { label: 'Học sinh', value: 'student' },
-    { label: 'Giáo viên', value: 'teacher' },
-    { label: 'Phụ huynh', value: 'parent' },
-    { label: 'Quản trị viên', value: 'admin' },
+    { label: t('adminUsers.roles.student', 'Học sinh'), value: 'student' },
+    { label: t('adminUsers.roles.teacher', 'Giáo viên'), value: 'teacher' },
+    { label: t('adminUsers.roles.admin', 'Quản trị viên'), value: 'admin' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
     setError(null);
     try {
       await onSubmit(formData);
-      toast.success('Tạo người dùng mới thành công!');
+      toast.success(t('adminUsers.createModal.success', 'Tạo người dùng mới thành công!'));
       onClose();
       setFormData({
         email: '',
@@ -49,7 +50,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
       });
     } catch (err: any) {
       console.error('Create user error:', err);
-      const errMsg = err.response?.data?.error || 'Có lỗi xảy ra khi tạo người dùng';
+      const errMsg = err.response?.data?.error || t('common.error', 'Có lỗi xảy ra khi tạo người dùng');
       setError(errMsg);
       toast.error(errMsg);
     } finally {
@@ -58,7 +59,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
   };
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title="Tạo người dùng mới">
+    <Dialog isOpen={isOpen} onClose={onClose} title={t('adminUsers.createModal.title', 'Tạo người dùng mới')}>
       {error && (
         <div className="mb-4 p-3 bg-rose-50 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200">
           {error}
@@ -67,7 +68,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Label className="mb-1.5 font-bold text-slate-700">Email (*)</Label>
+          <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.createModal.email', 'Email đăng nhập')} (*)</Label>
           <Input
             type="email"
             required
@@ -78,7 +79,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
         </div>
 
         <div>
-          <Label className="mb-1.5 font-bold text-slate-700">Mật khẩu (*)</Label>
+          <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.createModal.password', 'Mật khẩu khởi tạo')} (*)</Label>
           <Input
             type="password"
             required
@@ -90,7 +91,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
         </div>
 
         <div>
-          <Label className="mb-1.5 font-bold text-slate-700">Họ và tên (*)</Label>
+          <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.createModal.fullName', 'Họ và tên')} (*)</Label>
           <Input
             type="text"
             required
@@ -101,7 +102,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
         </div>
 
         <div>
-          <Label className="mb-1.5 font-bold text-slate-700">Vai trò hệ thống (*)</Label>
+          <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.createModal.role', 'Vai trò hệ thống')} (*)</Label>
           <Select
             value={formData.role}
             onChange={(val) => setFormData({ ...formData, role: val })}
@@ -111,7 +112,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">Số điện thoại</Label>
+            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.createModal.phone', 'Số điện thoại')}</Label>
             <Input
               type="text"
               value={formData.phone}
@@ -120,7 +121,7 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
             />
           </div>
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">Địa chỉ</Label>
+            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.createModal.address', 'Địa chỉ')}</Label>
             <Input
               type="text"
               value={formData.address}
@@ -136,14 +137,14 @@ export const CreateUserModal: React.FC<Props> = ({ isOpen, onClose, onSubmit }) 
             variant="outline"
             onClick={onClose}
           >
-            Hủy
+            {t('adminUsers.createModal.cancel', 'Hủy')}
           </Button>
           <Button
             type="submit"
             variant="primary"
             isLoading={loading}
           >
-            Tạo người dùng
+            {t('adminUsers.createModal.submit', 'Tạo người dùng')}
           </Button>
         </div>
       </form>

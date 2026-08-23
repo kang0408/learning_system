@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, Filter } from 'lucide-react';
 import type { WeakTopic, HierarchicalTopicNode } from '../types';
 
 interface FocusAreasProps {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, UserPlus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { UserFiltersState } from '../types';
 import { Select } from '../../../../components/ui/Select';
 import { Input } from '../../../../components/ui/Input';
@@ -12,18 +13,19 @@ interface Props {
 }
 
 export const UserFilters: React.FC<Props> = ({ filters, setFilters, onOpenCreateModal }) => {
+  const { t } = useTranslation();
+
   const roleOptions = [
-    { label: 'Tất cả vai trò', value: '' },
-    { label: 'Học sinh', value: 'student' },
-    { label: 'Giáo viên', value: 'teacher' },
-    { label: 'Phụ huynh', value: 'parent' },
-    { label: 'Quản trị viên', value: 'admin' },
+    { label: t('adminUsers.filters.allRoles', 'Tất cả vai trò'), value: '' },
+    { label: t('adminUsers.roles.student', 'Học sinh'), value: 'student' },
+    { label: t('adminUsers.roles.teacher', 'Giáo viên'), value: 'teacher' },
+    { label: t('adminUsers.roles.admin', 'Quản trị viên'), value: 'admin' },
   ];
 
   const statusOptions = [
-    { label: 'Tất cả trạng thái', value: '' },
-    { label: 'Đang hoạt động', value: 'true' },
-    { label: 'Vô hiệu hóa / Xóa mềm', value: 'false' },
+    { label: t('adminUsers.filters.allStatus', 'Tất cả trạng thái'), value: '' },
+    { label: t('adminUsers.filters.active', 'Đang hoạt động'), value: 'true' },
+    { label: t('adminUsers.filters.inactive', 'Vô hiệu hóa / Xóa mềm'), value: 'false' },
   ];
 
   return (
@@ -35,7 +37,7 @@ export const UserFilters: React.FC<Props> = ({ filters, setFilters, onOpenCreate
             type="text"
             value={filters.search || ''}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
-            placeholder="Tìm kiếm theo tên hoặc email..."
+            placeholder={t('adminUsers.filters.searchPlaceholder', 'Tìm kiếm theo tên hoặc email...')}
             className="pl-10"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -47,7 +49,7 @@ export const UserFilters: React.FC<Props> = ({ filters, setFilters, onOpenCreate
             value={filters.role || ''}
             onChange={(val) => setFilters(prev => ({ ...prev, role: val, page: 1 }))}
             options={roleOptions}
-            placeholder="Chọn vai trò"
+            placeholder={t('adminUsers.filters.allRoles', 'Chọn vai trò')}
           />
         </div>
 
@@ -57,7 +59,7 @@ export const UserFilters: React.FC<Props> = ({ filters, setFilters, onOpenCreate
             value={filters.is_active || ''}
             onChange={(val) => setFilters(prev => ({ ...prev, is_active: val, page: 1 }))}
             options={statusOptions}
-            placeholder="Chọn trạng thái"
+            placeholder={t('adminUsers.filters.allStatus', 'Chọn trạng thái')}
           />
         </div>
       </div>
@@ -69,7 +71,7 @@ export const UserFilters: React.FC<Props> = ({ filters, setFilters, onOpenCreate
         className="flex-shrink-0 gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold"
       >
         <UserPlus className="w-4 h-4" />
-        Thêm người dùng
+        {t('adminUsers.header.create', 'Thêm người dùng')}
       </Button>
     </div>
   );

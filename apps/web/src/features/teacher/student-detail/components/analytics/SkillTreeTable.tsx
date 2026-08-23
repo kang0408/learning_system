@@ -147,8 +147,8 @@ export const SkillTreeTable: React.FC<SkillTreeTableProps> = ({ topicPerformance
           <div className="flex items-center py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
             <div className="flex-1 px-4">{t('teacher.studentDetail.analytics.topicSkill')}</div>
             <div className="w-28 text-center px-4">{t('teacher.studentDetail.analytics.accuracy')}</div>
-            <div className="w-24 text-center px-4 text-emerald-600">Mastered</div>
-            <div className="w-24 text-center px-4 text-red-600">At Risk</div>
+            <div className="w-24 text-center px-4 text-emerald-600">{t('teacher.studentDetail.analytics.mastered', 'Đã thành thạo')}</div>
+            <div className="w-24 text-center px-4 text-red-600">{t('teacher.studentDetail.analytics.atRisk', 'Nguy cơ')}</div>
           </div>
           
           <div className="divide-y divide-gray-100">

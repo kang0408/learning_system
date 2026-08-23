@@ -1,18 +1,74 @@
-import React from 'react';
-import { Globe, Radio, Gauge, CheckCircle2, AlertTriangle, XCircle, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Globe, Gauge, ShieldCheck, Radio } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SystemMetrics } from '../types';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 interface Props {
   metrics: SystemMetrics | null;
   loading: boolean;
 }
 
+interface TrafficPoint {
+  time: string;
+  rps: number;
+  latencyMs: number;
+}
+
 export const ApiTrafficCard: React.FC<Props> = ({ metrics, loading }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [history, setHistory] = useState<TrafficPoint[]>([]);
+
+  useEffect(() => {
+    if (metrics?.apiTraffic) {
+      const now = new Date();
+      const currentLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
+      const timeStr = now.toLocaleTimeString(currentLocale, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+
+      const newPoint: TrafficPoint = {
+        time: timeStr,
+        rps: metrics.apiTraffic.rps || 0,
+        latencyMs: metrics.apiTraffic.p95LatencyMs || 15,
+      };
+
+      setHistory((prev) => {
+        if (prev.length > 0 && prev[prev.length - 1].time === timeStr) {
+          return prev;
+        }
+        const updated = [...prev, newPoint];
+        return updated.slice(-12);
+      });
+    }
+  }, [metrics, i18n.language]);
 
   if (loading || !metrics) {
-    return <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-pulse h-64" />;
+    return <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-pulse h-80" />;
   }
 
   const traffic = metrics.apiTraffic || {
@@ -29,119 +85,125 @@ export const ApiTrafficCard: React.FC<Props> = ({ metrics, loading }) => {
   const pct4xx = Math.round((traffic.statusCodes['4xx'] / totalCodes) * 100);
   const pct5xx = Math.round((traffic.statusCodes['5xx'] / totalCodes) * 100);
 
+  const currentLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
+  const chartLabels = history.length > 0 ? history.map((h) => h.time) : [new Date().toLocaleTimeString(currentLocale)];
+  const chartRpsData = history.length > 0 ? history.map((h) => h.rps) : [traffic.rps];
+
+  const lineChartData = {
+    labels: chartLabels,
+    datasets: [
+      {
+        label: t('adminAnalytics.apiTraffic.rps', 'Tốc độ xử lý'),
+        data: chartRpsData,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.12)',
+        borderWidth: 2.5,
+        tension: 0.35,
+        fill: true,
+        pointBackgroundColor: '#3b82f6',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 3.5,
+      },
+    ],
+  };
+
+  const lineChartOptions: any = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleFont: { family: "'Inter', sans-serif", size: 12, weight: 700 },
+        bodyFont: { family: "'Inter', sans-serif", size: 12 },
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: {
+          label: (context: any) => ` ${t('adminAnalytics.apiTraffic.rps', 'Tốc độ')}: ${context.parsed.y} req/s`,
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8' },
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(226, 232, 240, 0.6)' },
+        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8' },
+      },
+    },
+  };
+
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 hover:shadow-md transition-all">
+    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 hover:shadow-md transition-all flex flex-col justify-between">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-4 gap-3">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
             <Globe className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-extrabold text-slate-900">{t('adminAnalytics.apiTraffic.title')}</h3>
-              <span className="bg-blue-50 text-blue-700 border border-blue-200/60 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                {t('adminAnalytics.apiTraffic.badge')}
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-slate-500">{t('adminAnalytics.apiTraffic.subtitle')}</p>
+            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-tight">
+              {t('adminAnalytics.apiTraffic.title', 'Lưu Lượng & Tốc Độ API')}
+            </h3>
+            <p className="text-[11px] font-semibold text-slate-400">
+              {t('adminAnalytics.apiTraffic.subtitle', 'Giám sát request realtime theo thời gian')}
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
             <ShieldCheck className="w-3.5 h-3.5" />
-            {t('adminAnalytics.apiTraffic.gateway')} {traffic.status}
+            {traffic.status}
           </span>
         </div>
       </div>
 
-      {/* Grid Content */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-        {/* RPS & Total 1m Requests */}
-        <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Gauge className="w-4 h-4 text-indigo-500" /> {t('adminAnalytics.apiTraffic.rps')}
+      {/* Area Chart Container */}
+      <div className="my-4 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Gauge className="w-4 h-4 text-blue-600" />
+            <span className="text-xs font-bold text-slate-700">{t('adminAnalytics.apiTraffic.rps', 'Tốc độ xử lý')}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+              {traffic.rps} rps
             </span>
-            <span className="text-[11px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-2 py-0.5 rounded-md">
-              Req / sec
-            </span>
-          </div>
-          <div className="my-2">
-            <div className="text-3xl font-black text-slate-900 tracking-tight">
-              {traffic.rps} <span className="text-sm font-semibold text-slate-400">rps</span>
-            </div>
-            <span className="text-[11px] font-semibold text-slate-500">
-              {t('adminAnalytics.apiTraffic.total1m', { count: traffic.totalRequests1m })}
-            </span>
-          </div>
-          <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-semibold">{t('adminAnalytics.apiTraffic.p95')}</span>
-            <span className="font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
-              {traffic.p95LatencyMs} ms
-            </span>
-          </div>
-        </div>
-
-        {/* HTTP Status Code Distribution */}
-        <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider">{t('adminAnalytics.apiTraffic.statusDist')}</span>
-            <span className="text-[11px] font-semibold text-slate-400">{t('adminAnalytics.apiTraffic.pct')}</span>
-          </div>
-
-          {/* Mini multi-color progress bar */}
-          <div className="my-3 space-y-2">
-            <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden flex">
-              <div style={{ width: `${pct2xx}%` }} className="bg-emerald-500 transition-all duration-500" title={`2xx: ${pct2xx}%`} />
-              <div style={{ width: `${pct4xx}%` }} className="bg-amber-500 transition-all duration-500" title={`4xx: ${pct4xx}%`} />
-              <div style={{ width: `${pct5xx}%` }} className="bg-rose-500 transition-all duration-500" title={`5xx: ${pct5xx}%`} />
-            </div>
-
-            <div className="grid grid-cols-3 gap-1 pt-1 text-[11px] font-bold text-center">
-              <div className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 py-1 rounded flex items-center justify-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" /> 2xx ({traffic.statusCodes['2xx']})
-              </div>
-              <div className="bg-amber-50 text-amber-700 border border-amber-200/60 py-1 rounded flex items-center justify-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-amber-600" /> 4xx ({traffic.statusCodes['4xx']})
-              </div>
-              <div className="bg-rose-50 text-rose-700 border border-rose-200/60 py-1 rounded flex items-center justify-center gap-1">
-                <XCircle className="w-3 h-3 text-rose-600" /> 5xx ({traffic.statusCodes['5xx']})
-              </div>
-            </div>
-          </div>
-
-          <div className="text-[11px] font-semibold text-slate-400 text-right">
-            {t('adminAnalytics.apiTraffic.successRate')} <strong className="text-emerald-600">{pct2xx}%</strong>
-          </div>
-        </div>
-
-        {/* Live SSE Realtime Subscribers */}
-        <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Radio className="w-4 h-4 text-emerald-500" /> {t('adminAnalytics.apiTraffic.subscribers')}
-            </span>
-            <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
-              {t('adminAnalytics.apiTraffic.realtime')}
-            </span>
-          </div>
-          <div className="my-2">
-            <div className="text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5">
-              {traffic.activeSseConnections}
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
-                {t('adminAnalytics.apiTraffic.activeChannels')}
-              </span>
-            </div>
             <span className="text-[11px] font-semibold text-slate-400">
-              {t('adminAnalytics.apiTraffic.subscribersDesc')}
+              {t('adminAnalytics.apiTraffic.p95', 'Độ trễ P95')}: <strong className="text-slate-700">{traffic.p95LatencyMs}ms</strong>
             </span>
           </div>
-          <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-semibold">{t('adminAnalytics.apiTraffic.frequency')}</span>
-            <span className="font-extrabold text-slate-800">3000 ms</span>
-          </div>
+        </div>
+        <div className="h-36 w-full">
+          <Line data={lineChartData} options={lineChartOptions} />
+        </div>
+      </div>
+
+      {/* HTTP Status Code Meter Bar */}
+      <div className="pt-3 border-t border-slate-100 space-y-2">
+        <div className="flex items-center justify-between text-xs font-bold">
+          <span className="text-slate-500 uppercase tracking-wider text-[10px]">{t('adminAnalytics.apiTraffic.statusDist', 'Phân bổ mã trạng thái HTTP')}</span>
+          <span className="text-emerald-700 font-mono">2xx: {pct2xx}% | 4xx: {pct4xx}% | 5xx: {pct5xx}%</span>
+        </div>
+        <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden flex">
+          <div style={{ width: `${pct2xx}%` }} className="bg-emerald-500 transition-all duration-500" title={`2xx: ${pct2xx}%`} />
+          <div style={{ width: `${pct4xx}%` }} className="bg-amber-500 transition-all duration-500" title={`4xx: ${pct4xx}%`} />
+          <div style={{ width: `${pct5xx}%` }} className="bg-rose-500 transition-all duration-500" title={`5xx: ${pct5xx}%`} />
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-1">
+          <span className="flex items-center gap-1">
+            <Radio className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{t('adminAnalytics.apiTraffic.sseConnections', 'Kết nối SSE')}: <strong className="text-slate-900 font-mono">{traffic.activeSseConnections} {t('adminAnalytics.apiTraffic.active', 'hoạt động')}</strong></span>
+          </span>
+          <span>{t('adminAnalytics.apiTraffic.lastMinute', '1 phút qua')}: <strong className="text-slate-900 font-mono">{traffic.totalRequests1m} {t('adminAnalytics.apiTraffic.req', 'yêu cầu')}</strong></span>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye, Edit3, Key, Trash2, RotateCcw, Shield, Skull } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { UserItem, UserPagination } from '../types';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/Avatar';
 import { Badge } from '../../../../components/ui/Badge';
@@ -30,20 +31,20 @@ export const UserTable: React.FC<Props> = ({
   onSelectRestore,
   onSelectPermanentDelete,
 }) => {
+  const { t } = useTranslation();
+
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
         return (
           <Badge variant="indigo" size="sm" className="gap-1">
-            <Shield className="w-3 h-3" /> Admin
+            <Shield className="w-3 h-3" /> {t('adminUsers.roles.admin', 'Admin')}
           </Badge>
         );
       case 'teacher':
-        return <Badge variant="secondary" size="sm" className="bg-blue-50 text-blue-700 border-blue-200">Giáo viên</Badge>;
-      case 'parent':
-        return <Badge variant="secondary" size="sm" className="bg-purple-50 text-purple-700 border-purple-200">Phụ huynh</Badge>;
+        return <Badge variant="secondary" size="sm" className="bg-blue-50 text-blue-700 border-blue-200">{t('adminUsers.roles.teacher', 'Giáo viên')}</Badge>;
       default:
-        return <Badge variant="success" size="sm">Học sinh</Badge>;
+        return <Badge variant="success" size="sm">{t('adminUsers.roles.student', 'Học sinh')}</Badge>;
     }
   };
 
@@ -60,8 +61,8 @@ export const UserTable: React.FC<Props> = ({
   if (users.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
-        <p className="text-base font-bold text-slate-700">Không tìm thấy người dùng nào</p>
-        <p className="text-xs font-semibold text-slate-400 mt-1">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc vai trò</p>
+        <p className="text-base font-bold text-slate-700">{t('adminUsers.table.empty', 'Không tìm thấy người dùng nào')}</p>
+        <p className="text-xs font-semibold text-slate-400 mt-1">{t('adminUsers.table.emptyDesc', 'Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc vai trò')}</p>
       </div>
     );
   }
@@ -72,11 +73,11 @@ export const UserTable: React.FC<Props> = ({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/80 border-b border-slate-200/80 text-xs font-bold text-slate-500">
-              <th className="py-4 px-6">Người dùng</th>
-              <th className="py-4 px-4">Vai trò</th>
-              <th className="py-4 px-4">Trạng thái</th>
-              <th className="py-4 px-4">Ngày tạo</th>
-              <th className="py-4 px-6 text-right">Thao tác</th>
+              <th className="py-4 px-6">{t('adminUsers.table.user', 'Người dùng')}</th>
+              <th className="py-4 px-4">{t('adminUsers.table.role', 'Vai trò')}</th>
+              <th className="py-4 px-4">{t('adminUsers.table.status', 'Trạng thái')}</th>
+              <th className="py-4 px-4">{t('adminUsers.table.createdAt', 'Ngày tạo')}</th>
+              <th className="py-4 px-6 text-right">{t('adminUsers.table.actions', 'Thao tác')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
@@ -110,11 +111,11 @@ export const UserTable: React.FC<Props> = ({
                   {/* Active Status */}
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     {isSoftDeleted ? (
-                      <Badge variant="danger" size="sm">Đã xóa mềm</Badge>
+                      <Badge variant="danger" size="sm">{t('adminUsers.table.softDeleted', 'Đã xóa mềm')}</Badge>
                     ) : user.is_active ? (
-                      <Badge variant="success" size="sm">Đang hoạt động</Badge>
+                      <Badge variant="success" size="sm">{t('adminUsers.table.active', 'Đang hoạt động')}</Badge>
                     ) : (
-                      <Badge variant="default" size="sm">Vô hiệu hóa</Badge>
+                      <Badge variant="default" size="sm">{t('adminUsers.table.inactive', 'Vô hiệu hóa')}</Badge>
                     )}
                   </td>
 
@@ -130,7 +131,7 @@ export const UserTable: React.FC<Props> = ({
                         size="icon"
                         variant="ghost"
                         onClick={() => onSelectDetail(user)}
-                        title="Xem chi tiết"
+                        title={t('adminUsers.table.view', 'Xem chi tiết')}
                         className="text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 h-8 w-8"
                       >
                         <Eye className="w-4 h-4" />
@@ -140,7 +141,7 @@ export const UserTable: React.FC<Props> = ({
                         size="icon"
                         variant="ghost"
                         onClick={() => onSelectEdit(user)}
-                        title="Chỉnh sửa thông tin / vai trò"
+                        title={t('adminUsers.table.edit', 'Chỉnh sửa thông tin / vai trò')}
                         className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 h-8 w-8"
                       >
                         <Edit3 className="w-4 h-4" />
@@ -150,7 +151,7 @@ export const UserTable: React.FC<Props> = ({
                         size="icon"
                         variant="ghost"
                         onClick={() => onSelectResetPassword(user)}
-                        title="Đổi mật khẩu"
+                        title={t('adminUsers.table.resetPwd', 'Đổi mật khẩu')}
                         className="text-slate-400 hover:text-amber-600 hover:bg-amber-50 h-8 w-8"
                       >
                         <Key className="w-4 h-4" />
@@ -162,7 +163,7 @@ export const UserTable: React.FC<Props> = ({
                             size="icon"
                             variant="ghost"
                             onClick={() => onSelectRestore(user)}
-                            title="Khôi phục tài khoản"
+                            title={t('adminUsers.table.restore', 'Khôi phục tài khoản')}
                             className="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 h-8 w-8"
                           >
                             <RotateCcw className="w-4 h-4" />
@@ -172,7 +173,7 @@ export const UserTable: React.FC<Props> = ({
                             size="icon"
                             variant="ghost"
                             onClick={() => onSelectPermanentDelete(user)}
-                            title="Xóa vĩnh viễn (xóa cứng) khỏi CSDL"
+                            title={t('adminUsers.table.permanentDelete', 'Xóa vĩnh viễn khỏi CSDL')}
                             className="text-slate-400 hover:text-red-700 hover:bg-red-50 h-8 w-8"
                           >
                             <Skull className="w-4 h-4 text-red-600" />
@@ -183,7 +184,7 @@ export const UserTable: React.FC<Props> = ({
                           size="icon"
                           variant="ghost"
                           onClick={() => onSelectDelete(user)}
-                          title="Xóa mềm tài khoản"
+                          title={t('adminUsers.table.softDelete', 'Khóa tài khoản')}
                           className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-8 w-8"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -201,7 +202,7 @@ export const UserTable: React.FC<Props> = ({
       {/* Pagination Footer */}
       <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-bold text-slate-500">
         <div>
-          Hiển thị trang <strong className="text-slate-900">{pagination.page}</strong> / <strong className="text-slate-900">{pagination.totalPages}</strong> (Tổng cộng {pagination.total} người dùng)
+          Trang <strong className="text-slate-900">{pagination.page}</strong> / <strong className="text-slate-900">{pagination.totalPages}</strong> (Tổng cộng {pagination.total} người dùng)
         </div>
 
         <div className="flex items-center gap-2">

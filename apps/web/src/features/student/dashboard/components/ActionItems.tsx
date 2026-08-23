@@ -152,7 +152,7 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
       }
       map.get(firstTopic)!.items.push(a);
     }
-    return Array.from(map.entries()).map(([topicName, data]) => ({ topicName, ...data }));
+    return Array.from(map.values());
   }, [filteredAssignments, t]);
 
   const renderAssignmentCard = (assignment: Assignment) => {
