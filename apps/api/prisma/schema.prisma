@@ -29,6 +29,7 @@ model User {
   assignments          Assignment[]
   assigned_assignments AssignmentStudent[]
   topics               Topic[]
+  student_topic_stats  StudentTopicStats[]
   ai_reports           AiReport[]
   ai_wizard_drafts     AiWizardDraft[]
 
@@ -93,6 +94,7 @@ model Topic {
   children  Topic[]    @relation("TopicHierarchy")
   author    User       @relation(fields: [created_by], references: [id], onDelete: Restrict)
   questions Question[]
+  student_topic_stats StudentTopicStats[]
 
   @@index([created_by])
   @@index([parent_id])
@@ -182,6 +184,7 @@ model Assignment {
   curriculum_assignments CurriculumAssignment[]
 
   @@index([class_id])
+  @@index([class_id, is_published, deleted_at, deadline])
   @@index([created_by])
   @@map("assignments")
 }
@@ -235,6 +238,7 @@ model Sm2Progress {
   @@unique([student_id, question_id])
   @@index([student_id])
   @@index([student_id, next_review_date])
+  @@index([student_id, easiness_factor])
   @@index([question_id])
   @@map("sm2_progress")
 }
@@ -381,6 +385,26 @@ model AiWizardDraft {
 
   @@unique([teacher_id, class_id])
   @@map("ai_wizard_drafts")
+}
+
+model StudentTopicStats {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id      String   @db.Uuid
+  topic_id        String   @db.Uuid
+  total_questions Int      @default(0)
+  mastered_count  Int      @default(0)
+  weak_count      Int      @default(0)
+  avg_ef          Decimal  @default(2.50) @db.Decimal(4, 2)
+  accuracy_pct    Decimal  @default(0.00) @db.Decimal(5, 2)
+  updated_at      DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  student User  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  topic   Topic @relation(fields: [topic_id], references: [id], onDelete: Cascade)
+
+  @@unique([student_id, topic_id])
+  @@index([student_id])
+  @@index([topic_id])
+  @@map("student_topic_stats")
 }
 
 

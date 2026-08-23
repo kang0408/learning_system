@@ -6,7 +6,9 @@ export const useDashboardData = () => {
     { data: analytics },
     { data: assignments },
     { data: weakTopics },
-    { data: dailySchedule }
+    { data: dailySchedule },
+    { data: summary },
+    { data: topicsTree }
   ] = useSuspenseQueries({
     queries: [
       {
@@ -24,6 +26,14 @@ export const useDashboardData = () => {
       {
         queryKey: ['studentDailySchedule'],
         queryFn: studentDashboardApi.getDailySchedule,
+      },
+      {
+        queryKey: ['studentDashboardSummary', 'me'],
+        queryFn: studentDashboardApi.getDashboardSummary,
+      },
+      {
+        queryKey: ['studentTopicsTree', 'me'],
+        queryFn: studentDashboardApi.getTopicsTree,
       }
     ]
   });
@@ -32,6 +42,9 @@ export const useDashboardData = () => {
     analytics,
     assignments,
     weakTopics,
-    dailySchedule
+    dailySchedule,
+    summary,
+    topicsTree
   };
 };
+

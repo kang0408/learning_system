@@ -1,6 +1,7 @@
 import { ApiError } from '../../lib/ApiError';
-import { AnalyticsRepository } from './analytics.repository';
+import { AnalyticsRepository, HierarchicalTopicNode } from './analytics.repository';
 import { AiRepository } from '../ai/ai.repository';
+import redisClient from '../../lib/redis';
 
 export class AnalyticsService {
   constructor(
@@ -101,6 +102,96 @@ export class AnalyticsService {
       weekly_activity: weeklyActivity,
       ai_insight: aiInsight
     };
+  }
+
+  async getStudentDashboardSummary(studentId: string) {
+    const cacheKey = `student:dashboard_summary:${studentId}`;
+    if (redisClient.isOpen) {
+      try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) {
+          return JSON.parse(cached);
+        }
+      } catch (err) {
+        // ignore cache read error
+      }
+    }
+
+    const [
+      totalAnswers,
+      correctAnswers,
+      activeDates,
+      dueTodayCount,
+      priorityAssignments,
+      weakTopics
+    ] = await Promise.all([
+      this.analyticsRepository.countTotalAnswers(studentId),
+      this.analyticsRepository.countCorrectAnswers(studentId),
+      this.analyticsRepository.getActiveDates(studentId),
+      this.analyticsRepository.getStudentSm2DueTodayCount(studentId),
+      this.analyticsRepository.getPriorityAssignments(studentId, 3),
+      this.analyticsRepository.getWeakTopicsBySM2(studentId)
+    ]);
+
+    const overallAccuracy = totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 0;
+
+    let currentStreakDays = 0;
+    if (activeDates.length > 0) {
+      const dates = activeDates.map(d => new Date(d.date));
+      dates.sort((a, b) => b.getTime() - a.getTime());
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const mostRecent = new Date(dates[0]);
+      mostRecent.setHours(0, 0, 0, 0);
+
+      if (mostRecent.getTime() === today.getTime() || mostRecent.getTime() === yesterday.getTime()) {
+        currentStreakDays = 1;
+        let prevDate = mostRecent;
+        for (let i = 1; i < dates.length; i++) {
+          const curr = new Date(dates[i]);
+          curr.setHours(0, 0, 0, 0);
+          const diffDays = Math.round((prevDate.getTime() - curr.getTime()) / (1000 * 3600 * 24));
+          if (diffDays === 1) {
+            currentStreakDays++;
+            prevDate = curr;
+          } else if (diffDays === 0) {
+            continue;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    const urgentCount = priorityAssignments.filter((a: any) => a.is_overdue || a.is_due_soon).length;
+
+    const summary = {
+      urgent_count: urgentCount,
+      due_today_count: dueTodayCount,
+      stats: {
+        total_questions_answered: totalAnswers,
+        overall_accuracy: Math.round(overallAccuracy * 10) / 10,
+        current_streak_days: currentStreakDays
+      },
+      priority_assignments: priorityAssignments,
+      top_weak_topics: weakTopics.slice(0, 3)
+    };
+
+    if (redisClient.isOpen) {
+      try {
+        await redisClient.setEx(cacheKey, 300, JSON.stringify(summary));
+      } catch (err) {
+        // ignore cache write error
+      }
+    }
+
+    return summary;
+  }
+
+  async getHierarchicalTopicTree(studentId: string): Promise<HierarchicalTopicNode[]> {
+    return this.analyticsRepository.getHierarchicalTopicTree(studentId);
   }
 
   async getStudentCalendar(studentId: string) {

@@ -1,6 +1,19 @@
 import { PrismaClient } from '@prisma/client';
 import { getApiTrafficMetrics } from '../../middlewares/metrics.middleware';
 
+export interface HierarchicalTopicNode {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  description?: string | null;
+  total_questions: number;
+  mastered_count: number;
+  weak_count: number;
+  accuracy_pct: number;
+  status: 'WEAK' | 'STABLE' | 'MASTERED';
+  children: HierarchicalTopicNode[];
+}
+
 export class AnalyticsRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
@@ -594,5 +607,180 @@ export class AnalyticsRepository {
         class: { teacher_id: teacherId, deleted_at: null }
       }
     });
+  }
+
+  async getStudentSm2DueTodayCount(studentId: string): Promise<number> {
+    const result = await this.prisma.$queryRaw<{ count: bigint }[]>`
+      SELECT COUNT(p.id) as count
+      FROM sm2_progress p
+      JOIN questions q ON p.question_id = q.id
+      WHERE p.student_id = ${studentId}::uuid
+        AND p.next_review_date <= CURRENT_DATE
+        AND q.deleted_at IS NULL
+    `;
+    return Number(result[0]?.count || 0);
+  }
+
+  async getPriorityAssignments(studentId: string, limit: number = 3) {
+    const activeClasses = await this.prisma.classMember.findMany({
+      where: { student_id: studentId, is_active: true },
+      select: { class_id: true }
+    });
+    const classIds = activeClasses.map(c => c.class_id);
+    if (classIds.length === 0) return [];
+
+    const assignments = await this.prisma.assignment.findMany({
+      where: {
+        class_id: { in: classIds },
+        is_published: true,
+        deleted_at: null,
+        OR: [
+          { is_all_students: true },
+          { assigned_students: { some: { student_id: studentId } } }
+        ]
+      },
+      include: {
+        class: { select: { id: true, name: true, subject: true } },
+        quiz_sessions: {
+          where: { student_id: studentId, status: 'completed' },
+          select: { id: true, score: true, status: true, finished_at: true }
+        }
+      },
+      orderBy: [
+        { deadline: 'asc' },
+        { created_at: 'desc' }
+      ],
+      take: 20
+    });
+
+    const now = new Date();
+    const scored = assignments.map(a => {
+      const completedSessions = a.quiz_sessions || [];
+      const attemptsCount = completedSessions.length;
+      const maxAttempts = a.max_attempts || 0;
+      const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
+      const isCompleted = attemptsCount > 0;
+      const isOverdue = a.deadline ? new Date(a.deadline) < now : false;
+      const isDueSoon = a.deadline ? (new Date(a.deadline).getTime() - now.getTime() < 24 * 3600 * 1000 && !isOverdue) : false;
+
+      let priorityScore = 10;
+      if (isLocked) {
+        priorityScore = 0;
+      } else if (isOverdue && !isCompleted) {
+        priorityScore = 100;
+      } else if (isDueSoon && !isCompleted) {
+        priorityScore = 80;
+      } else if (!isCompleted) {
+        priorityScore = 50;
+      } else {
+        priorityScore = 20;
+      }
+
+      return {
+        ...a,
+        attempts_count: attemptsCount,
+        is_locked: isLocked,
+        is_completed: isCompleted,
+        is_overdue: isOverdue,
+        is_due_soon: isDueSoon,
+        priority_score: priorityScore
+      };
+    });
+
+    scored.sort((a, b) => b.priority_score - a.priority_score);
+    return scored.slice(0, limit);
+  }
+
+  async getHierarchicalTopicTree(studentId: string) {
+    const [allTopics, progressStats] = await Promise.all([
+      this.prisma.topic.findMany({
+        where: { deleted_at: null },
+        select: { id: true, name: true, parent_id: true, description: true }
+      }),
+      this.prisma.$queryRaw<any[]>`
+        SELECT 
+          q.topic_id,
+          COUNT(p.id)::int as total_questions,
+          SUM(CASE WHEN p.easiness_factor >= 2.5 AND p.repetition_count >= 3 THEN 1 ELSE 0 END)::int as mastered_count,
+          SUM(CASE WHEN p.easiness_factor < 2.0 OR p.next_review_date < CURRENT_DATE - INTERVAL '2 days' THEN 1 ELSE 0 END)::int as weak_count,
+          ROUND(AVG(p.easiness_factor)::numeric, 2)::float as avg_ef,
+          ROUND((SUM(p.correct_attempts)::float / NULLIF(SUM(p.total_attempts), 0) * 100)::numeric, 1)::float as accuracy_pct
+        FROM sm2_progress p
+        JOIN questions q ON p.question_id = q.id
+        WHERE p.student_id = ${studentId}::uuid AND q.deleted_at IS NULL AND q.topic_id IS NOT NULL
+        GROUP BY q.topic_id
+      `
+    ]);
+
+    const statsMap = new Map<string, any>();
+    for (const stat of progressStats) {
+      if (stat.topic_id) statsMap.set(stat.topic_id, stat);
+    }
+
+    const nodeMap = new Map<string, HierarchicalTopicNode>();
+    for (const t of allTopics) {
+      const stat = statsMap.get(t.id);
+      const totalQ = stat?.total_questions || 0;
+      const weakQ = stat?.weak_count || 0;
+      const acc = stat?.accuracy_pct || 0;
+
+      let status: 'WEAK' | 'STABLE' | 'MASTERED' = 'STABLE';
+      if (weakQ > 0 || (totalQ >= 3 && acc < 60)) {
+        status = 'WEAK';
+      } else if (totalQ >= 3 && acc >= 85) {
+        status = 'MASTERED';
+      }
+
+      nodeMap.set(t.id, {
+        id: t.id,
+        name: t.name,
+        parent_id: t.parent_id,
+        description: t.description,
+        total_questions: totalQ,
+        mastered_count: stat?.mastered_count || 0,
+        weak_count: weakQ,
+        accuracy_pct: acc,
+        status,
+        children: []
+      });
+    }
+
+    const roots: HierarchicalTopicNode[] = [];
+    for (const node of nodeMap.values()) {
+      if (node.parent_id && nodeMap.has(node.parent_id)) {
+        nodeMap.get(node.parent_id)!.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    const rollup = (node: HierarchicalTopicNode): { total: number; weak: number; mastered: number } => {
+      let total = node.total_questions;
+      let weak = node.weak_count;
+      let mastered = node.mastered_count;
+
+      for (const child of node.children) {
+        const cStats = rollup(child);
+        total += cStats.total;
+        weak += cStats.weak;
+        mastered += cStats.mastered;
+      }
+
+      node.total_questions = total;
+      node.weak_count = weak;
+      node.mastered_count = mastered;
+      if (weak > 0 || (total >= 3 && node.accuracy_pct < 60)) {
+        node.status = 'WEAK';
+      } else if (total >= 3 && mastered >= total * 0.7) {
+        node.status = 'MASTERED';
+      }
+      return { total, weak, mastered };
+    };
+
+    for (const root of roots) {
+      rollup(root);
+    }
+
+    return roots;
   }
 }

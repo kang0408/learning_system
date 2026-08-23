@@ -290,8 +290,11 @@ export class AssignmentsService {
 
   async getMyAssignments(studentId: string, query: any) {
     const page = parseInt(query.page) || 1;
-    const limit = query.limit !== undefined ? (parseInt(query.limit) || 100) : (query.class_id ? 100 : 20);
+    const limit = query.limit !== undefined ? (parseInt(query.limit) || 20) : 20;
     const status = query.status || 'all';
+    const topicId = query.topic_id;
+    const search = query.search ? String(query.search).trim() : '';
+    const sortBy = query.sort_by || 'created_desc';
 
     const memberClasses = await this.assignmentsRepository.getStudentActiveClasses(studentId);
     
@@ -310,10 +313,23 @@ export class AssignmentsService {
       ]
     };
 
+    if (search) {
+      baseWhere.title = { contains: search, mode: 'insensitive' };
+    }
+
+    if (topicId) {
+      baseWhere.assignment_questions = {
+        some: {
+          question: {
+            topic_id: topicId
+          }
+        }
+      };
+    }
+
     if (status === 'overdue') {
       baseWhere.deadline = { lt: new Date() };
     } else if (status === 'pending') {
-      // Must use AND because we already have an OR at the top level
       baseWhere.AND = [
         {
           OR: [
@@ -324,9 +340,26 @@ export class AssignmentsService {
       ];
     }
 
-    const assignments = await this.assignmentsRepository.findStudentAssignments(baseWhere, studentId, (page - 1) * limit, limit);
-    
+    let orderBy: any = { created_at: 'desc' };
+    if (sortBy === 'deadline_asc') {
+      orderBy = { deadline: 'asc' };
+    } else if (sortBy === 'title_asc') {
+      orderBy = { title: 'asc' };
+    } else if (sortBy === 'created_desc') {
+      orderBy = { created_at: 'desc' };
+    }
+
+    const assignments = await this.assignmentsRepository.findStudentAssignments(baseWhere, studentId, (page - 1) * limit, limit, orderBy);
     const total = await this.assignmentsRepository.countAssignments(baseWhere);
-    return { assignments, meta: { page, limit, total } };
+    
+    return { 
+      assignments, 
+      meta: { 
+        page, 
+        limit, 
+        total,
+        total_pages: Math.ceil(total / limit)
+      } 
+    };
   }
 }

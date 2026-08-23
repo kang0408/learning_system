@@ -83,11 +83,29 @@ export class AssignmentsRepository {
     });
   }
 
-  async findStudentAssignments(where: Prisma.AssignmentWhereInput, studentId: string, skip: number, take: number) {
+  async findStudentAssignments(
+    where: Prisma.AssignmentWhereInput, 
+    studentId: string, 
+    skip: number, 
+    take: number,
+    orderBy: Prisma.AssignmentOrderByWithRelationInput = { created_at: 'desc' }
+  ) {
     return this.prisma.assignment.findMany({
       where,
       include: { 
-        class: { select: { name: true } },
+        class: { select: { id: true, name: true, subject: true } },
+        assignment_questions: {
+          take: 5,
+          include: {
+            question: {
+              select: {
+                id: true,
+                topic_id: true,
+                topic: { select: { id: true, name: true } }
+              }
+            }
+          }
+        },
         quiz_sessions: {
           where: { student_id: studentId },
           orderBy: { started_at: 'desc' }
@@ -95,7 +113,7 @@ export class AssignmentsRepository {
       },
       skip,
       take,
-      orderBy: { created_at: 'desc' }
+      orderBy
     });
   }
 

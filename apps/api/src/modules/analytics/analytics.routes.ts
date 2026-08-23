@@ -20,6 +20,8 @@ router.get('/admin/system/stream', requireAuth, requireRole(['admin']), (req, re
 
 // Student routes
 router.get('/student/me', requireAuth, requireRole(['student']), asyncWrapper(analyticsController.getStudentStats));
+router.get('/student/me/dashboard-summary', requireAuth, requireRole(['student']), asyncWrapper(analyticsController.getStudentDashboardSummary));
+router.get('/student/me/topics-tree', requireAuth, requireRole(['student']), asyncWrapper(analyticsController.getStudentTopicsTree));
 router.get('/student/me/calendar', requireAuth, requireRole(['student']), asyncWrapper(analyticsController.getStudentCalendar));
 router.get('/student/me/weak-topics', requireAuth, requireRole(['student']), asyncWrapper(analyticsController.getStudentWeakTopics));
 

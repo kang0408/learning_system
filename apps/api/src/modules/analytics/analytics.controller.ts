@@ -9,6 +9,8 @@ export class AnalyticsController extends BaseController {
     this.getSystemAnalytics = this.getSystemAnalytics.bind(this);
     this.streamSystemAnalytics = this.streamSystemAnalytics.bind(this);
     this.getStudentStats = this.getStudentStats.bind(this);
+    this.getStudentDashboardSummary = this.getStudentDashboardSummary.bind(this);
+    this.getStudentTopicsTree = this.getStudentTopicsTree.bind(this);
     this.getStudentCalendar = this.getStudentCalendar.bind(this);
     this.getStudentWeakTopics = this.getStudentWeakTopics.bind(this);
     this.getTeacherClassStats = this.getTeacherClassStats.bind(this);
@@ -85,6 +87,16 @@ export class AnalyticsController extends BaseController {
   async getStudentStats(req: any, res: Response) {
     const stats = await this.analyticsService.getStudentDashboard(req.user.userId);
     this.handleSuccess(res, stats);
+  }
+
+  async getStudentDashboardSummary(req: any, res: Response) {
+    const summary = await this.analyticsService.getStudentDashboardSummary(req.user.userId);
+    this.handleSuccess(res, summary);
+  }
+
+  async getStudentTopicsTree(req: any, res: Response) {
+    const tree = await this.analyticsService.getHierarchicalTopicTree(req.user.userId);
+    this.handleSuccess(res, tree);
   }
 
   async getStudentCalendar(req: any, res: Response) {
