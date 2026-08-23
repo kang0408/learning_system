@@ -111,7 +111,7 @@ function formatStudentAnswer(ans: any): string {
 }
 
 function formatCorrectAnswer(q: any): string {
-  if (q.type === 'matching' || q.question_type === 'matching') {
+  if (q.question_type === 'matching' || q.type === 'matching') {
     const pairs = q.metadata?.pairs;
     if (Array.isArray(pairs)) {
       return pairs.map((p: any) => `${p.leftText} ➔ ${p.rightText}`).join('; ');
@@ -186,14 +186,14 @@ export class StudentReportService {
 
     const student = membership.student;
 
-    // 2. Query student stats, SM2, topics, assignments, sessions and ALL session answers in parallel
+    // 2. Query student stats, SM2, topics, assignments, sessions and all session answers in parallel
     const [
       sm2Raw,
       topicPerfRaw,
       classStudentsRaw,
       assignmentsRaw,
       sessionsRaw,
-      rawWrongAnswers
+      allStudentWrongAnswers
     ] = await Promise.all([
       this.analyticsRepo.getSM2Summary(studentId),
       this.analyticsRepo.getTopicPerformance(studentId),
@@ -210,25 +210,32 @@ export class StudentReportService {
       }),
       this.prisma.quizSession.findMany({
         where: { student_id: studentId, status: 'completed' },
-        orderBy: { finished_at: 'desc' },
-        select: {
-          score: true,
-          total_q: true,
-          correct_q: true,
-          finished_at: true,
-        }
+        include: {
+          assignment: {
+            select: {
+              class_id: true
+            }
+          }
+        },
+        orderBy: { finished_at: 'desc' }
       }),
       this.prisma.sessionAnswer.findMany({
         where: {
           session: {
-            student_id: studentId,
-            assignment: {
-              class_id: classId
-            }
+            student_id: studentId
           },
           is_correct: false
         },
         include: {
+          session: {
+            select: {
+              assignment: {
+                select: {
+                  class_id: true
+                }
+              }
+            }
+          },
           option: {
             select: {
               id: true,
@@ -265,15 +272,22 @@ export class StudentReportService {
       })
     ]);
 
-    // 3. Compute student cumulative stats
+    // 3. Select wrong answers: prioritize class-specific answers; if none in class, take student's full practice history
+    const classFilteredWrongAnswers = allStudentWrongAnswers.filter(ans => ans.session?.assignment?.class_id === classId);
+    const rawWrongAnswers = classFilteredWrongAnswers.length > 0 ? classFilteredWrongAnswers : allStudentWrongAnswers;
+
+    // 4. Compute student cumulative stats
     let totalAnswers = 0;
     let totalCorrect = 0;
     let totalScore = 0;
     let lastActiveAt: Date | null = null;
 
-    if (sessionsRaw.length > 0) {
-      lastActiveAt = sessionsRaw[0].finished_at;
-      sessionsRaw.forEach(s => {
+    const classSessions = sessionsRaw.filter(s => s.assignment?.class_id === classId);
+    const activeSessions = classSessions.length > 0 ? classSessions : sessionsRaw;
+
+    if (activeSessions.length > 0) {
+      lastActiveAt = activeSessions[0].finished_at;
+      activeSessions.forEach(s => {
         const numScore = s.score ? Number(s.score) : 0;
         totalScore += numScore;
         totalAnswers += s.total_q || 0;
@@ -281,10 +295,18 @@ export class StudentReportService {
       });
     }
 
+    // Fallback: If sessions summary had 0 but student topic stats have data, get accurate totals from topicPerf
+    if (totalAnswers === 0 && topicPerfRaw.length > 0) {
+      topicPerfRaw.forEach(tp => {
+        totalAnswers += tp.total_answers || 0;
+        totalCorrect += tp.correct_answers || 0;
+      });
+    }
+
     const accuracyPct = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 1000) / 10 : 0;
     const totalIncorrect = Math.max(0, totalAnswers - totalCorrect);
 
-    // 4. Compute Class Benchmark (Average Score & Average Accuracy)
+    // 5. Compute Class Benchmark (Average Score & Average Accuracy)
     let classTotalScore = 0;
     let classTotalAccuracy = 0;
     let classStudentsCount = classStudentsRaw.length;
@@ -299,7 +321,7 @@ export class StudentReportService {
     const classAverageScore = classStudentsCount > 0 ? Math.round((classTotalScore / classStudentsCount) * 10) / 10 : 0;
     const classAverageAccuracy = classStudentsCount > 0 ? Math.round((classTotalAccuracy / classStudentsCount) * 10) / 10 : 0;
 
-    // 5. Process SM2 Memory Breakdown
+    // 6. Process SM2 Memory Breakdown
     const totalQ = sm2Raw?.total_questions || 0;
     const sm2Summary = {
       total_questions: totalQ,
@@ -310,7 +332,7 @@ export class StudentReportService {
       due_today: sm2Raw?.due_today || 0
     };
 
-    // 6. Process Topic Performance & Weak Topics (< 60% accuracy)
+    // 7. Process Topic Performance & Weak Topics (< 60% accuracy)
     const topicPerformance = topicPerfRaw.map(tp => ({
       topic: tp.topic || 'Chung',
       accuracy_pct: Math.round((tp.accuracy_pct || 0) * 10) / 10,
@@ -328,7 +350,7 @@ export class StudentReportService {
       }))
       .slice(0, 5);
 
-    // 7. Process Assignment History
+    // 8. Process Assignment History
     let completedAssignmentsCount = 0;
     const assignments = assignmentsRaw.map(a => {
       const bestSession = a.quiz_sessions[0];
@@ -350,7 +372,7 @@ export class StudentReportService {
       };
     });
 
-    // 8. Process ALL Error Questions (Deduplicated with error frequency count)
+    // 9. Process ALL Error Questions (Deduplicated with error frequency count)
     const errorQuestionsMap = new Map<string, ErrorQuestionDetail>();
 
     for (const ans of rawWrongAnswers) {
@@ -385,7 +407,7 @@ export class StudentReportService {
 
     const errorQuestions = Array.from(errorQuestionsMap.values());
 
-    // 9. Prepare Rich Stats Payload for AI Diagnostic (Including ALL Error Questions)
+    // 10. Prepare Rich Stats Payload for AI Diagnostic (Including ALL Error Questions)
     const studentStatsPayload = {
       student_name: student.full_name,
       class_name: classData.name,
@@ -395,7 +417,7 @@ export class StudentReportService {
       total_answers_count: totalAnswers,
       total_correct_count: totalCorrect,
       total_incorrect_count: totalIncorrect,
-      sessions_count: sessionsRaw.length,
+      sessions_count: activeSessions.length,
       class_benchmark: {
         average_score: classAverageScore,
         average_accuracy_pct: classAverageAccuracy
@@ -415,7 +437,7 @@ export class StudentReportService {
       }))
     };
 
-    // 10. Generate AI Diagnostic Assessment
+    // 11. Generate AI Diagnostic Assessment
     const aiInsights = await this.aiService.generatePersonalizedStudentReport(
       classId,
       studentId,
@@ -445,7 +467,7 @@ export class StudentReportService {
         total_incorrect_count: totalIncorrect,
         completed_assignments_count: completedAssignmentsCount,
         total_assignments_count: assignmentsRaw.length,
-        sessions_count: sessionsRaw.length,
+        sessions_count: activeSessions.length,
         streak_days: 0,
         last_active_at: lastActiveAt,
         class_average_score: classAverageScore,
