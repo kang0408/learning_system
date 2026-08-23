@@ -201,7 +201,8 @@ Báo cáo gồm 4 phần và trả về ĐÚNG định dạng JSON sau:
     sm2_learning_analysis: string;
   } | null> {
     const todayStr = new Date().toISOString().split('T')[0];
-    const cacheKey = `ai:student-report:diagnostic:${classId}:${studentId}:${todayStr}`;
+    const dataSignature = `${studentStatsData.total_answers_count || 0}_${studentStatsData.total_incorrect_count || 0}_${studentStatsData.cumulative_score || 0}`;
+    const cacheKey = `ai:student-report:diagnostic:${classId}:${studentId}:${dataSignature}:${todayStr}`;
 
     try {
       // 1. Check Redis cache first
