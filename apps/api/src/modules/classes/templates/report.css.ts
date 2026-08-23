@@ -36,96 +36,96 @@ export const reportCss = `
 
   /* Header Section */
   .report-header {
-    border-bottom: 2.5px solid #0f172a;
-    padding-bottom: 14px;
-    margin-bottom: 22px;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
 
   .header-titles h1 {
-    font-size: 21pt;
+    font-size: 18pt;
     font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: -0.6px;
+    letter-spacing: -0.5px;
     color: #0f172a;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     line-height: 1.2;
   }
 
   .header-titles .subtitle {
-    font-size: 13pt;
+    font-size: 11.5pt;
     font-weight: 700;
     color: #334155;
   }
 
   .header-meta {
     text-align: right;
-    font-size: 11pt;
+    font-size: 9.5pt;
     color: #475569;
-    line-height: 1.5;
+    line-height: 1.45;
   }
 
   /* Key Metrics Grid */
   .metrics-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 26px;
+    gap: 10px;
+    margin-bottom: 18px;
   }
 
   .metric-card {
     border: 1.5px solid #cbd5e1;
     background-color: #f8fafc;
-    padding: 12px 14px;
+    padding: 10px 12px;
     border-radius: 6px;
   }
 
   .metric-label {
-    font-size: 9.5pt;
+    font-size: 8.5pt;
     font-weight: 800;
     text-transform: uppercase;
     color: #64748b;
     letter-spacing: 0.4px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
   .metric-value {
-    font-size: 18pt;
+    font-size: 16pt;
     font-weight: 900;
     color: #0f172a;
     line-height: 1.2;
   }
 
   .metric-sub {
-    font-size: 9pt;
+    font-size: 8.5pt;
     color: #64748b;
-    margin-top: 4px;
+    margin-top: 3px;
     font-weight: 500;
   }
 
   /* Academic Section */
   .section-block {
-    margin-bottom: 24px;
+    margin-bottom: 18px;
   }
 
   .section-title {
-    font-size: 14.5pt;
+    font-size: 13pt;
     font-weight: 900;
     text-transform: uppercase;
     color: #0f172a;
     border-bottom: 2px solid #cbd5e1;
-    padding-bottom: 8px;
-    margin-bottom: 16px;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
     letter-spacing: -0.3px;
   }
 
   .assessment-box {
-    border-left: 4.5px solid #2563eb;
+    border-left: 4px solid #2563eb;
     background-color: #f8fafc;
-    padding: 14px 18px;
-    margin-bottom: 16px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
     border-radius: 0 6px 6px 0;
   }
 
@@ -134,17 +134,17 @@ export const reportCss = `
   }
 
   .assessment-box h3 {
-    font-size: 12.5pt;
+    font-size: 11pt;
     font-weight: 800;
     color: #1e293b;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
   }
 
   .assessment-box p {
-    font-size: 11.5pt;
+    font-size: 10pt;
     color: #334155;
     text-align: justify;
-    line-height: 1.65;
+    line-height: 1.55;
   }
 
   /* Action Plan List */

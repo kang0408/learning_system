@@ -333,21 +333,31 @@ export class StudentReportService {
     };
 
     // 7. Process Topic Performance & Weak Topics (< 60% accuracy)
-    const topicPerformance = topicPerfRaw.map(tp => ({
-      topic: tp.topic || 'Chung',
-      accuracy_pct: Math.round((tp.accuracy_pct || 0) * 10) / 10,
-      total_answers: tp.total_answers || 0,
-      correct_answers: tp.correct_answers || 0
-    }));
+    const topicPerformance = topicPerfRaw.map(tp => {
+      const total = tp.total_questions || (tp as any).total_answers || 0;
+      const acc = Math.round((tp.accuracy_pct || 0) * 10) / 10;
+      const correct = Math.round(total * (acc / 100));
+      return {
+        topic: tp.topic || 'Chung',
+        accuracy_pct: acc,
+        total_answers: total,
+        correct_answers: correct
+      };
+    });
 
-    const weakTopics = topicPerformance
-      .filter(tp => tp.accuracy_pct < 60 && tp.total_answers >= 2)
-      .map(tp => ({
-        topic: tp.topic,
-        accuracy_pct: tp.accuracy_pct,
-        total_answers: tp.total_answers,
-        error_count: tp.total_answers - tp.correct_answers
-      }))
+    const weakTopics = topicPerfRaw
+      .filter(tp => (tp.accuracy_pct || 0) < 60 && (tp.total_questions || (tp as any).total_answers || 0) >= 1)
+      .map(tp => {
+        const total = tp.total_questions || (tp as any).total_answers || 0;
+        const acc = Math.round((tp.accuracy_pct || 0) * 10) / 10;
+        const error = Math.max(1, Math.round(total * (1 - acc / 100)));
+        return {
+          topic: tp.topic,
+          accuracy_pct: acc,
+          total_answers: total,
+          error_count: error
+        };
+      })
       .slice(0, 5);
 
     // 8. Process Assignment History
@@ -407,33 +417,40 @@ export class StudentReportService {
 
     const errorQuestions = Array.from(errorQuestionsMap.values());
 
-    // 10. Prepare Rich Stats Payload for AI Diagnostic (Including ALL Error Questions)
+    // 10. Prepare Rich Stats Payload for AI Diagnostic (Using pedagogical Vietnamese terms)
     const studentStatsPayload = {
-      student_name: student.full_name,
-      class_name: classData.name,
-      subject: classData.subject,
-      cumulative_score: totalScore,
-      accuracy_pct: accuracyPct,
-      total_answers_count: totalAnswers,
-      total_correct_count: totalCorrect,
-      total_incorrect_count: totalIncorrect,
-      sessions_count: activeSessions.length,
-      class_benchmark: {
-        average_score: classAverageScore,
-        average_accuracy_pct: classAverageAccuracy
+      thong_tin_hoc_sinh: {
+        ho_va_ten: student.full_name,
+        lop_hoc: classData.name,
+        mon_hoc: classData.subject || 'Chung / Đa môn'
       },
-      sm2_summary: sm2Summary,
-      weak_topics: weakTopics.map(w => `${w.topic} (${w.accuracy_pct}% chính xác, sai ${w.error_count}/${w.total_answers} câu)`),
-      topic_performance: topicPerformance.map(t => `${t.topic}: ${t.accuracy_pct}%`),
-      all_incorrect_questions: errorQuestions.map((eq, idx) => ({
+      chi_so_tong_quan: {
+        diem_tich_luy: totalScore,
+        do_chinh_xac_phan_tram: accuracyPct,
+        tong_so_cau_da_tra_loi: totalAnswers,
+        so_cau_dung: totalCorrect,
+        so_cau_sai: totalIncorrect,
+        trung_binh_lop_diem: classAverageScore,
+        trung_binh_lop_do_chinh_xac: classAverageAccuracy
+      },
+      ghi_nho_dai_han_sm2: {
+        tong_so_kien_thuc: sm2Summary.total_questions,
+        so_kien_thuc_thanh_thao: sm2Summary.mastered_count,
+        so_kien_thuc_dang_ren_luyen: sm2Summary.learning_in_progress,
+        so_kien_thuc_nguy_co_quen_cao: sm2Summary.learning_at_risk,
+        so_kien_thuc_can_truy_bai_gap_trong_ngay: sm2Summary.due_today
+      },
+      chuyen_de_yeu_can_phu_dao: weakTopics.map(w => `${w.topic} (Độ chính xác: ${w.accuracy_pct}%, làm sai ${w.error_count}/${w.total_answers} câu)`),
+      do_chinh_xac_theo_chuyen_de: topicPerformance.map(t => `${t.topic}: ${t.accuracy_pct}% (${t.total_answers} câu)`),
+      danh_sach_tat_ca_cau_hoi_hoc_sinh_lam_sai: errorQuestions.map((eq, idx) => ({
         stt: idx + 1,
-        topic: eq.topic,
-        question_content: eq.content,
-        student_wrong_answer: eq.student_answer,
-        correct_answer: eq.correct_answer,
-        explanation: eq.explanation,
-        error_frequency: `${eq.error_count} lần sai`,
-        response_time_seconds: eq.response_time_seconds
+        chuyen_de: eq.topic,
+        noi_dung_de_bai: eq.content,
+        hoc_sinh_chon_sai: eq.student_answer,
+        dap_an_dung: eq.correct_answer,
+        giai_thich_chi_tiet: eq.explanation,
+        so_lan_sai: `${eq.error_count} lần`,
+        thoi_gian_tra_loi_giay: eq.response_time_seconds
       }))
     };
 

@@ -25,6 +25,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
   ]);
 
   const atRiskTotal = sm2_summary.learning_at_risk + sm2_summary.due_today;
+  const subjectDisplay = class_info.subject && class_info.subject !== 'Chưa biết' ? class_info.subject : 'Chung';
 
   return `<!DOCTYPE html>
 <html lang="vi">
@@ -45,7 +46,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
     .weak-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 10.5pt;
+      font-size: 10pt;
       margin-top: 10px;
     }
     .weak-table th {
@@ -53,22 +54,22 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       color: #0f172a;
       font-weight: 800;
       text-align: left;
-      padding: 9px 12px;
-      font-size: 10pt;
+      padding: 8px 10px;
+      font-size: 9.5pt;
       text-transform: uppercase;
       letter-spacing: 0.3px;
       border: 1px solid #cbd5e1;
     }
     .weak-table td {
-      padding: 8px 12px;
+      padding: 8px 10px;
       border: 1px solid #cbd5e1;
       color: #334155;
-      font-size: 10.5pt;
+      font-size: 9.5pt;
     }
     .error-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 9.5pt;
+      font-size: 9pt;
       margin-top: 10px;
     }
     .error-table th {
@@ -77,7 +78,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       font-weight: 800;
       text-align: left;
       padding: 8px 10px;
-      font-size: 9pt;
+      font-size: 8.5pt;
       text-transform: uppercase;
       letter-spacing: 0.3px;
       border: 1px solid #334155;
@@ -86,11 +87,12 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       padding: 8px 10px;
       border: 1px solid #cbd5e1;
       color: #1e293b;
-      font-size: 9.5pt;
+      font-size: 9pt;
       vertical-align: top;
     }
     .error-table tr {
       page-break-inside: avoid;
+      break-inside: avoid;
     }
     .student-wrong-tag {
       color: #b91c1c;
@@ -101,7 +103,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       font-weight: 700;
       display: inline-block;
       margin-top: 2px;
-      font-size: 9pt;
+      font-size: 8.5pt;
     }
     .correct-tag {
       color: #15803d;
@@ -112,23 +114,23 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       font-weight: 700;
       display: inline-block;
       margin-top: 2px;
-      font-size: 9pt;
+      font-size: 8.5pt;
     }
     .explanation-snippet {
-      font-size: 8.5pt;
+      font-size: 8pt;
       color: #475569;
-      margin-top: 6px;
+      margin-top: 5px;
       padding-top: 4px;
       border-top: 1px dashed #e2e8f0;
       line-height: 1.35;
     }
     .type-badge {
       display: inline-block;
-      padding: 2px 6px;
+      padding: 2px 5px;
       background-color: #f1f5f9;
       border: 1px solid #e2e8f0;
       border-radius: 3px;
-      font-size: 8pt;
+      font-size: 7.5pt;
       font-weight: 600;
       color: #475569;
       margin-top: 3px;
@@ -143,6 +145,10 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       font-weight: 700;
       margin-left: 4px;
     }
+    .page-break-section {
+      page-break-before: always;
+      break-before: page;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -153,7 +159,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
     <div class="report-header">
       <div class="header-titles">
         <h1>Báo Cáo Chẩn Đoán Năng Lực Học Sinh</h1>
-        <div class="subtitle">Học sinh: ${student_info.name} — Lớp: ${class_info.name} (${class_info.subject})</div>
+        <div class="subtitle">Học sinh: ${student_info.name} — Lớp: ${class_info.name} (${subjectDisplay})</div>
       </div>
       <div class="header-meta">
         <div><strong>Giáo viên / Gia sư:</strong> ${class_info.teacher_name}</div>
@@ -206,11 +212,8 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       </div>
     </div>
 
-    <!-- Ngắt sang Trang 2 -->
-    <div class="page-break"></div>
-
-    <!-- ==================== TRANG 2 ==================== -->
-    <div class="section-block">
+    <!-- ==================== TRANG 2: BIỂU ĐỒ & LỖ HỔNG ==================== -->
+    <div class="section-block page-break-section">
       <div class="section-title">II. Hệ Thống Biểu Đồ Chẩn Đoán Trực Quan</div>
       
       <div class="charts-stack">
@@ -266,11 +269,8 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       `}
     </div>
 
-    <!-- Ngắt sang Trang 3 (Nhật ký bài tập) -->
-    <div class="page-break"></div>
-
-    <!-- ==================== TRANG 3 ==================== -->
-    <div class="section-block">
+    <!-- ==================== TRANG 3: NHẬT KÝ BÀI TẬP ==================== -->
+    <div class="section-block page-break-section">
       <div class="section-title">IV. Bảng Chi Tiết Kết Quả Các Bài Tập Đã Giao</div>
       
       <table class="grade-table">
@@ -313,11 +313,8 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       </table>
     </div>
 
-    <!-- Ngắt sang Trang 4+ (Danh mục toàn bộ câu sai) -->
-    <div class="page-break"></div>
-
     <!-- ==================== TRANG 4+: ERROR QUESTIONS LOG ==================== -->
-    <div class="section-block">
+    <div class="section-block page-break-section">
       <div class="section-title">V. Danh Mục Toàn Bộ Các Câu Hỏi Học Sinh Đã Làm Sai (Sổ Tay Chữa Bài 1-1)</div>
       
       ${error_questions && error_questions.length > 0 ? `
@@ -358,7 +355,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
                   ` : ''}
                 </td>
                 <td class="text-center" style="font-size: 8.5pt; color: #64748b;">
-                  <strong>${eq.response_time_seconds}s</strong>
+                  ${eq.response_time_seconds > 0 ? `${eq.response_time_seconds}s` : '-'}
                 </td>
               </tr>
             `).join('')}
@@ -374,14 +371,13 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
 
   </div>
 
+  <!-- Chart.js Render Engine -->
   <script>
-    window.chartRenderComplete = false;
-
-    window.onload = function() {
-      try {
-        // 1. Topic Accuracy Chart (Horizontal Bar)
-        const ctxTopics = document.getElementById('topicAccuracyChart').getContext('2d');
-        new Chart(ctxTopics, {
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Topic Horizontal Bar Chart
+      const ctxTopic = document.getElementById('topicAccuracyChart');
+      if (ctxTopic) {
+        new Chart(ctxTopic, {
           type: 'bar',
           data: {
             labels: ${topicLabels},
@@ -390,7 +386,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
               data: ${topicAccuracies},
               backgroundColor: '#2563eb',
               borderRadius: 4,
-              barThickness: 20
+              barThickness: 16
             }]
           },
           options: {
@@ -399,25 +395,35 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
             maintainAspectRatio: false,
             animation: false,
             plugins: {
-              legend: { display: false }
+              legend: { display: false },
+              tooltip: { enabled: false }
             },
             scales: {
               x: {
                 min: 0,
                 max: 100,
-                ticks: { font: { size: 12, weight: 'bold' }, color: '#475569' },
+                ticks: {
+                  stepSize: 20,
+                  font: { size: 9, family: '-apple-system, sans-serif' },
+                  color: '#475569'
+                },
                 grid: { color: '#e2e8f0' }
               },
               y: {
-                ticks: { font: { size: 13, weight: 'bold' }, color: '#0f172a' },
+                ticks: {
+                  font: { size: 9.5, weight: 'bold', family: '-apple-system, sans-serif' },
+                  color: '#0f172a'
+                },
                 grid: { display: false }
               }
             }
           }
         });
+      }
 
-        // 2. SM2 Memory Distribution Chart (Donut)
-        const ctxSm2 = document.getElementById('sm2DistributionChart').getContext('2d');
+      // 2. SM2 Spaced Repetition Donut Chart
+      const ctxSm2 = document.getElementById('sm2DistributionChart');
+      if (ctxSm2) {
         new Chart(ctxSm2, {
           type: 'doughnut',
           data: {
@@ -425,7 +431,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
             datasets: [{
               data: ${sm2DataCounts},
               backgroundColor: ['#16a34a', '#2563eb', '#dc2626', '#94a3b8'],
-              borderWidth: 3,
+              borderWidth: 2,
               borderColor: '#ffffff'
             }]
           },
@@ -433,27 +439,24 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
             responsive: true,
             maintainAspectRatio: false,
             animation: false,
+            cutout: '62%',
             plugins: {
               legend: {
                 position: 'bottom',
                 labels: {
-                  boxWidth: 16,
-                  font: { size: 12.5, weight: 'bold' },
-                  color: '#1e293b',
-                  padding: 16
+                  boxWidth: 12,
+                  boxHeight: 12,
+                  padding: 10,
+                  font: { size: 9, weight: 'bold', family: '-apple-system, sans-serif' },
+                  color: '#334155'
                 }
-              }
+              },
+              tooltip: { enabled: false }
             }
           }
         });
-
-        // Signal complete
-        window.chartRenderComplete = true;
-      } catch (err) {
-        console.error('Chart render error:', err);
-        window.chartRenderComplete = true;
       }
-    };
+    });
   </script>
 </body>
 </html>`;

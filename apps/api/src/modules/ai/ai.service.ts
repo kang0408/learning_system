@@ -220,15 +220,16 @@ ${JSON.stringify(studentStatsData, null, 2)}
 
 YÊU CẦU NGHIÊM NGẶT VỀ VĂN PHONG VÀ ĐỊNH DẠNG:
 1. TUYỆT ĐỐI KHÔNG SỬ DỤNG BẤT KỲ BIỂU TƯỢNG CẢM XÚC (EMOJI) HOẶC KÝ TỰ ICON NÀO.
-2. Sử dụng ngôn từ sư phạm chuyên nghiệp, chuẩn mực, chẩn đoán sắc bén và chính xác dựa trên số liệu thực tế.
-3. Trong mục "strengths_and_weaknesses", hãy MỔ XẺ TRỰC TIẾP CÁC CÂU HỎI SAI TIÊU BIỂU trong mảng "all_incorrect_questions": trích dẫn ví dụ câu hỏi, phân tích rõ học sinh đã chọn/điền sai phương án nào, tại sao lại nhầm lẫn như vậy và bản chất kiến thức bị hổng là gì.
-4. Trong mục "executive_summary", hãy đánh giá thêm về tốc độ phản xạ dựa trên response_time_seconds (học sinh làm vội đoán mò hay phân vân quá lâu).
+2. TUYỆT ĐỐI KHÔNG SỬ DỤNG CÁC TỪ NGỮ/TÊN BIẾN KỸ THUẬT TIẾNG ANH (như "learning_at_risk", "due_today", "response_time", "easiness_factor", "sm2", "payload", "key"). Phải dùng 100% tiếng Việt sư phạm chuẩn mực (ví dụ: "kiến thức có nguy cơ quên lãng", "câu hỏi cần truy bài gấp trong ngày", "thời gian phản xạ", "chu kỳ ghi nhớ dài hạn").
+3. Sử dụng ngôn từ sư phạm chuyên nghiệp, chuẩn mực, chẩn đoán sắc bén và chính xác dựa trên số liệu thực tế.
+4. Trong mục "strengths_and_weaknesses", hãy MỔ XẺ TRỰC TIẾP CÁC CÂU HỎI SAI TIÊU BIỂU trong mảng "danh_sach_tat_ca_cau_hoi_hoc_sinh_lam_sai": trích dẫn ví dụ câu hỏi, phân tích rõ học sinh đã chọn/điền sai phương án nào, tại sao lại nhầm lẫn như vậy và bản chất kiến thức bị hổng là gì.
+5. Trong mục "executive_summary", hãy đánh giá thêm về tốc độ phản xạ dựa trên thoi_gian_tra_loi_giay (học sinh làm vội đoán mò hay phân vân quá lâu).
 
 Báo cáo gồm 3 phần chẩn đoán và trả về ĐÚNG định dạng JSON sau:
 {
   "executive_summary": "Phân tích 130-190 từ về tổng thể năng lực tiếp thu, phản xạ thời gian làm bài, thói quen học tập và mức độ chuyên cần của học sinh so với mặt bằng chung.",
   "strengths_and_weaknesses": "Phân tích 160-230 từ mổ xẻ chi tiết các chủ đề điểm mạnh nổi trội và đào sâu các lỗi sai cốt lõi từ danh mục câu hỏi sai thực tế (trích dẫn ví dụ câu hỏi, đáp án học sinh nhầm lẫn và nguyên nhân tư duy sai lầm).",
-  "sm2_learning_analysis": "Phân tích 120-160 từ về sức bền ghi nhớ dài hạn theo mô hình Spaced Repetition SM2 (tỷ lệ câu hỏi đã thành thạo, lượng câu hỏi tồn đọng có nguy cơ quên cần gia sư truy bài ngay)."
+  "sm2_learning_analysis": "Phân tích 120-160 từ về sức bền ghi nhớ dài hạn theo mô hình ghi nhớ ngắt quãng Spaced Repetition (tỷ lệ câu hỏi đã thành thạo, lượng câu hỏi tồn đọng có nguy cơ quên cần gia sư truy bài ngay)."
 }`;
 
       const { response } = await generateContentWithFallback(this.ai, {
