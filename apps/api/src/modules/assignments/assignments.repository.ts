@@ -45,6 +45,13 @@ export class AssignmentsRepository {
         },
         quiz_sessions: {
           select: { id: true, student_id: true, status: true, score: true }
+        },
+        curriculum_assignments: {
+          include: {
+            curriculum: {
+              select: { id: true, title: true, order_index: true }
+            }
+          }
         }
       },
       skip,
@@ -94,6 +101,13 @@ export class AssignmentsRepository {
       where,
       include: { 
         class: { select: { id: true, name: true, subject: true } },
+        curriculum_assignments: {
+          include: {
+            curriculum: {
+              select: { id: true, title: true, order_index: true }
+            }
+          }
+        },
         assignment_questions: {
           take: 5,
           include: {

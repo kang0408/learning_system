@@ -127,6 +127,12 @@ ${textContent.slice(0, 50000)}`;
         status: 'pending' as const,
         topics_count: 0,
         questions_count: 0,
+        assignment_mode: 'standard' as const,
+        max_attempts: 0,
+        time_limit_minutes: null,
+        deadline: null,
+        is_assignment_published: true,
+        is_curriculum_published: true,
       }));
 
       return {
@@ -156,18 +162,18 @@ ${textContent.slice(0, 50000)}`;
   ): Promise<UnitContentResult> {
     try {
       const prompt = `Bạn là chuyên gia ra đề thi và phân loại kiến thức theo phương pháp sư phạm hiện đại.
-Hãy tạo danh mục Chủ đề kiến thức (Topics) và Ngân hàng câu hỏi trắc nghiệm/bài tập (Questions) cho bài học sau:
+Hãy tạo Chủ đề kiến thức (Topic) đại diện và Ngân hàng câu hỏi trắc nghiệm/bài tập (Questions) cho bài học sau:
 - Tên bài học: ${lesson.title}
 - Tóm tắt bài học: ${lesson.summary || 'Không có'}
 ${previousLessonSummary ? `- Kiến thức bài trước (để tích hợp ôn tập ngắt quãng): ${previousLessonSummary}` : ''}
 
 QUY TẮC BẮT BUỘC:
-1. Tạo 2-4 Chủ đề kiến thức (Topics) cụ thể của bài. Mỗi Topic có temp_id (ví dụ: 'top_${lesson.temp_id}_1').
+1. Tạo ĐÚNG 1 Chủ đề kiến thức (Topic) đại diện, trọng tâm và bao quát nhất cho bài học này. Đặt tên Topic ngắn gọn, chuẩn xác. Gán temp_id theo định dạng: 'top_${lesson.temp_id}_1'.
 2. Tạo 4-8 Câu hỏi bài tập đa dạng độ khó (difficulty: 1 đến 4), thuộc các dạng câu hỏi: 'multiple_choice', 'multi_select', 'true_false', 'fill_blank', 'matching'.
-3. NEO DẪN CHỨNG (evidence_quote): BẮT BUỘC trích dẫn 1 câu văn/đoạn trích trong bài làm căn cứ cho đáp án đúng.
-4. ĐÁP ÁN NHIỄU (Distractors): Các phương án sai phải mô phỏng các lỗi sai ngữ pháp/từ vựng kinh điển của học sinh.
-5. Với câu hỏi 'matching', điền metadata dạng: { pairs: [{ leftText: "...", rightText: "..." }] } và để answer_options rỗng.
-6. Gán topic_temp_id của câu hỏi khớp với temp_id của Topic tương ứng đã tạo.
+3. BẮT BUỘC gán topic_temp_id của tất cả các câu hỏi khớp với temp_id của Topic duy nhất đã tạo ở mục 1 ('top_${lesson.temp_id}_1').
+4. NEO DẪN CHỨNG (evidence_quote): BẮT BUỘC trích dẫn 1 câu văn/đoạn trích trong bài làm căn cứ cho đáp án đúng.
+5. ĐÁP ÁN NHIỄU (Distractors): Các phương án sai phải mô phỏng các lỗi sai ngữ pháp/từ vựng kinh điển của học sinh.
+6. Với câu hỏi 'matching', điền metadata dạng: { pairs: [{ leftText: "...", rightText: "..." }] } và để answer_options rỗng.
 
 NỘI DUNG CHI TIẾT CỦA BÀI HỌC NÀY:
 ${unitText.slice(0, 30000)}`;

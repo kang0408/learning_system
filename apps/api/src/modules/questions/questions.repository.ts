@@ -28,7 +28,23 @@ export class QuestionsRepository {
   async findQuestions(where: Prisma.QuestionWhereInput, skip: number, take: number) {
     return this.prisma.question.findMany({
       where,
-      include: { answer_options: true },
+      include: {
+        answer_options: true,
+        assignment_questions: {
+          include: {
+            assignment: {
+              select: {
+                id: true,
+                title: true,
+                class_id: true,
+                class: {
+                  select: { id: true, name: true }
+                }
+              }
+            }
+          }
+        }
+      },
       skip,
       take,
       orderBy: { created_at: 'desc' }

@@ -1,10 +1,17 @@
 import { useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { teacherQuestionBankApi } from '../api/teacherQuestionBankApi';
 
-export const useTopics = (searchTerm: string) => {
+export const useTopics = (searchTerm: string, classId?: string) => {
   return useSuspenseQuery({
-    queryKey: ['teacher', 'topics', searchTerm],
-    queryFn: () => teacherQuestionBankApi.getTopics(searchTerm),
+    queryKey: ['teacher', 'topics', searchTerm, classId || 'all'],
+    queryFn: () => teacherQuestionBankApi.getTopics(searchTerm, classId),
+  });
+};
+
+export const useTeacherClasses = () => {
+  return useSuspenseQuery({
+    queryKey: ['teacher', 'classes'],
+    queryFn: () => teacherQuestionBankApi.getClasses(),
   });
 };
 

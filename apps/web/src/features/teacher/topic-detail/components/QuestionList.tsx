@@ -1,12 +1,20 @@
 import React from 'react';
-import { Search, Plus, Star, Edit, Trash2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Search, Plus, Star, Edit, Trash2, CheckCircle2, ArrowRight, School, X } from 'lucide-react';
 import type { Question } from '../types';
 import { useTranslation } from 'react-i18next';
+import { Select } from '@/components/ui/Select';
 
 interface QuestionListProps {
   questions: Question[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  classes: Array<{ id: string; name: string }>;
+  selectedClassId: string;
+  onClassChange: (classId: string) => void;
+  selectedType: string;
+  onTypeChange: (type: string) => void;
+  selectedDifficulty: string;
+  onDifficultyChange: (diff: string) => void;
   onEditQuestion: (q: Question) => void;
   onDeleteQuestion: (id: string) => void;
   onOpenCreateQuestion: () => void;
@@ -16,30 +24,118 @@ export const QuestionList: React.FC<QuestionListProps> = ({
   questions,
   searchTerm,
   onSearchChange,
+  classes,
+  selectedClassId,
+  onClassChange,
+  selectedType,
+  onTypeChange,
+  selectedDifficulty,
+  onDifficultyChange,
   onEditQuestion,
   onDeleteQuestion,
   onOpenCreateQuestion
 }) => {
   const { t } = useTranslation();
 
+  const classOptions = [
+    { value: 'all', label: t('teacher.topicDetail.filterAllClasses', 'Tất cả lớp học') },
+    ...classes.map((c) => ({ value: c.id, label: c.name })),
+  ];
+
+  const typeOptions = [
+    { value: 'all', label: t('teacher.topicDetail.filterAllTypes', 'Tất cả dạng bài') },
+    { value: 'multiple_choice', label: t('teacher.topicDetail.listTypeMultipleChoice', 'Trắc nghiệm đơn') },
+    { value: 'multi_select', label: t('teacher.topicDetail.listTypeMultiSelect', 'Nhiều đáp án') },
+    { value: 'true_false', label: t('teacher.topicDetail.listTypeTrueFalse', 'Đúng / Sai') },
+    { value: 'fill_blank', label: t('teacher.topicDetail.listTypeFillBlank', 'Điền khuyết') },
+    { value: 'matching', label: t('teacher.topicDetail.listTypeMatching', 'Nối cặp từ') },
+  ];
+
+  const difficultyOptions = [
+    { value: 'all', label: t('teacher.topicDetail.filterAllDifficulties', 'Tất cả độ khó') },
+    { value: '1', label: '1 Sao (Rất dễ)' },
+    { value: '2', label: '2 Sao (Dễ)' },
+    { value: '3', label: '3 Sao (Trung bình)' },
+    { value: '4', label: '4 Sao (Khó)' },
+    { value: '5', label: '5 Sao (Rất khó)' },
+  ];
+
+  const hasActiveFilters = searchTerm !== '' || selectedClassId !== 'all' || selectedType !== 'all' || selectedDifficulty !== 'all';
+
+  const handleResetFilters = () => {
+    onSearchChange('');
+    onClassChange('all');
+    onTypeChange('all');
+    onDifficultyChange('all');
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
-      <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-gray-900 tracking-tight">{t('teacher.topicDetail.listTitle')}</h2>
-          <span className="px-2.5 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full border border-gray-300">
-            {questions.length}
-          </span>
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
+      {/* Header with Search & Filters */}
+      <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">{t('teacher.topicDetail.listTitle', 'Danh sách câu hỏi')}</h2>
+            <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full border border-indigo-100">
+              {questions.length}
+            </span>
+          </div>
+
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder={t('teacher.topicDetail.listSearchPlaceholder', 'Tìm kiếm câu hỏi...')} 
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-slate-400"
+            />
+          </div>
         </div>
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder={t('teacher.topicDetail.listSearchPlaceholder')} 
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder-gray-400"
-          />
+
+        {/* Filter Toolbar */}
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          {/* Class Filter */}
+          <div className="w-full sm:w-52">
+            <Select
+              size="sm"
+              value={selectedClassId}
+              onChange={onClassChange}
+              options={classOptions}
+            />
+          </div>
+
+          {/* Question Type Filter */}
+          <div className="w-full sm:w-44">
+            <Select
+              size="sm"
+              value={selectedType}
+              onChange={onTypeChange}
+              options={typeOptions}
+            />
+          </div>
+
+          {/* Difficulty Filter */}
+          <div className="w-full sm:w-44">
+            <Select
+              size="sm"
+              value={selectedDifficulty}
+              onChange={onDifficultyChange}
+              options={difficultyOptions}
+            />
+          </div>
+
+          {/* Clear Filters Button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>{t('teacher.topicDetail.clearFilters', 'Xóa bộ lọc')}</span>
+            </button>
+          )}
         </div>
       </div>
       
@@ -50,7 +146,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
               <li key={q.id} className="p-5 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow group">
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
                   <div className="flex-grow">
-                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                    <div className="flex flex-wrap items-center gap-2.5 mb-3">
                       <span className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md border ${
                         q.question_type === 'multiple_choice' 
                           ? 'bg-blue-50 text-blue-700 border-blue-200' 
@@ -73,6 +169,20 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                           <Star key={star} className={`w-3.5 h-3.5 ${q.difficulty >= star ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
                         ))}
                       </div>
+
+                      {q.assignment_questions && q.assignment_questions.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {q.assignment_questions.map((aq, aqIdx) => (
+                            <span
+                              key={aqIdx}
+                              className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 rounded-md"
+                            >
+                              <School className="w-3 h-3 text-indigo-500" />
+                              <span>{aq.assignment.class?.name || 'Lớp học'}: {aq.assignment.title}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     
                     <p className="font-semibold text-gray-900 text-base leading-relaxed">{q.content}</p>

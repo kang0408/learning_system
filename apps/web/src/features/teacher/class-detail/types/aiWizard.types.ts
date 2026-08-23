@@ -50,6 +50,14 @@ export interface WizardLesson {
   status: LessonCardStatus;
   topics_count: number;
   questions_count: number;
+  
+  // Custom lesson & assignment settings
+  assignment_mode?: 'standard' | 'adaptive' | 'exam';
+  max_attempts?: number;
+  time_limit_minutes?: number | null;
+  deadline?: string | null;
+  is_assignment_published?: boolean;
+  is_curriculum_published?: boolean;
 }
 
 export interface WizardDraftPayload {

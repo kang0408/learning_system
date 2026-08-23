@@ -27,6 +27,7 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
   const [modeFilter, setModeFilter] = useState('all');
   const [publishFilter, setPublishFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('curriculum_asc');
   const [assignmentToDelete, setAssignmentToDelete] = useState<string | null>(null);
 
   const modeOptions = [
@@ -47,6 +48,13 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
     { label: t('teacher.classDetail.ongoing', 'Đang diễn ra'), value: 'ongoing' },
     { label: t('teacher.classDetail.completed', 'Hoàn thành'), value: 'completed' },
     { label: t('teacher.classDetail.overdue', 'Quá hạn'), value: 'overdue' },
+  ];
+
+  const sortOptions = [
+    { label: t('teacher.classDetail.sortCurriculum', 'Theo lộ trình học'), value: 'curriculum_asc' },
+    { label: t('teacher.classDetail.sortCreatedDesc', 'Mới nhất'), value: 'created_desc' },
+    { label: t('teacher.classDetail.sortCreatedAsc', 'Cũ nhất'), value: 'created_asc' },
+    { label: t('teacher.classDetail.sortDeadlineAsc', 'Hạn nộp gần nhất'), value: 'deadline_asc' },
   ];
 
   const filteredAssignments = useMemo(() => {
@@ -83,16 +91,45 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
       });
     }
 
-    return list;
-  }, [assignments, searchTerm, modeFilter, publishFilter, statusFilter]);
+    // 5. Smart ordering:
+    return [...list].sort((a, b) => {
+      if (sortBy === 'created_desc') {
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      }
+      if (sortBy === 'created_asc') {
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      }
+      if (sortBy === 'deadline_asc') {
+        if (!a.deadline && !b.deadline) return 0;
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      }
 
-  const hasActiveFilters = searchTerm.trim() !== '' || modeFilter !== 'all' || publishFilter !== 'all' || statusFilter !== 'all';
+      // Default: 'curriculum_asc' (theo lộ trình học)
+      const aCurriculumOrder = a.curriculum_assignments?.[0]?.curriculum?.order_index ?? a.curriculum_assignments?.[0]?.order_index;
+      const bCurriculumOrder = b.curriculum_assignments?.[0]?.curriculum?.order_index ?? b.curriculum_assignments?.[0]?.order_index;
+
+      if (aCurriculumOrder !== undefined && bCurriculumOrder !== undefined) {
+        return aCurriculumOrder - bCurriculumOrder;
+      }
+      if (aCurriculumOrder !== undefined) return -1;
+      if (bCurriculumOrder !== undefined) return 1;
+
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+  }, [assignments, searchTerm, modeFilter, publishFilter, statusFilter, sortBy]);
+
+  const hasActiveFilters = searchTerm.trim() !== '' || modeFilter !== 'all' || publishFilter !== 'all' || statusFilter !== 'all' || sortBy !== 'curriculum_asc';
 
   const handleClearFilters = () => {
     setSearchTerm('');
     setModeFilter('all');
     setPublishFilter('all');
     setStatusFilter('all');
+    setSortBy('curriculum_asc');
   };
 
   const handleConfirmDelete = () => {
@@ -192,11 +229,21 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
               </div>
 
               {/* Status Filter */}
-              <div className="w-full sm:w-44">
+              <div className="w-full sm:w-40">
                 <Select
                   value={statusFilter}
                   onChange={setStatusFilter}
                   options={statusOptions}
+                  size="sm"
+                />
+              </div>
+
+              {/* Sort Selector */}
+              <div className="w-full sm:w-48">
+                <Select
+                  value={sortBy}
+                  onChange={setSortBy}
+                  options={sortOptions}
                   size="sm"
                 />
               </div>
@@ -256,10 +303,19 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
                   const totalCount = assignment.stats?.total_students || 1;
                   const progressPct = Math.round((submittedCount / totalCount) * 100);
                   const isOverdue = assignment.deadline && new Date(assignment.deadline) < new Date();
+                  const curriculumInfo = assignment.curriculum_assignments?.[0]?.curriculum;
 
                   return (
                     <TableRow key={assignment.id}>
                       <TableCell className="font-bold text-slate-900">
+                        {curriculumInfo && (
+                          <div className="mb-1">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[11px] font-bold rounded-md border border-indigo-100">
+                              <BookOpen className="w-3 h-3" />
+                              <span>Bài {curriculumInfo.order_index}: {curriculumInfo.title}</span>
+                            </span>
+                          </div>
+                        )}
                         <Link
                           to={`/teacher/classes/${classId}/assignments/${assignment.id}`}
                           className="hover:text-indigo-600 transition-colors block"

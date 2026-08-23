@@ -5,3 +5,4 @@ dist
 docs/
 !README.md
 *.pdf
+*.tsbuildinfo

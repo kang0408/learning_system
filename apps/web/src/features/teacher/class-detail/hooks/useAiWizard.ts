@@ -202,17 +202,19 @@ export function useAiWizard(classId: string) {
     [classId, queryClient]
   );
 
-  // 5. Update detail modal (Topics + Questions of 1 lesson)
+  // 5. Update detail modal (Topics + Questions of 1 lesson + Settings)
   const updateDetailMutation = useMutation({
     mutationFn: ({
       lessonTempId,
       topics,
       questions,
+      lessonSettings,
     }: {
       lessonTempId: string;
       topics: WizardTopic[];
       questions: WizardQuestion[];
-    }) => teacherAiWizardApi.updateLessonDetail(classId, lessonTempId, topics, questions),
+      lessonSettings?: Partial<WizardLesson>;
+    }) => teacherAiWizardApi.updateLessonDetail(classId, lessonTempId, topics, questions, lessonSettings),
     onSuccess: (_, variables) => {
       setTopicsByLesson((prev) => ({ ...prev, [variables.lessonTempId]: variables.topics }));
       setQuestionsByLesson((prev) => ({ ...prev, [variables.lessonTempId]: variables.questions }));
@@ -224,6 +226,7 @@ export function useAiWizard(classId: string) {
                 status: 'ready',
                 topics_count: variables.topics.length,
                 questions_count: variables.questions.length,
+                ...(variables.lessonSettings || {}),
               }
             : l
         )
@@ -271,10 +274,12 @@ export function useAiWizard(classId: string) {
       setTopicsByLesson({});
       setQuestionsByLesson({});
       queryClient.invalidateQueries({ queryKey: ['ai-wizard-draft', classId] });
-      queryClient.invalidateQueries({ queryKey: ['curriculums', classId] });
-      queryClient.invalidateQueries({ queryKey: ['assignments', classId] });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'class-curriculums', classId] });
       queryClient.invalidateQueries({ queryKey: ['teacher', 'class-detail', classId] });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'classes'] });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'topicStudents'] });
       queryClient.invalidateQueries({ queryKey: ['topics'] });
+      queryClient.invalidateQueries({ queryKey: ['assignments'] });
     },
   });
 
@@ -288,6 +293,7 @@ export function useAiWizard(classId: string) {
       setCurriculumTitle('');
       setCurriculumDescription('');
       queryClient.invalidateQueries({ queryKey: ['ai-wizard-draft', classId] });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'class-curriculums', classId] });
     },
   });
 

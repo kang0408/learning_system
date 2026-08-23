@@ -23,7 +23,6 @@ interface AiWizardLessonsStageProps {
   onOpenDetailModal: (lessonTempId: string) => void;
   onStartBatchGen: (lessonTempIds?: string[]) => void;
   isGenerating: boolean;
-  overallProgress: number;
   onCommit: () => void;
   isCommitting: boolean;
   onDiscardDraft: () => void;
@@ -39,7 +38,6 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
   onOpenDetailModal,
   onStartBatchGen,
   isGenerating,
-  overallProgress,
   onCommit,
   isCommitting,
   onDiscardDraft,
@@ -112,6 +110,12 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
       status: 'pending',
       topics_count: 0,
       questions_count: 0,
+      assignment_mode: 'standard',
+      max_attempts: 0,
+      time_limit_minutes: null,
+      deadline: null,
+      is_assignment_published: true,
+      is_curriculum_published: true,
     };
 
     onUpdateLessons([...lessons, newLesson]);
@@ -119,6 +123,18 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
     setNewSummary('');
     setNewPageRange('');
     setIsAddingLesson(false);
+  };
+
+  const handleToggleCurriculumPublish = (tempId: string) => {
+    const updated = lessons.map((l) =>
+      l.temp_id === tempId
+        ? {
+            ...l,
+            is_curriculum_published: l.is_curriculum_published === false ? true : false,
+          }
+        : l
+    );
+    onUpdateLessons(updated);
   };
 
   const readyCount = lessons.filter((l) => l.status === 'ready').length;
@@ -206,7 +222,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
             {isGenerating ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                {t('teacher.aiWizard.lessonsStage.generatingProgress', { percent: overallProgress })}
+                {t('teacher.aiWizard.lessonsStage.generatingStatus', 'Đang tạo câu hỏi & chủ đề...')}
               </>
             ) : (
               <>
@@ -217,25 +233,6 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
           </Button>
         </div>
       </div>
-
-      {/* Overall Progress Bar during batch generation */}
-      {isGenerating && (
-        <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold text-indigo-900">
-            <span className="flex items-center gap-1.5">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
-              {t('teacher.aiWizard.lessonsStage.generatingParallel')}
-            </span>
-            <span>{overallProgress}%</span>
-          </div>
-          <div className="w-full bg-indigo-200/60 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 h-full transition-all duration-300"
-              style={{ width: `${overallProgress}%` }}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Add New Lesson Inline Form */}
       {isAddingLesson && (
@@ -301,6 +298,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
             onMoveUp={handleMoveUp}
             onMoveDown={handleMoveDown}
             onRetry={(tempId) => onStartBatchGen([tempId])}
+            onToggleCurriculumPublish={handleToggleCurriculumPublish}
             isGeneratingAll={isGenerating}
           />
         ))}

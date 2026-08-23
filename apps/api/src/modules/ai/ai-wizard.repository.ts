@@ -100,11 +100,12 @@ export class AiWizardRepository {
             title: lesson.title,
             content_html: `<p>${lesson.summary || lesson.title}</p>`,
             order_index: lesson.order_index,
+            is_published: lesson.is_curriculum_published ?? true,
           },
         });
         curriculumsCount++;
 
-        // 2. Create Topics for this lesson
+        // 2. Create Topics for this lesson (persisted even without questions)
         const lessonTopics = topicsByLesson[lesson.temp_id] || [];
         const topicMap: Record<string, string> = {};
 
@@ -127,15 +128,23 @@ export class AiWizardRepository {
 
         // 3. Only create Assignment & questions if there are questions generated
         if (lessonQuestions.length > 0) {
+          const deadlineDate = lesson.deadline ? new Date(lesson.deadline) : null;
+          const isPublished = lesson.is_assignment_published !== false;
+
           const assignment = await tx.assignment.create({
             data: {
               class_id: classId,
               created_by: teacherId,
               title: `Bài tập: ${lesson.title}`,
               description: `Bài tập củng cố kiến thức cho ${lesson.title}`,
-              mode: 'adaptive',
-              is_published: true,
+              mode: (lesson.assignment_mode as any) || 'standard',
+              deadline: deadlineDate,
+              max_attempts: lesson.max_attempts ?? 0,
+              time_limit: lesson.time_limit_minutes ?? null,
+              is_published: isPublished,
+              published_at: isPublished ? new Date() : null,
               is_all_students: true,
+              created_at: new Date(Date.now() + (lesson.order_index || 0) * 1000),
             },
           });
           assignmentsCount++;
@@ -145,7 +154,7 @@ export class AiWizardRepository {
             data: {
               curriculum_id: curriculum.id,
               assignment_id: assignment.id,
-              order_index: 0,
+              order_index: lesson.order_index || 0,
             },
           });
 

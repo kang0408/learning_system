@@ -43,6 +43,14 @@ export const wizardLessonSchema = z.object({
   topics_count: z.number().int().nonnegative().default(0),
   questions_count: z.number().int().nonnegative().default(0),
   error_message: z.string().optional(),
+  
+  // Custom lesson & assignment settings
+  assignment_mode: z.enum(['standard', 'adaptive', 'exam']).optional(),
+  max_attempts: z.number().int().nonnegative().optional(),
+  time_limit_minutes: z.number().int().positive().nullable().optional(),
+  deadline: z.string().nullable().optional(),
+  is_assignment_published: z.boolean().optional(),
+  is_curriculum_published: z.boolean().optional(),
 });
 
 // Step 1: Upload & Initial extraction
@@ -65,12 +73,18 @@ export const step2GenerateContentSchema = z.object({
   lesson_temp_ids: z.array(z.string()).optional(),
 });
 
-// Update modal detail (Topics + Questions of a lesson)
+// Update modal detail (Topics + Questions of a lesson + Lesson Settings)
 export const updateLessonDetailSchema = z.object({
   class_id: z.string().uuid('Mã lớp học phải là UUID hợp lệ'),
   lesson_temp_id: z.string().min(1),
   topics: z.array(wizardTopicSchema),
   questions: z.array(wizardQuestionSchema),
+  assignment_mode: z.enum(['standard', 'adaptive', 'exam']).optional(),
+  max_attempts: z.number().int().nonnegative().optional(),
+  time_limit_minutes: z.number().int().positive().nullable().optional(),
+  deadline: z.string().nullable().optional(),
+  is_assignment_published: z.boolean().optional(),
+  is_curriculum_published: z.boolean().optional(),
 });
 
 // Regenerate a single question
@@ -86,8 +100,25 @@ export const commitWizardSchema = z.object({
   class_id: z.string().uuid('Mã lớp học phải là UUID hợp lệ'),
 });
 
-// Types inferred from schemas
-export type WizardLesson = z.infer<typeof wizardLessonSchema>;
+// Types
+export interface WizardLesson {
+  temp_id: string;
+  title: string;
+  summary?: string;
+  order_index: number;
+  page_range?: string;
+  status: 'pending' | 'processing' | 'ready' | 'error';
+  topics_count: number;
+  questions_count: number;
+  error_message?: string;
+  assignment_mode?: 'standard' | 'adaptive' | 'exam';
+  max_attempts?: number;
+  time_limit_minutes?: number | null;
+  deadline?: string | null;
+  is_assignment_published?: boolean;
+  is_curriculum_published?: boolean;
+}
+
 export type WizardTopic = z.infer<typeof wizardTopicSchema>;
 export type WizardQuestion = z.infer<typeof wizardQuestionSchema>;
 export type AnswerOptionInput = z.infer<typeof answerOptionSchema>;

@@ -23,6 +23,17 @@ export interface Question {
   difficulty: number;
   answer_options: QuestionOption[];
   metadata?: any;
+  assignment_questions?: Array<{
+    assignment: {
+      id: string;
+      title: string;
+      class_id: string;
+      class?: {
+        id: string;
+        name: string;
+      };
+    };
+  }>;
 }
 
 export interface UpdateTopicPayload {

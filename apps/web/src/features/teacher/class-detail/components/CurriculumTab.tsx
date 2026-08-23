@@ -57,6 +57,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
     mutationFn: () => teacherAiWizardApi.deleteDraft(classId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ai-wizard-draft', classId] });
+      queryClient.invalidateQueries({ queryKey: ['teacher', 'class-curriculums', classId] });
       toast.success(t('teacher.aiWizard.curriculumTab.draftDiscardSuccess'));
     },
   });

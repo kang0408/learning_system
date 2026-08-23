@@ -11,6 +11,7 @@ import type {
   CommitWizardResult,
   WizardTopic,
   WizardQuestion,
+  WizardLesson,
 } from '../../types/aiWizard.types';
 
 interface AiWizardModalProps {
@@ -30,7 +31,6 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
     topicsByLesson,
     questionsByLesson,
     isGenerating,
-    overallProgress,
     step1Mutation,
     saveLessonsMutation,
     startBatchGeneration,
@@ -79,10 +79,11 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
     }
   };
 
-  // Save Detail Modal (Topics + Questions)
+  // Save Detail Modal (Topics + Questions + Settings)
   const handleSaveLessonDetail = async (
     topics: WizardTopic[],
-    questions: WizardQuestion[]
+    questions: WizardQuestion[],
+    lessonSettings?: Partial<WizardLesson>
   ) => {
     if (!inspectingLessonId) return;
     try {
@@ -90,6 +91,7 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
         lessonTempId: inspectingLessonId,
         topics,
         questions,
+        lessonSettings,
       });
       toast.success(t('teacher.aiWizard.modal.saveDetailSuccess'));
     } catch (err: any) {
@@ -192,7 +194,6 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
               onOpenDetailModal={(tempId) => setInspectingLessonId(tempId)}
               onStartBatchGen={handleStartBatchGen}
               isGenerating={isGenerating}
-              overallProgress={overallProgress}
               onCommit={handleCommit}
               isCommitting={commitMutation.isPending}
               onDiscardDraft={handleDiscardDraft}

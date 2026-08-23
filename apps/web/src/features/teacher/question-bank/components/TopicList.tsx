@@ -28,12 +28,22 @@ interface TopicListProps {
   topics: Topic[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  classes?: Array<{ id: string; name: string }>;
+  selectedClassId?: string;
+  onClassChange?: (classId: string) => void;
 }
 
 type FilterQuestionStatus = 'all' | 'has_questions' | 'empty';
 type SortOption = 'created_desc' | 'name_asc' | 'name_desc' | 'questions_desc';
 
-export const TopicList: React.FC<TopicListProps> = ({ topics, searchTerm, onSearchChange }) => {
+export const TopicList: React.FC<TopicListProps> = ({
+  topics,
+  searchTerm,
+  onSearchChange,
+  classes = [],
+  selectedClassId = 'all',
+  onClassChange,
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -83,6 +93,14 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, searchTerm, onSear
   const handleCollapseAll = () => {
     setExpandedNodes(getAllNodeIdsMap(topics, false));
   };
+
+  const classOptions: SelectOption[] = useMemo(
+    () => [
+      { value: 'all', label: t('teacher.questionBank.topicList.filterAllClasses', 'Tất cả lớp học') },
+      ...classes.map((c) => ({ value: c.id, label: c.name })),
+    ],
+    [classes, t]
+  );
 
   // Filter & Sort Options for Select component
   const filterOptions: SelectOption[] = useMemo(
@@ -372,8 +390,20 @@ export const TopicList: React.FC<TopicListProps> = ({ topics, searchTerm, onSear
 
           {/* Filter & Sort Controls using Select component */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Class Filter */}
+            {onClassChange && (
+              <div className="w-44 sm:w-48">
+                <Select
+                  value={selectedClassId}
+                  onChange={onClassChange}
+                  options={classOptions}
+                  size="sm"
+                />
+              </div>
+            )}
+
             {/* Status Filter */}
-            <div className="w-44 sm:w-48">
+            <div className="w-40 sm:w-44">
               <Select
                 value={filterStatus}
                 onChange={(val) => setFilterStatus(val as FilterQuestionStatus)}

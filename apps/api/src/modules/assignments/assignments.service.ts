@@ -155,6 +155,23 @@ export class AssignmentsService {
 
       return result;
     });
+
+    if (query.class_id) {
+      enrichedAssignments.sort((a, b) => {
+        const aOrder = a.curriculum_assignments?.[0]?.curriculum?.order_index ?? a.curriculum_assignments?.[0]?.order_index;
+        const bOrder = b.curriculum_assignments?.[0]?.curriculum?.order_index ?? b.curriculum_assignments?.[0]?.order_index;
+
+        if (aOrder !== undefined && bOrder !== undefined) {
+          return aOrder - bOrder;
+        }
+        if (aOrder !== undefined) return -1;
+        if (bOrder !== undefined) return 1;
+
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+    }
     
     const total = await this.assignmentsRepository.countAssignments(where);
     return { assignments: enrichedAssignments, meta: { page, limit, total } };
@@ -350,6 +367,24 @@ export class AssignmentsService {
     }
 
     const assignments = await this.assignmentsRepository.findStudentAssignments(baseWhere, studentId, (page - 1) * limit, limit, orderBy);
+    
+    if (query.class_id && sortBy === 'created_desc') {
+      assignments.sort((a, b) => {
+        const aOrder = a.curriculum_assignments?.[0]?.curriculum?.order_index ?? a.curriculum_assignments?.[0]?.order_index;
+        const bOrder = b.curriculum_assignments?.[0]?.curriculum?.order_index ?? b.curriculum_assignments?.[0]?.order_index;
+
+        if (aOrder !== undefined && bOrder !== undefined) {
+          return aOrder - bOrder;
+        }
+        if (aOrder !== undefined) return -1;
+        if (bOrder !== undefined) return 1;
+
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+    }
+
     const total = await this.assignmentsRepository.countAssignments(baseWhere);
     
     return { 

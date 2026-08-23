@@ -67,12 +67,22 @@ export class QuestionsService {
   async getQuestions(teacherId: string, query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
-    const { topic_id, difficulty, type, search } = query;
+    const { topic_id, difficulty, type, search, class_id } = query;
 
     const where: any = { created_by: teacherId, deleted_at: null };
     if (difficulty) where.difficulty = parseInt(difficulty);
     if (type) where.question_type = type;
     if (search) where.content = { contains: search, mode: 'insensitive' };
+    if (class_id && class_id !== 'all') {
+      where.assignment_questions = {
+        some: {
+          assignment: {
+            class_id: class_id,
+            deleted_at: null
+          }
+        }
+      };
+    }
     if (topic_id !== undefined) {
       if (topic_id === 'null') {
         where.topic_id = null;

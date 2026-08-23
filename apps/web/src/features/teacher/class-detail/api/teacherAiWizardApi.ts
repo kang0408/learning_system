@@ -140,19 +140,21 @@ export const teacherAiWizardApi = {
   },
 
   /**
-   * 6. Update modal details (Topics + Questions of a specific lesson)
+   * 6. Update modal details (Topics + Questions + Settings of a specific lesson)
    */
   updateLessonDetail: async (
     classId: string,
     lessonTempId: string,
     topics: WizardTopic[],
-    questions: WizardQuestion[]
+    questions: WizardQuestion[],
+    lessonSettings?: Partial<WizardLesson>
   ): Promise<void> => {
     await api.patch('/api/ai/wizard/draft/lesson-detail', {
       class_id: classId,
       lesson_temp_id: lessonTempId,
       topics,
       questions,
+      ...(lessonSettings || {}),
     });
   },
 

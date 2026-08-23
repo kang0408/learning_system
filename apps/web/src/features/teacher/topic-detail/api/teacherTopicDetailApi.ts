@@ -12,8 +12,21 @@ export const teacherTopicDetailApi = {
     return res.data.data || [];
   },
 
-  getQuestions: async (topicId: string, searchTerm: string): Promise<Question[]> => {
-    const res = await api.get(`/api/questions?topic_id=${topicId}&limit=1000&search=${encodeURIComponent(searchTerm)}`);
+  getClasses: async (): Promise<Array<{ id: string; name: string }>> => {
+    const res = await api.get('/api/classes');
+    return res.data.data || [];
+  },
+
+  getQuestions: async (topicId: string, searchTerm: string, classId?: string): Promise<Question[]> => {
+    const params = new URLSearchParams({
+      topic_id: topicId,
+      limit: '1000',
+      search: searchTerm || '',
+    });
+    if (classId && classId !== 'all') {
+      params.append('class_id', classId);
+    }
+    const res = await api.get(`/api/questions?${params.toString()}`);
     return res.data.data || [];
   },
 

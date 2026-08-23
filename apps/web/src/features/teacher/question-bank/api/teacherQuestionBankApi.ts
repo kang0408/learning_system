@@ -2,8 +2,20 @@ import api from '@/api/axios';
 import type { Topic, CreateTopicPayload, CreateQuestionPayload, ImportCsvResult } from '../types';
 
 export const teacherQuestionBankApi = {
-  getTopics: async (searchTerm: string): Promise<Topic[]> => {
-    const res = await api.get(`/api/topics?limit=1000&search=${encodeURIComponent(searchTerm)}`);
+  getClasses: async (): Promise<Array<{ id: string; name: string }>> => {
+    const res = await api.get('/api/classes');
+    return res.data.data || [];
+  },
+
+  getTopics: async (searchTerm: string, classId?: string): Promise<Topic[]> => {
+    const params = new URLSearchParams({
+      limit: '1000',
+      search: searchTerm || '',
+    });
+    if (classId && classId !== 'all') {
+      params.append('class_id', classId);
+    }
+    const res = await api.get(`/api/topics?${params.toString()}`);
     return (res.data.data || []) as Topic[];
   },
 

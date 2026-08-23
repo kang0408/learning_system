@@ -229,17 +229,14 @@ export const AiWizardUploadStep: React.FC<AiWizardUploadStepProps> = ({
         </div>
       )}
 
-      {/* Loading Overlay / Progress Indicator */}
+      {/* Loading State Indicator */}
       {isLoading && (
-        <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5 text-center space-y-3">
+        <div className="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 text-center">
           <div className="flex items-center justify-center gap-2.5 text-indigo-600">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-sm font-bold">
               {t('teacher.aiWizard.uploadStep.analyzing')}
             </span>
-          </div>
-          <div className="w-full bg-indigo-200/60 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-indigo-600 h-full w-2/3 animate-pulse" />
           </div>
         </div>
       )}

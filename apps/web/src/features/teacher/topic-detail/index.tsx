@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { 
   useTopicDetail, 
   useTopicQuestions, 
+  useTeacherClasses,
   useAllTopics,
   useDeleteTopic,
   useDeleteQuestion 
@@ -26,11 +27,28 @@ export default function TeacherTopicDetailFeature() {
   if (!topicId) return null;
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data: topic } = useTopicDetail(topicId);
-  const { data: questions } = useTopicQuestions(topicId, debouncedSearchTerm);
+  const { data: classes = [] } = useTeacherClasses();
+  const { data: questions = [] } = useTopicQuestions(topicId, debouncedSearchTerm, selectedClassId);
   const { data: allTopics } = useAllTopics();
+
+  const filteredQuestions = useMemo(() => {
+    return questions.filter((q) => {
+      if (selectedType !== 'all' && q.question_type !== selectedType) {
+        return false;
+      }
+      if (selectedDifficulty !== 'all' && String(q.difficulty) !== selectedDifficulty) {
+        return false;
+      }
+      return true;
+    });
+  }, [questions, selectedType, selectedDifficulty]);
   
   const { mutateAsync: deleteTopic, isPending: deletingTopic } = useDeleteTopic();
   const { mutateAsync: deleteQuestion, isPending: deletingQuestion } = useDeleteQuestion();
@@ -85,9 +103,16 @@ export default function TeacherTopicDetailFeature() {
       />
 
       <QuestionList
-        questions={questions}
+        questions={filteredQuestions}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        classes={classes}
+        selectedClassId={selectedClassId}
+        onClassChange={setSelectedClassId}
+        selectedType={selectedType}
+        onTypeChange={setSelectedType}
+        selectedDifficulty={selectedDifficulty}
+        onDifficultyChange={setSelectedDifficulty}
         onEditQuestion={handleEditQuestion}
         onDeleteQuestion={(id) => setDeleteQuestionId(id)}
         onOpenCreateQuestion={handleOpenCreateQuestion}

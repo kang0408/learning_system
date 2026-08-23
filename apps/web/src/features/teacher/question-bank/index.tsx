@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTopics } from './hooks/useTeacherQuestionBank';
+import { useTopics, useTeacherClasses } from './hooks/useTeacherQuestionBank';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { QuestionBankHeader } from './components/QuestionBankHeader';
 import { TopicList } from './components/TopicList';
@@ -8,8 +8,11 @@ import { CreateQuestionModal } from './components/CreateQuestionModal';
 
 export default function TeacherQuestionBankFeature() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState('all');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const { data: topics } = useTopics(debouncedSearchTerm);
+
+  const { data: classes = [] } = useTeacherClasses();
+  const { data: topics = [] } = useTopics(debouncedSearchTerm, selectedClassId);
 
   const [showTopicModal, setShowTopicModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
@@ -26,6 +29,9 @@ export default function TeacherQuestionBankFeature() {
         topics={topics}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        classes={classes}
+        selectedClassId={selectedClassId}
+        onClassChange={setSelectedClassId}
       />
 
       <CreateTopicModal 

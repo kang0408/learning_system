@@ -9,10 +9,17 @@ export const useTopicDetail = (topicId: string) => {
   });
 };
 
-export const useTopicQuestions = (topicId: string, searchTerm: string) => {
+export const useTopicQuestions = (topicId: string, searchTerm: string, classId?: string) => {
   return useSuspenseQuery({
-    queryKey: ['teacher', 'topic-questions', topicId, searchTerm],
-    queryFn: () => teacherTopicDetailApi.getQuestions(topicId, searchTerm),
+    queryKey: ['teacher', 'topic-questions', topicId, searchTerm, classId || 'all'],
+    queryFn: () => teacherTopicDetailApi.getQuestions(topicId, searchTerm, classId),
+  });
+};
+
+export const useTeacherClasses = () => {
+  return useSuspenseQuery({
+    queryKey: ['teacher', 'classes'],
+    queryFn: () => teacherTopicDetailApi.getClasses(),
   });
 };
 

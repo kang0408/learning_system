@@ -135,10 +135,17 @@ export class AiWizardController extends BaseController {
     const mergedLessons = (lessons as any[]).map((l) => {
       const existingLesson = existingPayload.lessons?.find((el: any) => el.temp_id === l.temp_id);
       return {
+        ...(existingLesson || {}),
         ...l,
         status: l.status || existingLesson?.status || 'pending',
         topics_count: l.topics_count ?? existingLesson?.topics_count ?? 0,
         questions_count: l.questions_count ?? existingLesson?.questions_count ?? 0,
+        assignment_mode: l.assignment_mode !== undefined ? l.assignment_mode : (existingLesson?.assignment_mode || 'standard'),
+        max_attempts: l.max_attempts !== undefined ? l.max_attempts : (existingLesson?.max_attempts ?? 0),
+        time_limit_minutes: l.time_limit_minutes !== undefined ? l.time_limit_minutes : (existingLesson?.time_limit_minutes ?? null),
+        deadline: l.deadline !== undefined ? l.deadline : (existingLesson?.deadline ?? null),
+        is_assignment_published: l.is_assignment_published !== undefined ? l.is_assignment_published : (existingLesson?.is_assignment_published ?? true),
+        is_curriculum_published: l.is_curriculum_published !== undefined ? l.is_curriculum_published : (existingLesson?.is_curriculum_published ?? true),
       };
     });
 
@@ -268,10 +275,23 @@ export class AiWizardController extends BaseController {
     const updatedTopicsByLesson = { ...(payload.topicsByLesson || {}), ...batchResult.topicsByLesson };
     const updatedQuestionsByLesson = { ...(payload.questionsByLesson || {}), ...batchResult.questionsByLesson };
 
-    // Update lesson items status
+    // Update lesson items status while strictly preserving custom settings
     const updatedLessons = payload.lessons.map((l) => {
       const generated = batchResult.lessons.find((bl) => bl.temp_id === l.temp_id);
-      return generated || l;
+      if (!generated) return l;
+      return {
+        ...generated,
+        ...l,
+        status: generated.status,
+        topics_count: generated.topics_count,
+        questions_count: generated.questions_count,
+        assignment_mode: l.assignment_mode ?? generated.assignment_mode ?? 'standard',
+        max_attempts: l.max_attempts ?? generated.max_attempts ?? 0,
+        time_limit_minutes: l.time_limit_minutes !== undefined ? l.time_limit_minutes : (generated.time_limit_minutes ?? null),
+        deadline: l.deadline !== undefined ? l.deadline : (generated.deadline ?? null),
+        is_assignment_published: l.is_assignment_published !== undefined ? l.is_assignment_published : (generated.is_assignment_published ?? true),
+        is_curriculum_published: l.is_curriculum_published !== undefined ? l.is_curriculum_published : (generated.is_curriculum_published ?? true),
+      };
     });
 
     const updatedPayload: WizardDraftPayload = {
@@ -305,7 +325,18 @@ export class AiWizardController extends BaseController {
       return this.handleClientError(res, parseResult.error.message, 400);
     }
 
-    const { class_id, lesson_temp_id, topics, questions } = parseResult.data;
+    const {
+      class_id,
+      lesson_temp_id,
+      topics,
+      questions,
+      assignment_mode,
+      max_attempts,
+      time_limit_minutes,
+      deadline,
+      is_assignment_published,
+      is_curriculum_published,
+    } = parseResult.data;
     const existingDraft = await this.aiWizardRepo.findActiveDraft(this.getUserId(req), class_id);
     if (!existingDraft) {
       return this.handleClientError(res, 'Không tìm thấy bản nháp hợp lệ', 404);
@@ -322,6 +353,12 @@ export class AiWizardController extends BaseController {
           status: 'ready' as const,
           topics_count: topics.length,
           questions_count: questions.length,
+          assignment_mode: assignment_mode !== undefined ? assignment_mode : l.assignment_mode || 'standard',
+          max_attempts: max_attempts !== undefined ? max_attempts : l.max_attempts ?? 0,
+          time_limit_minutes: time_limit_minutes !== undefined ? time_limit_minutes : l.time_limit_minutes ?? null,
+          deadline: deadline !== undefined ? deadline : l.deadline ?? null,
+          is_assignment_published: is_assignment_published !== undefined ? is_assignment_published : l.is_assignment_published ?? true,
+          is_curriculum_published: is_curriculum_published !== undefined ? is_curriculum_published : l.is_curriculum_published ?? true,
         };
       }
       return l;

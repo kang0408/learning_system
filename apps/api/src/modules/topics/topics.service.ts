@@ -37,7 +37,7 @@ export class TopicsService {
   }
 
   async getTopics(teacherId: string, query: any) {
-    const { search, has_questions } = query;
+    const { search, has_questions, class_id } = query;
 
     const where: any = { 
       created_by: teacherId, 
@@ -63,6 +63,22 @@ export class TopicsService {
       where.questions = { some: { deleted_at: null } };
     } else if (has_questions === 'false') {
       where.questions = { none: { deleted_at: null } };
+    }
+
+    if (class_id && class_id !== 'all') {
+      where.questions = {
+        some: {
+          deleted_at: null,
+          assignment_questions: {
+            some: {
+              assignment: {
+                class_id: class_id,
+                deleted_at: null,
+              }
+            }
+          }
+        }
+      };
     }
     
     const allTopics = await this.topicsRepository.findAllTopicsForTree(where);
