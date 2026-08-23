@@ -61,18 +61,23 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
                 <span className={`font-bold text-xs uppercase tracking-widest px-2 py-0.5 border ${
                   due_today_count > 0 ? 'bg-indigo-700 text-white border-white' : 'bg-zinc-100 text-zinc-700 border-zinc-900'
                 }`}>
-                  {t('student.dashboard.spacedRepetition', 'SPACED REPETITION')}
+                  {t('student.dashboard.spacedRepetition', 'ÔN TẬP TRÍ NHỚ')}
                 </span>
                 <span className="font-black text-2xl tracking-tighter">{due_today_count}</span>
               </div>
               <h4 className="text-2xl font-black tracking-tighter uppercase leading-tight mb-2">
-                {t('student.dashboard.dailyReviewBatch', 'DAILY MEMORY DRILL')}
+                {t('student.dashboard.dailyReviewBatch', 'PHIÊN ÔN TẬP HẰNG NGÀY')}
               </h4>
               <p className={`text-sm font-medium ${due_today_count > 0 ? 'text-indigo-100' : 'text-zinc-500'}`}>
                 {due_today_count > 0 
-                  ? t('student.dashboard.dueReviewDesc', { count: due_today_count, defaultValue: `${due_today_count} questions scheduled for retention today` })
-                  : t('student.dashboard.noReviewDesc', 'No questions due for memory review today.')}
+                  ? t('student.dashboard.dueReviewDesc', { count: due_today_count, defaultValue: `Có ${due_today_count} câu hỏi đến hạn cần ôn tập để không bị quên.` })
+                  : t('student.dashboard.noReviewDesc', 'Chưa có câu hỏi nào đến hạn ôn tập hôm nay.')}
               </p>
+              {due_today_count > 0 && (
+                <div className="mt-3 inline-block bg-indigo-700 text-white border border-white px-2 py-0.5 text-[11px] font-black uppercase tracking-wider">
+                  {t('student.dashboard.estimatedTime', { minutes: Math.max(1, Math.ceil(due_today_count * 0.75)), defaultValue: `~${Math.max(1, Math.ceil(due_today_count * 0.75))} phút` })} ({due_today_count} câu)
+                </div>
+              )}
             </div>
 
             <div className="mt-6 pt-4 border-t border-current">
@@ -81,12 +86,12 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
                   to="/quiz"
                   className="flex items-center justify-between font-bold uppercase tracking-widest text-sm bg-white text-indigo-900 border-2 border-zinc-900 px-4 py-2 hover:bg-zinc-900 hover:text-white transition-colors"
                 >
-                  <span>{t('student.dashboard.startReviewNow', 'START REVIEW')}</span>
+                  <span>{t('student.dashboard.startReviewNow', 'BẮT ĐẦU ÔN TẬP')}</span>
                   <ArrowUpRight className="w-4 h-4 ml-1" />
                 </Link>
               ) : (
                 <span className="font-bold text-xs uppercase tracking-widest text-zinc-400">
-                  {t('student.dashboard.completedToday', 'UP TO DATE')}
+                  {t('student.dashboard.completedToday', 'ĐÃ HOÀN THÀNH')}
                 </span>
               )}
             </div>
@@ -104,10 +109,10 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
                   topAssignment?.is_overdue ? 'bg-red-600 text-white' : 'bg-zinc-900 text-white'
                 }`}>
                   {topAssignment?.is_overdue 
-                    ? t('student.dashboard.overdueTag', 'OVERDUE') 
+                    ? t('student.dashboard.overdueTag', 'QUÁ HẠN') 
                     : topAssignment?.is_due_soon 
-                    ? t('student.dashboard.dueSoonTag', 'DUE SOON') 
-                    : t('student.dashboard.priorityAssignment', 'ASSIGNMENT')}
+                    ? t('student.dashboard.dueSoonTag', 'SẮP ĐẾN HẠN') 
+                    : t('student.dashboard.priorityAssignment', 'BÀI TẬP')}
                 </span>
                 {topAssignment?.class?.name && (
                   <span className="font-bold text-xs uppercase text-zinc-500 truncate max-w-[120px]">
@@ -117,7 +122,7 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
               </div>
 
               <h4 className="text-xl font-black tracking-tighter uppercase line-clamp-2 mb-2">
-                {topAssignment?.title || t('student.dashboard.noAssignment', 'NO PENDING HOMEWORK')}
+                {topAssignment?.title || t('student.dashboard.noAssignment', 'KHÔNG CÓ BÀI TẬP TỒN ĐỌNG')}
               </h4>
 
               {topAssignment?.deadline && (
@@ -142,7 +147,7 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
                 </Link>
               ) : (
                 <span className="font-bold text-xs uppercase tracking-widest text-zinc-400">
-                  {t('student.dashboard.noPending', 'CLEARED')}
+                  {t('student.dashboard.noPending', 'ĐÃ HOÀN TẤT')}
                 </span>
               )}
             </div>
@@ -153,24 +158,29 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
             <div>
               <div className="flex justify-between items-start mb-4">
                 <span className="font-bold text-xs uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white border-2 border-zinc-900">
-                  {t('student.dashboard.weakSpotTag', 'WEAK SPOT')}
+                  {t('student.dashboard.weakSpotTag', 'ĐIỂM YẾU')}
                 </span>
                 {topWeak && (
                   <span className="font-bold text-xs uppercase tracking-widest text-red-600">
-                    {topWeak.weak_questions} {t('student.dashboard.hardQs', 'HARD')}
+                    {topWeak.weak_questions} {t('student.dashboard.hardQs', 'CÂU HAY SAI')}
                   </span>
                 )}
               </div>
 
               <h4 className="text-xl font-black tracking-tighter uppercase line-clamp-2 mb-2">
-                {topWeak?.topic || t('student.dashboard.allTopicsSolid', 'TOPICS BALANCED')}
+                {topWeak?.topic || t('student.dashboard.allTopicsSolid', 'CHỦ ĐỀ ĐỒNG ĐỀU')}
               </h4>
 
               <p className="text-xs font-medium text-zinc-500">
                 {topWeak 
-                  ? t('student.dashboard.weakTopicRecoveryDesc', 'Practice questions in this topic to boost retention score.')
-                  : t('student.dashboard.noWeakTopicsDesc', 'No critical weak topics detected. Great job!')}
+                  ? t('student.dashboard.weakTopicRecoveryDesc', 'Luyện tập các câu hỏi thuộc chủ đề này để củng cố kiến thức.')
+                  : t('student.dashboard.noWeakTopicsDesc', 'Không phát hiện chủ đề yếu nghiêm trọng. Rất tốt!')}
               </p>
+              {topWeak && (
+                <div className="mt-3 inline-block bg-zinc-100 text-zinc-800 border border-zinc-900 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider">
+                  {t('student.dashboard.estimatedTime', { minutes: Math.max(1, Math.ceil(topWeak.weak_questions * 0.75)), defaultValue: `~${Math.max(1, Math.ceil(topWeak.weak_questions * 0.75))} phút` })} ({topWeak.weak_questions} câu)
+                </div>
+              )}
             </div>
 
             <div className="mt-6 pt-4 border-t-2 border-zinc-900">
@@ -179,12 +189,12 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
                   to="/quiz"
                   className="flex items-center justify-between font-bold uppercase tracking-widest text-sm border-2 border-zinc-900 text-zinc-900 px-4 py-2 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-colors"
                 >
-                  <span>{t('student.dashboard.practiceTopic', 'PRACTICE')}</span>
+                  <span>{t('student.dashboard.practiceTopic', 'LUYỆN TẬP')}</span>
                   <ArrowUpRight className="w-4 h-4 ml-1" />
                 </Link>
               ) : (
                 <span className="font-bold text-xs uppercase tracking-widest text-zinc-400">
-                  {t('student.dashboard.mastered', 'STABLE')}
+                  {t('student.dashboard.stableTag', 'VỮNG VÀNG')}
                 </span>
               )}
             </div>

@@ -21,6 +21,7 @@ export const StudentDashboardFeature: React.FC = () => {
         <ActionItems 
           assignments={assignments} 
           dailySchedule={dailySchedule}
+          topicsTree={topicsTree}
           selectedTopicFilter={selectedTopicFilter}
           onClearTopicFilter={() => setSelectedTopicFilter(null)}
         />

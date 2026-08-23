@@ -2,11 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { Assignment, DailyScheduleClass } from '../types';
+import type { Assignment, DailyScheduleClass, HierarchicalTopicNode } from '../types';
 
 interface ActionItemsProps {
   assignments: Assignment[];
   dailySchedule: DailyScheduleClass[];
+  topicsTree?: HierarchicalTopicNode[];
   selectedTopicFilter?: string | null;
   onClearTopicFilter?: () => void;
 }
@@ -16,6 +17,7 @@ type TabType = 'all' | 'by_class' | 'by_topic' | 'overdue' | 'completed';
 export const ActionItems: React.FC<ActionItemsProps> = ({ 
   assignments, 
   dailySchedule,
+  topicsTree = [],
   selectedTopicFilter,
   onClearTopicFilter
 }) => {
@@ -31,7 +33,55 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
     }));
   };
 
-  // Filter assignments based on search, topic filter, and tab
+  // Helper for recursive topic descendant collection
+  const getAllDescendantTopicNames = (tree: HierarchicalTopicNode[], targetName: string): Set<string> => {
+    const result = new Set<string>();
+    result.add(targetName.toLowerCase());
+
+    const findAndCollect = (nodes: HierarchicalTopicNode[], isAncestorMatched: boolean) => {
+      for (const node of nodes) {
+        const isTarget = isAncestorMatched || node.name.toLowerCase() === targetName.toLowerCase();
+        if (isTarget) {
+          result.add(node.name.toLowerCase());
+        }
+        if (node.children && node.children.length > 0) {
+          findAndCollect(node.children, isTarget);
+        }
+      }
+    };
+
+    findAndCollect(tree, false);
+    return result;
+  };
+
+  // Helper for accent-insensitive search
+  const normalizeText = (str: string) => {
+    return str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .trim();
+  };
+
+  // Filter daily schedule based on search
+  const filteredDailySchedule = useMemo(() => {
+    if (!dailySchedule || dailySchedule.length === 0) return [];
+    if (!searchQuery.trim()) return dailySchedule;
+
+    const normQ = normalizeText(searchQuery);
+    return dailySchedule
+      .map(cls => ({
+        ...cls,
+        assignments: cls.assignments.filter(ass => 
+          normalizeText(ass.title).includes(normQ) || normalizeText(cls.class_name).includes(normQ)
+        )
+      }))
+      .filter(cls => cls.assignments.length > 0);
+  }, [dailySchedule, searchQuery]);
+
+  // Filter assignments based on search, recursive topic filter, and tab
   const filteredAssignments = useMemo(() => {
     let list = assignments.filter(a => {
       // Exclude assignments already in SM2 daily schedule
@@ -42,19 +92,22 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
     });
 
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
+      const normQ = normalizeText(searchQuery);
       list = list.filter(a => 
-        a.title.toLowerCase().includes(q) || 
-        (a.class?.name && a.class.name.toLowerCase().includes(q))
+        normalizeText(a.title).includes(normQ) || 
+        (a.class?.name && normalizeText(a.class.name).includes(normQ))
       );
     }
 
     if (selectedTopicFilter) {
+      const allowedTopics = getAllDescendantTopicNames(topicsTree, selectedTopicFilter);
       list = list.filter(a => 
-        a.assignment_questions?.some(aq => 
-          aq.question.topic?.name.toLowerCase() === selectedTopicFilter.toLowerCase() ||
-          aq.question.topic_id === selectedTopicFilter
-        )
+        a.assignment_questions?.some(aq => {
+          const tName = aq.question.topic?.name?.toLowerCase() || '';
+          return allowedTopics.has(tName) || 
+                 tName.includes(selectedTopicFilter.toLowerCase()) || 
+                 aq.question.topic_id === selectedTopicFilter;
+        })
       );
     }
 
@@ -73,7 +126,7 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
     }
 
     return list;
-  }, [assignments, dailySchedule, searchQuery, selectedTopicFilter, activeTab]);
+  }, [assignments, dailySchedule, topicsTree, searchQuery, selectedTopicFilter, activeTab]);
 
   // Group by class
   const groupedByClass = useMemo(() => {
@@ -259,14 +312,14 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
       {/* Main List Rendering */}
       <div className="space-y-6">
         {/* Daily Schedule (SM-2 Spaced Repetition) */}
-        {activeTab === 'all' && dailySchedule.length > 0 && (
+        {activeTab === 'all' && filteredDailySchedule.length > 0 && (
           <div className="space-y-4">
             <div className="border-b-2 border-zinc-900 pb-1">
               <span className="font-black text-sm uppercase tracking-widest text-indigo-600">
-                {t('student.dashboard.sm2Section', 'SPACED REPETITION QUEUE')}
+                {t('student.dashboard.sm2Section', 'HÀNG ĐỢI ÔN TẬP TRÍ NHỚ')}
               </span>
             </div>
-            {dailySchedule.map((cls, idx) => (
+            {filteredDailySchedule.map((cls, idx) => (
               <div key={`sm2-${idx}`} className="border-2 border-zinc-900 p-5 bg-indigo-50 hover:border-indigo-600 transition-colors">
                 <div className="flex justify-between items-start mb-4">
                   <h4 className="text-xl font-black tracking-tighter uppercase">{cls.class_name}</h4>
@@ -292,9 +345,24 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
         )}
 
         {/* Content by Tab */}
-        {filteredAssignments.length === 0 && (activeTab !== 'all' || dailySchedule.length === 0) ? (
-          <div className="p-12 border-2 border-dashed border-zinc-300 text-center font-bold text-zinc-400 uppercase tracking-widest text-base">
-            {t('student.dashboard.noPendingTasks', 'NO MATCHING ASSIGNMENTS FOUND')}
+        {filteredAssignments.length === 0 && (activeTab !== 'all' || filteredDailySchedule.length === 0) ? (
+          <div className="p-10 border-2 border-dashed border-zinc-300 text-center space-y-4 bg-zinc-50">
+            <p className="font-bold text-zinc-500 uppercase tracking-widest text-sm">
+              {selectedTopicFilter 
+                ? t('student.dashboard.noAssignmentForTopic', { topic: selectedTopicFilter, defaultValue: `CHỦ ĐỀ "${selectedTopicFilter}" HIỆN CHƯA CÓ BÀI TẬP LỚP NÀO ĐƯỢC GIAO` })
+                : t('student.dashboard.noPendingTasks', 'KHÔNG CÓ BÀI TẬP PHÙ HỢP')}
+            </p>
+            {selectedTopicFilter && (
+              <div>
+                <Link
+                  to="/quiz"
+                  className="inline-flex items-center gap-1.5 font-black text-xs uppercase tracking-widest bg-zinc-900 text-white px-4 py-2 hover:bg-indigo-600 transition-colors border-2 border-zinc-900"
+                >
+                  <span>{t('student.dashboard.practiceTopic', 'LUYỆN TẬP TỰ DO CHO CHỦ ĐỀ NÀY')}</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
           </div>
         ) : activeTab === 'by_class' ? (
           /* Grouped by Class Accordions */

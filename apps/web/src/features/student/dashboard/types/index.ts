@@ -63,6 +63,7 @@ export interface HierarchicalTopicNode {
   mastered_count: number;
   weak_count: number;
   accuracy_pct: number;
+  mastery_percentage?: number;
   status: 'WEAK' | 'STABLE' | 'MASTERED';
   children: HierarchicalTopicNode[];
 }
