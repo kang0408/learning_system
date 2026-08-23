@@ -2,7 +2,7 @@ import { CompleteStudentReportData } from '../student-report.service';
 import { reportCss } from './report.css';
 
 export function generateStudentReportHtml(data: CompleteStudentReportData): string {
-  const { student_info, class_info, summary, sm2_summary, topic_performance, weak_topics, assignments, ai_insights, generated_at } = data;
+  const { student_info, class_info, summary, sm2_summary, topic_performance, weak_topics, assignments, error_questions, ai_insights, generated_at } = data;
 
   const formattedDate = new Intl.DateTimeFormat('vi-VN', {
     day: '2-digit',
@@ -64,6 +64,84 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       border: 1px solid #cbd5e1;
       color: #334155;
       font-size: 10.5pt;
+    }
+    .error-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9.5pt;
+      margin-top: 10px;
+    }
+    .error-table th {
+      background-color: #0f172a;
+      color: #ffffff;
+      font-weight: 800;
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      border: 1px solid #334155;
+    }
+    .error-table td {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+      font-size: 9.5pt;
+      vertical-align: top;
+    }
+    .error-table tr {
+      page-break-inside: avoid;
+    }
+    .student-wrong-tag {
+      color: #b91c1c;
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 2px;
+      font-size: 9pt;
+    }
+    .correct-tag {
+      color: #15803d;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 2px;
+      font-size: 9pt;
+    }
+    .explanation-snippet {
+      font-size: 8.5pt;
+      color: #475569;
+      margin-top: 6px;
+      padding-top: 4px;
+      border-top: 1px dashed #e2e8f0;
+      line-height: 1.35;
+    }
+    .type-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      background-color: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 3px;
+      font-size: 8pt;
+      font-weight: 600;
+      color: #475569;
+      margin-top: 3px;
+    }
+    .freq-tag {
+      display: inline-block;
+      padding: 1px 5px;
+      background-color: #fee2e2;
+      color: #991b1b;
+      border-radius: 3px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      margin-left: 4px;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -191,7 +269,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
     <!-- Ngắt sang Trang 3 (Nhật ký bài tập) -->
     <div class="page-break"></div>
 
-    <!-- ==================== TRANG 3+ ==================== -->
+    <!-- ==================== TRANG 3 ==================== -->
     <div class="section-block">
       <div class="section-title">IV. Bảng Chi Tiết Kết Quả Các Bài Tập Đã Giao</div>
       
@@ -233,6 +311,65 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
           `}
         </tbody>
       </table>
+    </div>
+
+    <!-- Ngắt sang Trang 4+ (Danh mục toàn bộ câu sai) -->
+    <div class="page-break"></div>
+
+    <!-- ==================== TRANG 4+: ERROR QUESTIONS LOG ==================== -->
+    <div class="section-block">
+      <div class="section-title">V. Danh Mục Toàn Bộ Các Câu Hỏi Học Sinh Đã Làm Sai (Sổ Tay Chữa Bài 1-1)</div>
+      
+      ${error_questions && error_questions.length > 0 ? `
+        <div style="font-size: 10pt; color: #475569; margin-bottom: 8px;">
+          Tổng hợp toàn bộ <strong>${error_questions.length} câu hỏi</strong> học sinh đã trả lời sai qua tất cả các bài tập. Gia sư sử dụng bảng này để chữa bài chi tiết trong buổi học.
+        </div>
+
+        <table class="error-table">
+          <thead>
+            <tr>
+              <th class="text-center" style="width: 35px;">STT</th>
+              <th style="width: 110px;">Chuyên đề</th>
+              <th>Nội dung câu hỏi</th>
+              <th style="width: 140px;">Học sinh chọn sai</th>
+              <th style="width: 160px;">Đáp án đúng & Giải thích</th>
+              <th class="text-center" style="width: 65px;">Thời gian</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${error_questions.map((eq, idx) => `
+              <tr>
+                <td class="text-center"><strong>${idx + 1}</strong></td>
+                <td>
+                  <strong>${eq.topic}</strong>
+                  <div><span class="type-badge">${eq.question_type}</span></div>
+                  ${eq.error_count > 1 ? `<div><span class="freq-tag">Sai ${eq.error_count} lần</span></div>` : ''}
+                </td>
+                <td>
+                  <div style="font-weight: 600; color: #0f172a; line-height: 1.4;">${eq.content}</div>
+                </td>
+                <td>
+                  <span class="student-wrong-tag">${eq.student_answer}</span>
+                </td>
+                <td>
+                  <span class="correct-tag">${eq.correct_answer}</span>
+                  ${eq.explanation && eq.explanation !== 'Chưa có giải thích chi tiết.' ? `
+                    <div class="explanation-snippet"><strong>Giải thích:</strong> ${eq.explanation}</div>
+                  ` : ''}
+                </td>
+                <td class="text-center" style="font-size: 8.5pt; color: #64748b;">
+                  <strong>${eq.response_time_seconds}s</strong>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      ` : `
+        <div class="assessment-box" style="border-left-color: #16a34a; background-color: #f0fdf4;">
+          <h3 style="color: #166534;">Học sinh chưa có câu trả lời sai nào</h3>
+          <p style="color: #15803d;">Học sinh đã trả lời chính xác toàn bộ các câu hỏi trong tất cả các bài tập đã nộp. Năng lực làm bài đạt độ chuẩn xác tuyệt đối.</p>
+        </div>
+      `}
     </div>
 
   </div>

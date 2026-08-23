@@ -32,6 +32,9 @@ describe('PdfGeneratorService - Student Report', () => {
       summary: {
         cumulative_score: 180,
         accuracy_pct: 82.5,
+        total_answers_count: 50,
+        total_correct_count: 41,
+        total_incorrect_count: 9,
         completed_assignments_count: 5,
         total_assignments_count: 6,
         sessions_count: 10,
@@ -64,6 +67,21 @@ describe('PdfGeneratorService - Student Report', () => {
           attempts_count: 1,
           status: 'Hoàn thành',
           completed_at: new Date()
+        }
+      ],
+      error_questions: [
+        {
+          question_id: 'q-1',
+          content: 'She ___ to Paris last summer.',
+          topic: 'Thì Quá Khứ',
+          question_type: 'Trắc nghiệm',
+          difficulty: 3,
+          student_answer: 'has gone',
+          correct_answer: 'went',
+          explanation: 'Dùng quá khứ đơn "went" vì có mốc thời gian xác định "last summer".',
+          response_time_seconds: 14.5,
+          error_count: 2,
+          last_answered_at: new Date()
         }
       ],
       ai_insights: {

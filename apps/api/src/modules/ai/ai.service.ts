@@ -212,21 +212,22 @@ Báo cáo gồm 4 phần và trả về ĐÚNG định dạng JSON sau:
 
       // 2. Prompt Gemini AI with strict diagnostic pedagogy constraints
       const prompt = `Bạn là một Chuyên gia Cố vấn Sư phạm và Khảo thí Năng lực Học tập Cá nhân.
-Hãy phân tích hồ sơ số liệu học tập của học sinh dưới đây và lập một bản Báo cáo Chẩn đoán Năng lực Học tập chi tiết dành riêng cho Gia sư / Giáo viên phụ đạo 1-1:
+Hãy phân tích toàn diện hồ sơ số liệu học tập và danh mục TOÀN BỘ CÂU HỎI LÀM SAI của học sinh dưới đây để lập một bản Báo cáo Chẩn đoán Năng lực Học tập chi tiết, sắc bén dành riêng cho Gia sư / Giáo viên phụ đạo 1-1:
 
-HỒ SƠ SỐ LIỆU HỌC SINH:
+HỒ SƠ SỐ LIỆU VÀ TOÀN BỘ CÂU HỎI LÀM SAI CỦA HỌC SINH:
 ${JSON.stringify(studentStatsData, null, 2)}
 
 YÊU CẦU NGHIÊM NGẶT VỀ VĂN PHONG VÀ ĐỊNH DẠNG:
 1. TUYỆT ĐỐI KHÔNG SỬ DỤNG BẤT KỲ BIỂU TƯỢNG CẢM XÚC (EMOJI) HOẶC KÝ TỰ ICON NÀO.
 2. Sử dụng ngôn từ sư phạm chuyên nghiệp, chuẩn mực, chẩn đoán sắc bén và chính xác dựa trên số liệu thực tế.
-3. Không nhận xét chung chung sáo rỗng, hãy chỉ rõ các chủ đề yếu và các câu hỏi học sinh hay vấp phải.
+3. Trong mục "strengths_and_weaknesses", hãy MỔ XẺ TRỰC TIẾP CÁC CÂU HỎI SAI TIÊU BIỂU trong mảng "all_incorrect_questions": trích dẫn ví dụ câu hỏi, phân tích rõ học sinh đã chọn/điền sai phương án nào, tại sao lại nhầm lẫn như vậy và bản chất kiến thức bị hổng là gì.
+4. Trong mục "executive_summary", hãy đánh giá thêm về tốc độ phản xạ dựa trên response_time_seconds (học sinh làm vội đoán mò hay phân vân quá lâu).
 
 Báo cáo gồm 3 phần chẩn đoán và trả về ĐÚNG định dạng JSON sau:
 {
-  "executive_summary": "Phân tích 120-180 từ về tổng thể năng lực tiếp thu, phản xạ làm bài, thói quen học tập và mức độ chuyên cần của học sinh so với mặt bằng chung.",
-  "strengths_and_weaknesses": "Phân tích 150-200 từ mổ xẻ chi tiết các chủ đề điểm mạnh nổi trội và đào sâu các lỗ hổng kiến thức cốt lõi (dựa trên danh sách Weak Topics), giải thích nguyên nhân học sinh hay làm sai.",
-  "sm2_learning_analysis": "Phân tích 120-150 từ về sức bền ghi nhớ dài hạn theo mô hình Spaced Repetition SM2 (tỷ lệ câu hỏi đã thành thạo, lượng câu hỏi tồn đọng có nguy cơ quên cần gia sư truy bài ngay)."
+  "executive_summary": "Phân tích 130-190 từ về tổng thể năng lực tiếp thu, phản xạ thời gian làm bài, thói quen học tập và mức độ chuyên cần của học sinh so với mặt bằng chung.",
+  "strengths_and_weaknesses": "Phân tích 160-230 từ mổ xẻ chi tiết các chủ đề điểm mạnh nổi trội và đào sâu các lỗi sai cốt lõi từ danh mục câu hỏi sai thực tế (trích dẫn ví dụ câu hỏi, đáp án học sinh nhầm lẫn và nguyên nhân tư duy sai lầm).",
+  "sm2_learning_analysis": "Phân tích 120-160 từ về sức bền ghi nhớ dài hạn theo mô hình Spaced Repetition SM2 (tỷ lệ câu hỏi đã thành thạo, lượng câu hỏi tồn đọng có nguy cơ quên cần gia sư truy bài ngay)."
 }`;
 
       const { response } = await generateContentWithFallback(this.ai, {

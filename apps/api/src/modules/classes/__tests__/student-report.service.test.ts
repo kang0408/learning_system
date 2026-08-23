@@ -19,6 +19,9 @@ describe('StudentReportService', () => {
       },
       quizSession: {
         findMany: jest.fn(),
+      },
+      sessionAnswer: {
+        findMany: jest.fn(),
       }
     };
 
@@ -47,7 +50,7 @@ describe('StudentReportService', () => {
     expect(result).toBeNull();
   });
 
-  it('should aggregate student stats, benchmark, SM2 and AI insights correctly', async () => {
+  it('should aggregate student stats, benchmark, SM2, error questions and AI insights correctly', async () => {
     mockPrisma.class.findUnique.mockResolvedValue({
       id: 'class-1',
       name: 'Lớp 10A1',
@@ -95,9 +98,30 @@ describe('StudentReportService', () => {
       { score: 90, total_q: 10, correct_q: 9, finished_at: new Date('2026-08-20') }
     ]);
 
+    mockPrisma.sessionAnswer.findMany.mockResolvedValue([
+      {
+        id: 'sa-1',
+        response_time_ms: 12500,
+        answered_at: new Date('2026-08-20T10:00:00Z'),
+        option: { content: 'has gone', is_correct: false },
+        question: {
+          id: 'q-1',
+          content: 'She ___ to Paris last year.',
+          type: 'multiple_choice',
+          difficulty: 3,
+          explanation: 'Dùng quá khứ đơn "went" vì có dấu hiệu last year.',
+          topic: { name: 'Thì Quá Khứ' },
+          answer_options: [
+            { id: 'opt-1', content: 'went', is_correct: true },
+            { id: 'opt-2', content: 'has gone', is_correct: false }
+          ]
+        }
+      }
+    ]);
+
     mockAiService.generatePersonalizedStudentReport.mockResolvedValue({
       executive_summary: 'Học sinh có kết quả học tập tốt.',
-      strengths_and_weaknesses: 'Nắm vững từ vựng cơ bản.',
+      strengths_and_weaknesses: 'Nắm vững từ vựng cơ bản nhưng nhầm lẫn thì quá khứ.',
       sm2_learning_analysis: 'Trí nhớ dài hạn phát triển tốt.'
     });
 
@@ -110,6 +134,9 @@ describe('StudentReportService', () => {
     expect(result?.summary.class_average_accuracy_pct).toBe(70);
     expect(result?.weak_topics.length).toBe(1);
     expect(result?.weak_topics[0].topic).toBe('Thì Quá Khứ Hoàn Thành');
+    expect(result?.error_questions.length).toBe(1);
+    expect(result?.error_questions[0].student_answer).toBe('has gone');
+    expect(result?.error_questions[0].correct_answer).toBe('went');
     expect(result?.ai_insights.executive_summary).toBe('Học sinh có kết quả học tập tốt.');
   });
 });

@@ -2,6 +2,20 @@ import { PrismaClient } from '@prisma/client';
 import { AnalyticsRepository } from '../analytics/analytics.repository';
 import { AiService } from '../ai/ai.service';
 
+export interface ErrorQuestionDetail {
+  question_id: string;
+  content: string;
+  topic: string;
+  question_type: string;
+  difficulty: number;
+  student_answer: string;
+  correct_answer: string;
+  explanation: string;
+  response_time_seconds: number;
+  error_count: number;
+  last_answered_at: Date;
+}
+
 export interface CompleteStudentReportData {
   student_info: {
     id: string;
@@ -20,6 +34,9 @@ export interface CompleteStudentReportData {
   summary: {
     cumulative_score: number;
     accuracy_pct: number;
+    total_answers_count: number;
+    total_correct_count: number;
+    total_incorrect_count: number;
     completed_assignments_count: number;
     total_assignments_count: number;
     sessions_count: number;
@@ -58,11 +75,66 @@ export interface CompleteStudentReportData {
     status: string;
     completed_at: Date | null;
   }>;
+  error_questions: ErrorQuestionDetail[];
   ai_insights: {
     executive_summary: string;
     strengths_and_weaknesses: string;
     sm2_learning_analysis: string;
   };
+}
+
+function formatStudentAnswer(ans: any): string {
+  if (ans.option?.content) {
+    return ans.option.content;
+  }
+  if (ans.text_answer) {
+    try {
+      const parsed = JSON.parse(ans.text_answer);
+      if (Array.isArray(parsed)) {
+        if (typeof parsed[0] === 'string' && ans.question?.answer_options) {
+          // ID list for multi_select
+          const selectedTexts = ans.question.answer_options
+            .filter((o: any) => parsed.includes(o.id))
+            .map((o: any) => o.content);
+          return selectedTexts.length > 0 ? selectedTexts.join(', ') : ans.text_answer;
+        } else if (parsed[0]?.leftText) {
+          // matching pairs
+          return parsed.map((p: any) => `${p.leftText} ➔ ${p.rightText}`).join('; ');
+        }
+      }
+    } catch {
+      // not json, plain string (e.g. fill_blank)
+    }
+    return ans.text_answer;
+  }
+  return '(Chưa chọn hoặc bỏ qua)';
+}
+
+function formatCorrectAnswer(q: any): string {
+  if (q.type === 'matching' || q.question_type === 'matching') {
+    const pairs = q.metadata?.pairs;
+    if (Array.isArray(pairs)) {
+      return pairs.map((p: any) => `${p.leftText} ➔ ${p.rightText}`).join('; ');
+    }
+  }
+  if (q.answer_options && q.answer_options.length > 0) {
+    const correctOptions = q.answer_options.filter((o: any) => o.is_correct);
+    if (correctOptions.length > 0) {
+      return correctOptions.map((o: any) => o.content).join(', ');
+    }
+  }
+  return 'Xem giải thích chi tiết';
+}
+
+function formatQuestionType(type: string): string {
+  switch (type) {
+    case 'multiple_choice': return 'Trắc nghiệm';
+    case 'multi_select': return 'Nhiều lựa chọn';
+    case 'true_false': return 'Đúng/Sai';
+    case 'fill_blank': return 'Điền từ';
+    case 'matching': return 'Ghép cặp';
+    default: return 'Trắc nghiệm';
+  }
 }
 
 export class StudentReportService {
@@ -74,7 +146,7 @@ export class StudentReportService {
 
   /**
    * Aggregates all personalized student performance metrics, SM2 Spaced Repetition status,
-   * topic mastery radar, weak topics, assignment logs, and triggers Gemini AI diagnostic analysis.
+   * topic mastery radar, weak topics, complete error questions log, and triggers Gemini AI diagnostic analysis.
    */
   async getStudentReportData(classId: string, studentId: string, teacherId: string): Promise<CompleteStudentReportData | null> {
     // 1. Verify class ownership and student membership
@@ -114,13 +186,14 @@ export class StudentReportService {
 
     const student = membership.student;
 
-    // 2. Query student stats, SM2, topics and class benchmark in parallel
+    // 2. Query student stats, SM2, topics, assignments, sessions and ALL session answers in parallel
     const [
       sm2Raw,
       topicPerfRaw,
       classStudentsRaw,
       assignmentsRaw,
-      sessionsRaw
+      sessionsRaw,
+      rawWrongAnswers
     ] = await Promise.all([
       this.analyticsRepo.getSM2Summary(studentId),
       this.analyticsRepo.getTopicPerformance(studentId),
@@ -144,6 +217,51 @@ export class StudentReportService {
           correct_q: true,
           finished_at: true,
         }
+      }),
+      this.prisma.sessionAnswer.findMany({
+        where: {
+          session: {
+            student_id: studentId,
+            assignment: {
+              class_id: classId
+            }
+          },
+          is_correct: false
+        },
+        include: {
+          option: {
+            select: {
+              id: true,
+              content: true,
+              is_correct: true,
+            }
+          },
+          question: {
+            select: {
+              id: true,
+              content: true,
+              question_type: true,
+              difficulty: true,
+              explanation: true,
+              metadata: true,
+              topic: {
+                select: {
+                  name: true
+                }
+              },
+              answer_options: {
+                select: {
+                  id: true,
+                  content: true,
+                  is_correct: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          answered_at: 'desc'
+        }
       })
     ]);
 
@@ -164,6 +282,7 @@ export class StudentReportService {
     }
 
     const accuracyPct = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 1000) / 10 : 0;
+    const totalIncorrect = Math.max(0, totalAnswers - totalCorrect);
 
     // 4. Compute Class Benchmark (Average Score & Average Accuracy)
     let classTotalScore = 0;
@@ -231,13 +350,51 @@ export class StudentReportService {
       };
     });
 
-    // 8. Prepare Stats Payload for AI Diagnostic
+    // 8. Process ALL Error Questions (Deduplicated with error frequency count)
+    const errorQuestionsMap = new Map<string, ErrorQuestionDetail>();
+
+    for (const ans of rawWrongAnswers) {
+      const q = ans.question;
+      if (!q) continue;
+
+      const existing = errorQuestionsMap.get(q.id);
+      if (existing) {
+        existing.error_count += 1;
+        // Keep the latest answer attempt and latest timestamp
+        if (ans.answered_at > existing.last_answered_at) {
+          existing.last_answered_at = ans.answered_at;
+          existing.student_answer = formatStudentAnswer(ans);
+          existing.response_time_seconds = Math.round((ans.response_time_ms / 1000) * 10) / 10;
+        }
+      } else {
+        errorQuestionsMap.set(q.id, {
+          question_id: q.id,
+          content: q.content || 'Nội dung câu hỏi',
+          topic: q.topic?.name || 'Chung',
+          question_type: formatQuestionType(q.question_type),
+          difficulty: q.difficulty || 3,
+          student_answer: formatStudentAnswer(ans),
+          correct_answer: formatCorrectAnswer(q),
+          explanation: q.explanation || 'Chưa có giải thích chi tiết.',
+          response_time_seconds: Math.round((ans.response_time_ms / 1000) * 10) / 10,
+          error_count: 1,
+          last_answered_at: ans.answered_at
+        });
+      }
+    }
+
+    const errorQuestions = Array.from(errorQuestionsMap.values());
+
+    // 9. Prepare Rich Stats Payload for AI Diagnostic (Including ALL Error Questions)
     const studentStatsPayload = {
       student_name: student.full_name,
       class_name: classData.name,
       subject: classData.subject,
       cumulative_score: totalScore,
       accuracy_pct: accuracyPct,
+      total_answers_count: totalAnswers,
+      total_correct_count: totalCorrect,
+      total_incorrect_count: totalIncorrect,
       sessions_count: sessionsRaw.length,
       class_benchmark: {
         average_score: classAverageScore,
@@ -245,10 +402,20 @@ export class StudentReportService {
       },
       sm2_summary: sm2Summary,
       weak_topics: weakTopics.map(w => `${w.topic} (${w.accuracy_pct}% chính xác, sai ${w.error_count}/${w.total_answers} câu)`),
-      topic_performance: topicPerformance.map(t => `${t.topic}: ${t.accuracy_pct}%`)
+      topic_performance: topicPerformance.map(t => `${t.topic}: ${t.accuracy_pct}%`),
+      all_incorrect_questions: errorQuestions.map((eq, idx) => ({
+        stt: idx + 1,
+        topic: eq.topic,
+        question_content: eq.content,
+        student_wrong_answer: eq.student_answer,
+        correct_answer: eq.correct_answer,
+        explanation: eq.explanation,
+        error_frequency: `${eq.error_count} lần sai`,
+        response_time_seconds: eq.response_time_seconds
+      }))
     };
 
-    // 9. Generate AI Diagnostic Assessment
+    // 10. Generate AI Diagnostic Assessment
     const aiInsights = await this.aiService.generatePersonalizedStudentReport(
       classId,
       studentId,
@@ -273,6 +440,9 @@ export class StudentReportService {
       summary: {
         cumulative_score: totalScore,
         accuracy_pct: accuracyPct,
+        total_answers_count: totalAnswers,
+        total_correct_count: totalCorrect,
+        total_incorrect_count: totalIncorrect,
         completed_assignments_count: completedAssignmentsCount,
         total_assignments_count: assignmentsRaw.length,
         sessions_count: sessionsRaw.length,
@@ -285,6 +455,7 @@ export class StudentReportService {
       topic_performance: topicPerformance,
       weak_topics: weakTopics,
       assignments,
+      error_questions: errorQuestions,
       ai_insights: aiInsights || {
         executive_summary: 'Học sinh đang duy trì tiến độ học tập và hoàn thành các bài tập theo phân phối chương trình của lớp.',
         strengths_and_weaknesses: 'Học sinh nắm vững các kỹ năng cơ bản, cần tăng cường thêm thời lượng luyện tập các dạng bài nâng cao.',
