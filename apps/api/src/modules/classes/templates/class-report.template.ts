@@ -76,7 +76,7 @@ export function generateClassReportHtml(data: CompleteClassReportData): string {
 
     <!-- Khối Đánh giá Sư phạm Chuyên sâu (AI) -->
     <div class="section-block">
-      <div class="section-title">I. Đánh Giá Sư Phạm Chuyên Sâu</div>
+      <div class="section-title">I. Đánh Giá Sư Phạm</div>
       
       <div class="assessment-box">
         <h3>1.1. Nhận định tổng quan năng lực học tập</h3>
@@ -123,13 +123,13 @@ export function generateClassReportHtml(data: CompleteClassReportData): string {
 
     <!-- ==================== TRANG 3+ ==================== -->
     <div class="section-block">
-      <div class="section-title">III. Bảng Tổng Hợp Chi Tiết Học Sinh (Gradebook)</div>
+      <div class="section-title">III. Bảng Tổng Hợp Chi Tiết Học Sinh</div>
       
       <table class="grade-table">
         <thead>
           <tr>
             <th class="text-center" style="width: 50px;">STT</th>
-            <th>Họ và tên học sinh</th>
+            <th>Họ và tên</th>
             <th class="text-center" style="width: 100px;">Số bài làm</th>
             <th class="text-center" style="width: 90px;">Điểm số</th>
             <th class="text-center" style="width: 110px;">Độ chính xác</th>

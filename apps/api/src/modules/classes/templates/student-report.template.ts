@@ -158,7 +158,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
     <!-- ==================== TRANG 1 ==================== -->
     <div class="report-header">
       <div class="header-titles">
-        <h1>Báo Cáo Chẩn Đoán Năng Lực Học Sinh</h1>
+        <h1>Báo cáo kết quả học tập</h1>
         <div class="subtitle">Học sinh: ${student_info.name} — Lớp: ${class_info.name} (${subjectDisplay})</div>
       </div>
       <div class="header-meta">
@@ -194,7 +194,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
 
     <!-- Khối Đánh giá Sư phạm Chẩn đoán (AI) -->
     <div class="section-block">
-      <div class="section-title">I. Đánh Giá Sư Phạm Chẩn Đoán</div>
+      <div class="section-title">I. Đánh Giá</div>
       
       <div class="assessment-box">
         <h3>1.1. Nhận định tổng quan năng lực & thói quen làm bài</h3>
@@ -207,7 +207,7 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
       </div>
 
       <div class="assessment-box">
-        <h3>1.3. Đánh giá mức độ ghi nhớ kiến thức dài hạn (Spaced Repetition)</h3>
+        <h3>1.3. Đánh giá mức độ ghi nhớ kiến thức dài hạn</h3>
         <p>${ai_insights.sm2_learning_analysis}</p>
       </div>
     </div>
