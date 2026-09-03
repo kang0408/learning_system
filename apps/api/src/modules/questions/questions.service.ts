@@ -168,7 +168,7 @@ export class QuestionsService {
 
   async deleteQuestion(questionId: string, teacherId: string) {
     await this.getQuestionById(questionId, teacherId);
-    return this.questionsRepository.updateQuestion(questionId, { deleted_at: new Date() });
+    return this.questionsRepository.deleteQuestion(questionId);
   }
 
   async importCSV(fileData: string, teacherId: string) {

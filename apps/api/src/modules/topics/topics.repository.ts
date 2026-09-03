@@ -94,12 +94,11 @@ export class TopicsRepository {
 
     const now = new Date();
     await this.prisma.$transaction([
+      this.prisma.question.deleteMany({
+        where: { topic_id: { in: allTargetIds }, created_by: teacherId }
+      }),
       this.prisma.topic.updateMany({
         where: { id: { in: allTargetIds }, created_by: teacherId, deleted_at: null },
-        data: { deleted_at: now }
-      }),
-      this.prisma.question.updateMany({
-        where: { topic_id: { in: allTargetIds }, created_by: teacherId, deleted_at: null },
         data: { deleted_at: now }
       })
     ]);

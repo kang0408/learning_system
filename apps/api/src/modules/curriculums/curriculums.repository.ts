@@ -75,7 +75,13 @@ export class CurriculumsRepository {
                 max_attempts: true,
                 time_limit: true,
                 is_published: true,
-                _count: { select: { assignment_questions: true } }
+                _count: {
+                  select: {
+                    assignment_questions: {
+                      where: { question: { deleted_at: null } }
+                    }
+                  }
+                }
               }
             }
           },
@@ -107,7 +113,13 @@ export class CurriculumsRepository {
                 max_attempts: true,
                 time_limit: true,
                 is_published: true,
-                _count: { select: { assignment_questions: true } }
+                _count: {
+                  select: {
+                    assignment_questions: {
+                      where: { question: { deleted_at: null } }
+                    }
+                  }
+                }
               }
             }
           },
@@ -143,7 +155,13 @@ export class CurriculumsRepository {
                 max_attempts: true,
                 time_limit: true,
                 is_published: true,
-                _count: { select: { assignment_questions: true } }
+                _count: {
+                  select: {
+                    assignment_questions: {
+                      where: { question: { deleted_at: null } }
+                    }
+                  }
+                }
               }
             }
           },
@@ -233,7 +251,13 @@ export class CurriculumsRepository {
                   max_attempts: true,
                   time_limit: true,
                   is_published: true,
-                  _count: { select: { assignment_questions: true } }
+                  _count: {
+                    select: {
+                      assignment_questions: {
+                        where: { question: { deleted_at: null } }
+                      }
+                    }
+                  }
                 }
               }
             },

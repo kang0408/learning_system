@@ -80,6 +80,13 @@ export class QuestionsRepository {
     });
   }
 
+  async deleteQuestion(id: string, tx?: Prisma.TransactionClient) {
+    const client = tx || this.prisma;
+    return client.question.delete({
+      where: { id }
+    });
+  }
+
   async bulkCreateQuestions(questions: Prisma.QuestionUncheckedCreateInput[], tx?: Prisma.TransactionClient) {
     const client = tx || this.prisma;
     

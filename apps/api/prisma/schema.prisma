@@ -210,7 +210,7 @@ model AssignmentQuestion {
   order_index   Int    @default(0) @db.SmallInt
 
   assignment Assignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
-  question   Question   @relation(fields: [question_id], references: [id], onDelete: Restrict)
+  question   Question   @relation(fields: [question_id], references: [id], onDelete: Cascade)
 
   @@unique([assignment_id, question_id])
   @@index([assignment_id])
@@ -277,7 +277,7 @@ model SessionAnswer {
   answered_at      DateTime @default(now()) @db.Timestamptz
 
   session  QuizSession   @relation(fields: [session_id], references: [id], onDelete: Cascade)
-  question Question      @relation(fields: [question_id], references: [id], onDelete: Restrict)
+  question Question      @relation(fields: [question_id], references: [id], onDelete: Cascade)
   option   AnswerOption? @relation(fields: [selected_option], references: [id], onDelete: SetNull)
 
   @@index([session_id])
