@@ -130,11 +130,6 @@ export default function TeacherLayout() {
 
         {/* Navigation */}
         <div className={`flex-1 px-3 ${isSidebarCollapsed ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden'}`}>
-          <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarCollapsed ? 'h-0 opacity-0 mb-0 hidden' : 'h-6 opacity-100 mb-3'}`}>
-            <p className="px-4 text-xs font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
-              {t('layout.teacher.menuTitle')}
-            </p>
-          </div>
           <nav className="space-y-1.5 flex flex-col w-full">
             {navItems.map((item) => {
               const Icon = item.icon;

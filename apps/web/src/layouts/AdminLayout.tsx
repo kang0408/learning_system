@@ -55,8 +55,8 @@ export default function AdminLayout() {
       {/* Mobile Top Navbar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-50 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="bg-indigo-600 p-1.5 rounded-lg shadow-sm text-white">
-            <Shield className="w-5 h-5" />
+          <div className="bg-white p-1.5 rounded-lg border border-slate-200 shadow-sm">
+            <img src="/favicon.svg" alt="Logo" className="w-5 h-5" />
           </div>
           <span className="font-bold tracking-tight text-lg text-slate-900">Memozy Admin</span>
         </div>
@@ -88,8 +88,8 @@ export default function AdminLayout() {
         {/* Logo Area */}
         <div className={`hidden md:flex h-20 items-center border-b border-slate-100 bg-white relative ${isSidebarCollapsed ? 'justify-center px-0' : 'justify-between px-6'}`}>
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="bg-indigo-600 p-2 rounded-xl shadow-md text-white flex-shrink-0">
-              <Shield className="w-6 h-6" />
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex-shrink-0">
+              <img src="/favicon.svg" alt="Logo" className="w-6 h-6" />
             </div>
             <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarCollapsed ? 'w-0 opacity-0 hidden' : 'w-32 opacity-100'}`}>
               <span className="font-extrabold tracking-tight text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 whitespace-nowrap">
@@ -120,7 +120,7 @@ export default function AdminLayout() {
             </Tooltip>
             <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] flex flex-col justify-center ${isSidebarCollapsed ? 'w-0 opacity-0 hidden' : 'flex-1 min-w-0 opacity-100'}`}>
               <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-0.5 flex items-center gap-1 whitespace-nowrap">
-                <Shield className="w-3 h-3 text-indigo-600 inline" /> SYSTEM ADMIN
+                 SYSTEM ADMIN
               </p>
               <p className="font-bold text-slate-900 truncate text-sm whitespace-nowrap">{user?.full_name || user?.email}</p>
             </div>
@@ -129,11 +129,6 @@ export default function AdminLayout() {
 
         {/* Navigation */}
         <div className={`flex-1 px-3 ${isSidebarCollapsed ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden'}`}>
-          <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isSidebarCollapsed ? 'h-0 opacity-0 mb-0 hidden' : 'h-6 opacity-100 mb-3'}`}>
-            <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
-              {t('layout.admin.menuTitle', 'HỆ THỐNG QUẢN TRỊ')}
-            </p>
-          </div>
           <nav className="space-y-1.5 flex flex-col w-full">
             {navItems.map((item) => {
               const Icon = item.icon;
