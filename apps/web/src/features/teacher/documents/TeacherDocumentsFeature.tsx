@@ -36,14 +36,9 @@ export const TeacherDocumentsFeature: React.FC = () => {
       {/* Header matching DashboardHeader and QuestionBankHeader */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-100 gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Quản lý Tài liệu
-            </h1>
-            <Badge variant="indigo" size="md" className="font-bold">
-              Tổng số: {stats.total}
-            </Badge>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            Quản lý Tài liệu
+          </h1>
           <p className="text-sm text-slate-500 mt-1 font-medium">
             Lưu trữ, phân loại tài liệu Google Drive và quản lý quyền xem bài học cho học sinh.
           </p>

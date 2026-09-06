@@ -364,8 +364,8 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
           <EmptyState
             title="Thư mục này hiện đang trống"
             description="Bấm 'Tải tệp từ máy' để tải tài liệu lên hoặc 'Tạo thư mục' để gom nhóm bài học."
-            onCreateClick={() => setIsUploadModalOpen(true)}
-            createBtnText="Tải tài liệu ngay"
+            onAction={() => setIsUploadModalOpen(true)}
+            actionLabel="Tải tài liệu ngay"
           />
         </div>
       ) : (
