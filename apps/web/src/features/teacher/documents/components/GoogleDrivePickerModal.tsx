@@ -12,6 +12,9 @@ import {
   Check,
   HardDrive,
   Loader2,
+  Folder,
+  ChevronRight,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -51,6 +54,8 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
     allFiles,
     makeFilePublic,
     updatingFileId,
+    breadcrumbs,
+    navigateToFolder,
   } = useGoogleDrive();
 
   const [search, setSearch] = useState('');
@@ -63,6 +68,11 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
     if (search.trim() && !f.name.toLowerCase().includes(search.toLowerCase().trim())) {
       return false;
     }
+    // Always keep folders visible when on 'all' so teachers can navigate inside
+    if (f.fileType === 'folder') {
+      if (selectedType !== 'all') return false;
+      return true;
+    }
     if (selectedType !== 'all' && f.fileType !== selectedType) {
       return false;
     }
@@ -71,6 +81,12 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
 
   const getFileIcon = (type: GoogleDriveFileType) => {
     switch (type) {
+      case 'folder':
+        return (
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0 shadow-xs">
+            <Folder className="w-4 h-4 fill-amber-500 text-amber-600" />
+          </div>
+        );
       case 'pdf':
         return (
           <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0 shadow-xs">
@@ -116,6 +132,12 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
   };
 
   const handleSelect = async (file: GoogleDriveFile) => {
+    // If user clicks a folder, navigate into it instead of selecting as a material
+    if (file.fileType === 'folder') {
+      navigateToFolder(file.id, file.name);
+      return;
+    }
+
     setIsProcessingId(file.id);
     try {
       // If the file is private, auto toggle to public so students can view it
@@ -185,6 +207,31 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
           </div>
         </div>
 
+        {/* Breadcrumbs Navigation */}
+        <div className="px-5 py-2.5 bg-slate-50/80 border-b border-slate-200/70 flex items-center gap-1.5 text-xs font-semibold overflow-x-auto shrink-0">
+          {breadcrumbs.map((crumb, idx) => {
+            const isLast = idx === breadcrumbs.length - 1;
+            return (
+              <React.Fragment key={crumb.id || 'root'}>
+                {idx > 0 && <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
+                <button
+                  type="button"
+                  onClick={() => !isLast && navigateToFolder(crumb.id, crumb.name)}
+                  disabled={isLast}
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg transition-colors shrink-0 ${
+                    isLast
+                      ? 'text-slate-900 font-bold bg-white border border-slate-200/80 shadow-2xs'
+                      : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-200/60'
+                  }`}
+                >
+                  <Folder className={`w-3.5 h-3.5 ${isLast ? 'fill-amber-500 text-amber-600' : 'text-slate-400'}`} />
+                  <span className="truncate max-w-[140px]">{crumb.name}</span>
+                </button>
+              </React.Fragment>
+            );
+          })}
+        </div>
+
         {/* Informational banner */}
         <div className="px-5 py-2.5 bg-indigo-50/60 border-b border-indigo-100/60 flex items-center gap-2 text-xs text-indigo-900 shrink-0 font-medium">
           <Globe className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
@@ -193,16 +240,75 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
           </span>
         </div>
 
-        {/* File List */}
+        {/* File & Folder List */}
         <div className="p-4 overflow-y-auto flex-1 space-y-2.5">
           {filtered.length === 0 ? (
-            <div className="text-center py-12 text-slate-400">
-              <FileText className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-xs font-medium">Không tìm thấy tài liệu nào phù hợp</p>
+            <div className="text-center py-12 text-slate-400 space-y-3">
+              <Folder className="w-10 h-10 mx-auto opacity-30 text-amber-500" />
+              <p className="text-xs font-medium">Thư mục này hiện không có tài liệu nào phù hợp</p>
+              {breadcrumbs.length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const prev = breadcrumbs[breadcrumbs.length - 2];
+                    navigateToFolder(prev.id, prev.name);
+                  }}
+                  className="text-xs border-slate-200 shadow-xs"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Quay lại thư mục trước
+                </Button>
+              )}
             </div>
           ) : (
             filtered.map((file) => {
+              const isFolder = file.fileType === 'folder';
               const isProcessing = isProcessingId === file.id || updatingFileId === file.id;
+
+              // Folder item: Clicking opens the folder instead of assigning
+              if (isFolder) {
+                return (
+                  <div
+                    key={file.id}
+                    onClick={() => navigateToFolder(file.id, file.name)}
+                    className="flex items-center justify-between p-3.5 rounded-2xl border border-amber-200/70 hover:border-amber-400 hover:bg-amber-50/40 bg-white transition-all gap-3 cursor-pointer group shadow-2xs"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {getFileIcon('folder')}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-bold text-slate-900 truncate group-hover:text-amber-800 transition-colors">
+                          {file.name}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-amber-700/80 font-medium mt-0.5">
+                          <span>Thư mục</span>
+                          <span>•</span>
+                          <span>Nhấn để mở xem tệp bên trong</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToFolder(file.id, file.name);
+                        }}
+                        className="text-amber-800 bg-amber-50 hover:bg-amber-100 border-amber-200 font-semibold gap-1 text-xs shadow-2xs"
+                      >
+                        <Folder className="w-3.5 h-3.5 fill-amber-500 text-amber-600" />
+                        Mở thư mục
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              }
+
+              // File item (PDF, DOCX, PPTX, XLSX, IMAGE, etc.)
               return (
                 <div
                   key={file.id}
@@ -260,7 +366,23 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3 shrink-0">
+        <div className="p-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between gap-3 shrink-0">
+          <div className="text-xs text-slate-500 font-medium">
+            {breadcrumbs.length > 1 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const prev = breadcrumbs[breadcrumbs.length - 2];
+                  navigateToFolder(prev.id, prev.name);
+                }}
+                className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Quay lại {breadcrumbs[breadcrumbs.length - 2]?.name}
+              </button>
+            ) : (
+              <span>Thư mục gốc (Drive của tôi)</span>
+            )}
+          </div>
           <Button
             type="button"
             variant="outline"
