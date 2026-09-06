@@ -231,6 +231,11 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
       await onCreateFolder(newFolderName.trim());
       setIsFolderModalOpen(false);
       setNewFolderName('');
+    } finally {
+      setIsCreatingFolder(false);
+    }
+  };
+
   // Delete confirmation handler
   const handleConfirmDelete = async () => {
     if (!fileToDelete) return;
