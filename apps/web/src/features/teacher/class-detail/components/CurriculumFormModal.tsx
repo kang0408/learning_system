@@ -20,11 +20,13 @@ import type {
 } from '../types/curriculum.types';
 
 const FILE_TYPE_OPTIONS: SelectOption[] = [
-  { label: 'PDF', value: 'pdf' },
-  { label: 'DOCX', value: 'docx' },
-  { label: 'PPTX', value: 'pptx' },
-  { label: 'ZIP', value: 'zip' },
-  { label: 'LINK', value: 'link' },
+  { label: 'Tài liệu PDF (.pdf)', value: 'pdf' },
+  { label: 'Word (.docx)', value: 'docx' },
+  { label: 'PowerPoint (.pptx)', value: 'pptx' },
+  { label: 'Excel (.xlsx)', value: 'xlsx' },
+  { label: 'Hình ảnh (.png, .jpg, .webp)', value: 'image' },
+  { label: 'Tệp nén ZIP (.zip)', value: 'zip' },
+  { label: 'Liên kết ngoài (Link)', value: 'link' },
 ];
 
 interface CurriculumFormModalProps {
@@ -94,7 +96,25 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
   const handleMaterialChange = (index: number, field: keyof CurriculumMaterial, value: any) => {
     setMaterials(prev => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
+      const item = { ...updated[index], [field]: value };
+
+      // Auto detect file type if URL was entered and current type is default pdf
+      if (field === 'file_url' && typeof value === 'string' && value.trim()) {
+        const clean = value.toLowerCase().split('?')[0];
+        if (/\.(png|jpe?g|webp|gif|svg|bmp)$/i.test(clean)) {
+          item.file_type = 'image';
+        } else if (/\.pdf$/i.test(clean)) {
+          item.file_type = 'pdf';
+        } else if (/\.(docx?|odt)$/i.test(clean)) {
+          item.file_type = 'docx';
+        } else if (/\.(pptx?|odp)$/i.test(clean)) {
+          item.file_type = 'pptx';
+        } else if (/\.(xlsx?|ods|csv)$/i.test(clean)) {
+          item.file_type = 'xlsx';
+        }
+      }
+
+      updated[index] = item;
       return updated;
     });
   };

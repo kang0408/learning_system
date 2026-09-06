@@ -1,5 +1,13 @@
 import React from 'react';
-import { ExternalLink, Eye } from 'lucide-react';
+import {
+  ExternalLink,
+  Eye,
+  FileText,
+  FileSpreadsheet,
+  Presentation,
+  Image as ImageIcon,
+  File,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CurriculumMaterial } from '../types/curriculum.types';
 
@@ -18,9 +26,61 @@ export const LessonMaterialsList: React.FC<LessonMaterialsListProps> = ({
 
   const formatFileSize = (bytes?: number | null) => {
     if (!bytes) return '';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+    const val = bytes / Math.pow(k, i);
+    return `${val >= 10 ? val.toFixed(1) : val.toFixed(2)} ${sizes[i]}`;
+  };
+
+  const getFileBadge = (fileType?: string | null) => {
+    const type = (fileType || 'doc').toLowerCase();
+    switch (type) {
+      case 'image':
+      case 'img':
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+        return (
+          <div className="w-9 h-9 border-2 border-zinc-900 bg-purple-50 text-purple-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase group-hover:bg-purple-600 group-hover:text-white transition-colors">
+            <ImageIcon className="w-4 h-4" />
+          </div>
+        );
+      case 'pdf':
+        return (
+          <div className="w-9 h-9 border-2 border-zinc-900 bg-rose-50 text-rose-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase group-hover:bg-rose-600 group-hover:text-white transition-colors">
+            PDF
+          </div>
+        );
+      case 'docx':
+      case 'doc':
+        return (
+          <div className="w-9 h-9 border-2 border-zinc-900 bg-blue-50 text-blue-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            DOC
+          </div>
+        );
+      case 'xlsx':
+      case 'xls':
+      case 'sheet':
+        return (
+          <div className="w-9 h-9 border-2 border-zinc-900 bg-emerald-50 text-emerald-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+            XLS
+          </div>
+        );
+      case 'pptx':
+      case 'ppt':
+        return (
+          <div className="w-9 h-9 border-2 border-zinc-900 bg-orange-50 text-orange-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase group-hover:bg-orange-600 group-hover:text-white transition-colors">
+            PPT
+          </div>
+        );
+      default:
+        return (
+          <div className="w-9 h-9 border-2 border-zinc-900 bg-indigo-50 text-indigo-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            {type.slice(0, 4)}
+          </div>
+        );
+    }
   };
 
   return (
@@ -42,9 +102,7 @@ export const LessonMaterialsList: React.FC<LessonMaterialsListProps> = ({
             className="flex items-center justify-between p-4 bg-white border-2 border-zinc-900 shadow-[3px_3px_0_0_#18181b] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all cursor-pointer group select-none"
           >
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-9 h-9 border-2 border-zinc-900 bg-indigo-50 text-indigo-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                {mat.file_type || 'DOC'}
-              </div>
+              {getFileBadge(mat.file_type)}
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-black uppercase tracking-tight text-zinc-900 truncate group-hover:text-indigo-600 transition-colors">
                   {mat.title}

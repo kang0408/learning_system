@@ -541,7 +541,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   className="hidden"
-                  accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.png,.jpg,.jpeg,.zip"
+                  accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.png,.jpg,.jpeg,.webp,.gif,.svg,.zip"
                 />
 
                 {!selectedFile ? (
@@ -566,8 +566,14 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                 ) : (
                   <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-200/80 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0 shadow-xs">
-                        <FileText className="w-5 h-5" />
+                      <div className={`w-10 h-10 rounded-xl bg-white border flex items-center justify-center shrink-0 shadow-xs ${
+                        selectedFile.type.startsWith('image/') ? 'border-purple-200 text-purple-600' : 'border-indigo-200 text-indigo-600'
+                      }`}>
+                        {selectedFile.type.startsWith('image/') ? (
+                          <ImageIcon className="w-5 h-5" />
+                        ) : (
+                          <FileText className="w-5 h-5" />
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-slate-900 truncate">

@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, ExternalLink, Maximize2, Minimize2, Loader2, FileText, AlertCircle } from 'lucide-react';
+import {
+  X,
+  ExternalLink,
+  Maximize2,
+  Minimize2,
+  Loader2,
+  FileText,
+  Image as ImageIcon,
+  AlertCircle,
+} from 'lucide-react';
 import type { CurriculumMaterial } from '../types/curriculum.types';
 
 interface GoogleDocPreviewModalProps {
@@ -15,6 +24,7 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Close on Escape key
   useEffect(() => {
@@ -31,10 +41,22 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
   useEffect(() => {
     if (material) {
       setIsLoading(true);
+      setImageError(false);
     }
   }, [material]);
 
   if (!isOpen || !material) return null;
+
+  const isImage =
+    material.file_type === 'image' ||
+    /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(material.file_url) ||
+    material.file_url.startsWith('data:image/');
+
+  const isDirectImage =
+    (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(material.file_url) ||
+      material.file_url.startsWith('data:image/')) &&
+    !material.file_url.includes('drive.google.com') &&
+    !material.file_url.includes('docs.google.com');
 
   // Transform standard Google Drive / Docs URLs to embedded preview URLs
   const getEmbedUrl = (rawUrl: string): string => {
@@ -87,13 +109,27 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
         {/* Header */}
         <div className="p-4 sm:px-6 border-b-4 border-zinc-900 bg-zinc-50 flex items-center justify-between gap-4 shrink-0 rounded-t-xl">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 border-2 border-zinc-900 bg-indigo-600 text-white flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase shadow-[2px_2px_0_0_#18181b]">
-              {material.file_type || 'DOC'}
+            <div
+              className={`w-10 h-10 border-2 border-zinc-900 flex items-center justify-center font-mono font-black text-xs shrink-0 uppercase shadow-[2px_2px_0_0_#18181b] ${
+                isImage ? 'bg-purple-600 text-white' : 'bg-indigo-600 text-white'
+              }`}
+            >
+              {isImage ? (
+                <ImageIcon className="w-5 h-5" />
+              ) : (
+                material.file_type || 'DOC'
+              )}
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded">
-                  Google Drive Preview
+                <span
+                  className={`font-mono font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 border rounded ${
+                    isImage
+                      ? 'bg-purple-100 text-purple-800 border-purple-300'
+                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                  }`}
+                >
+                  {isImage ? 'Hình ảnh / Image' : 'Google Drive Preview'}
                 </span>
               </div>
               <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-zinc-900 truncate mt-0.5">
@@ -138,31 +174,65 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
           </div>
         </div>
 
-        {/* Content Body / Iframe */}
-        <div className="flex-1 relative bg-zinc-900 overflow-hidden flex flex-col">
+        {/* Content Body / Direct Image or Iframe */}
+        <div className="flex-1 relative bg-zinc-950 overflow-hidden flex flex-col items-center justify-center">
           {isLoading && (
             <div className="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center gap-3">
               <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
               <p className="font-mono text-xs font-bold uppercase text-zinc-700 tracking-wider">
-                Đang tải tài liệu từ Google Drive...
+                {isImage ? 'Đang tải hình ảnh...' : 'Đang tải tài liệu từ Google Drive...'}
               </p>
             </div>
           )}
 
-          <iframe
-            src={embedUrl}
-            title={material.title}
-            className="w-full h-full border-0 bg-white"
-            onLoad={() => setIsLoading(false)}
-            allow="autoplay"
-          />
+          {isDirectImage ? (
+            <div className="w-full h-full p-4 flex items-center justify-center overflow-auto">
+              {!imageError ? (
+                <img
+                  src={material.file_url}
+                  alt={material.title}
+                  className="max-w-full max-h-full object-contain rounded shadow-lg select-none"
+                  onLoad={() => setIsLoading(false)}
+                  onError={() => {
+                    setIsLoading(false);
+                    setImageError(true);
+                  }}
+                />
+              ) : (
+                <div className="text-center text-zinc-400 p-6 space-y-3">
+                  <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
+                  <p className="text-sm font-medium">Không thể hiển thị trực tiếp ảnh này.</p>
+                  <a
+                    href={material.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-indigo-400 underline font-mono"
+                  >
+                    Nhấn vào đây để xem ảnh gốc <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+            </div>
+          ) : (
+            <iframe
+              src={embedUrl}
+              title={material.title}
+              className="w-full h-full border-0 bg-white"
+              onLoad={() => setIsLoading(false)}
+              allow="autoplay"
+            />
+          )}
         </div>
 
         {/* Footer info note */}
         <div className="px-4 py-2 bg-zinc-100 border-t-2 border-zinc-900 flex flex-wrap items-center justify-between text-[11px] font-mono font-medium text-zinc-600 rounded-b-xl gap-2 shrink-0">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-            <span>Đang xem trực tiếp qua Google Drive Viewer</span>
+            <span>
+              {isDirectImage
+                ? 'Đang xem trước hình ảnh trực tiếp'
+                : 'Đang xem trực tiếp qua Google Drive Viewer'}
+            </span>
           </div>
           <div className="text-zinc-500">
             Không tải được?{' '}
@@ -180,3 +250,4 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
     </div>
   );
 };
+
