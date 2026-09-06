@@ -114,7 +114,8 @@ export class GoogleDriveController {
         data: folder,
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, error: err.message });
+      const isAuthErr = err.message?.includes('Chưa liên kết Google Drive');
+      return res.status(isAuthErr ? 401 : 500).json({ success: false, error: err.message });
     }
   };
 
@@ -136,7 +137,8 @@ export class GoogleDriveController {
         data: uploadedFile,
       });
     } catch (err: any) {
-      return res.status(500).json({ success: false, error: err.message });
+      const isAuthErr = err.message?.includes('Chưa liên kết Google Drive');
+      return res.status(isAuthErr ? 401 : 500).json({ success: false, error: err.message });
     }
   };
 
@@ -148,11 +150,16 @@ export class GoogleDriveController {
       return res.status(400).json({ success: false, error: 'Thiếu fileId' });
     }
 
-    const result = await this.service.setFilePublic(teacherId, fileId, !!isPublic);
-    return res.json({
-      success: true,
-      data: { isPublic: result ? !!isPublic : !isPublic },
-    });
+    try {
+      const result = await this.service.setFilePublic(teacherId, fileId, !!isPublic);
+      return res.json({
+        success: true,
+        data: { isPublic: result ? !!isPublic : !isPublic },
+      });
+    } catch (err: any) {
+      const isAuthErr = err.message?.includes('Chưa liên kết Google Drive');
+      return res.status(isAuthErr ? 401 : 500).json({ success: false, error: err.message });
+    }
   };
 
   disconnect = async (req: AuthRequest, res: Response) => {

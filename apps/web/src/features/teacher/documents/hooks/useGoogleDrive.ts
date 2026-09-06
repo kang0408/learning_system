@@ -11,36 +11,8 @@ const INITIAL_ACCOUNT: GoogleDriveAccount = {
 };
 
 export function useGoogleDrive() {
-  const [account, setAccount] = useState<GoogleDriveAccount>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_ACCOUNT);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.email !== 'giaovien.tienganh@gmail.com') {
-          return parsed;
-        }
-      }
-    } catch {
-      // ignore
-    }
-    return INITIAL_ACCOUNT;
-  });
-
-  const [files, setFiles] = useState<GoogleDriveFile[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_FILES);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && !parsed.some((f) => f.name?.includes('IELTS'))) {
-          return parsed;
-        }
-      }
-    } catch {
-      // ignore
-    }
-    return [];
-  });
-
+  const [account, setAccount] = useState<GoogleDriveAccount>(INITIAL_ACCOUNT);
+  const [files, setFiles] = useState<GoogleDriveFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [updatingFileId, setUpdatingFileId] = useState<string | null>(null);
 
@@ -58,7 +30,6 @@ export function useGoogleDrive() {
 
   // Fetch status and files if connected
   const refreshDriveData = useCallback(async (targetFolderId?: string | null) => {
-    if (!account.isConnected) return;
     try {
       const activeFolder = targetFolderId !== undefined ? targetFolderId : currentFolderId;
       const [statusRes, filesRes] = await Promise.all([
@@ -69,31 +40,33 @@ export function useGoogleDrive() {
       ]);
 
       if (statusRes.data?.data?.is_connected) {
-        setAccount((prev) => {
-          const updated = {
-            ...prev,
-            isConnected: true,
-            email: statusRes.data.data.email || prev.email,
-            displayName: statusRes.data.data.name || prev.displayName,
-            avatarUrl: statusRes.data.data.picture || prev.avatarUrl,
-            storageUsed: statusRes.data.data.storageUsed ?? prev.storageUsed,
-            storageTotal: statusRes.data.data.storageTotal ?? prev.storageTotal,
-          };
-          localStorage.setItem(STORAGE_KEY_ACCOUNT, JSON.stringify(updated));
-          return updated;
+        setAccount({
+          isConnected: true,
+          email: statusRes.data.data.email,
+          displayName: statusRes.data.data.name,
+          avatarUrl: statusRes.data.data.picture,
+          storageUsed: statusRes.data.data.storageUsed,
+          storageTotal: statusRes.data.data.storageTotal,
         });
+      } else {
+        setAccount({ isConnected: false });
+        setFiles([]);
+        localStorage.removeItem(STORAGE_KEY_ACCOUNT);
+        localStorage.removeItem(STORAGE_KEY_FILES);
       }
 
       if (Array.isArray(filesRes.data?.data)) {
         setFiles(filesRes.data.data);
-        if (!activeFolder) {
-          localStorage.setItem(STORAGE_KEY_FILES, JSON.stringify(filesRes.data.data));
-        }
       }
-    } catch {
-      // Backend not running or token expired
+    } catch (err: any) {
+      if (err?.response?.status === 401 || err?.response?.data?.error?.includes('Chưa liên kết')) {
+        setAccount({ isConnected: false });
+        setFiles([]);
+        localStorage.removeItem(STORAGE_KEY_ACCOUNT);
+        localStorage.removeItem(STORAGE_KEY_FILES);
+      }
     }
-  }, [account.isConnected, currentFolderId]);
+  }, [currentFolderId]);
 
   // Navigate into folder
   const navigateToFolder = useCallback(
@@ -115,7 +88,7 @@ export function useGoogleDrive() {
     [refreshDriveData]
   );
 
-  // Check URL parameters for OAuth redirect return (?connected=true&email=...)
+  // Check URL parameters for OAuth redirect return (?connected=true&email=...) and verify status
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const connected = params.get('connected');
@@ -130,50 +103,13 @@ export function useGoogleDrive() {
     }
 
     if (connected === 'true' && email) {
-      const newAccount: GoogleDriveAccount = {
-        isConnected: true,
-        email,
-        displayName: name ? decodeURIComponent(name) : email,
-        connectedAt: new Date().toISOString(),
-      };
-      setAccount(newAccount);
-      localStorage.setItem(STORAGE_KEY_ACCOUNT, JSON.stringify(newAccount));
       toast.success(`Đã liên kết thành công với tài khoản Google: ${email}`);
-
-      // Fetch actual status (including real storage quota) and files
-      api
-        .get('/api/integrations/google-drive/status')
-        .then((res) => {
-          if (res.data?.data) {
-            setAccount((prev) => ({
-              ...prev,
-              storageUsed: res.data.data.storageUsed,
-              storageTotal: res.data.data.storageTotal,
-            }));
-          }
-        })
-        .catch(() => {});
-
-      api
-        .get('/api/integrations/google-drive/files')
-        .then((res) => {
-          if (Array.isArray(res.data?.data)) {
-            setFiles(res.data.data);
-            localStorage.setItem(STORAGE_KEY_FILES, JSON.stringify(res.data.data));
-          }
-        })
-        .catch(() => {});
-
-      // Clean URL params
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, []);
 
-  useEffect(() => {
-    if (account.isConnected) {
-      refreshDriveData();
-    }
-  }, [account.isConnected, refreshDriveData]);
+    // Always fetch ground truth status from server on mount
+    refreshDriveData();
+  }, [refreshDriveData]);
 
   // Connect Google Drive: Calls API to get OAuth URL and REDIRECTS browser to accounts.google.com
   const connectDrive = useCallback(async (customClientId?: unknown) => {
@@ -248,12 +184,10 @@ export function useGoogleDrive() {
         const currentFile = files.find((f) => f.id === fileId);
         const newStatus = !currentFile?.isPublic;
 
-        await api
-          .post('/api/integrations/google-drive/files/visibility', {
-            fileId,
-            isPublic: newStatus,
-          })
-          .catch(() => {});
+        await api.post('/api/integrations/google-drive/files/visibility', {
+          fileId,
+          isPublic: newStatus,
+        });
 
         setFiles((prev) =>
           prev.map((f) => (f.id === fileId ? { ...f, isPublic: newStatus } : f))
@@ -261,6 +195,14 @@ export function useGoogleDrive() {
 
         toast.success(newStatus ? 'Đã bật công khai xem cho học sinh' : 'Đã chuyển về riêng tư');
         return newStatus;
+      } catch (err: any) {
+        if (err?.response?.status === 401 || err?.response?.data?.error?.includes('Chưa liên kết')) {
+          setAccount({ isConnected: false });
+          toast.error('Phiên kết nối Google Drive đã hết hạn. Vui lòng liên kết lại Google Drive.');
+        } else {
+          toast.error(err?.response?.data?.error || 'Lỗi khi đổi quyền xem');
+        }
+        return false;
       } finally {
         setUpdatingFileId(null);
       }
@@ -272,17 +214,20 @@ export function useGoogleDrive() {
   const makeFilePublic = useCallback(async (fileId: string): Promise<void> => {
     setUpdatingFileId(fileId);
     try {
-      await api
-        .post('/api/integrations/google-drive/files/visibility', {
-          fileId,
-          isPublic: true,
-        })
-        .catch(() => {});
+      await api.post('/api/integrations/google-drive/files/visibility', {
+        fileId,
+        isPublic: true,
+      });
 
       setFiles((prev) =>
         prev.map((f) => (f.id === fileId ? { ...f, isPublic: true } : f))
       );
       toast.success('Đã tự động công khai tài liệu để học sinh xem được');
+    } catch (err: any) {
+      if (err?.response?.status === 401 || err?.response?.data?.error?.includes('Chưa liên kết')) {
+        setAccount({ isConnected: false });
+        toast.error('Phiên kết nối Google Drive đã hết hạn. Vui lòng liên kết lại Google Drive.');
+      }
     } finally {
       setUpdatingFileId(null);
     }
@@ -320,7 +265,12 @@ export function useGoogleDrive() {
           return newFile;
         }
       } catch (err: any) {
-        toast.error(err?.response?.data?.error || 'Lỗi khi tải tệp lên Google Drive');
+        if (err?.response?.status === 401 || err?.response?.data?.error?.includes('Chưa liên kết')) {
+          setAccount({ isConnected: false });
+          toast.error('Phiên kết nối Google Drive chưa được thiết lập hoặc đã hết hạn. Vui lòng nhấn Liên kết Google Drive.');
+        } else {
+          toast.error(err?.response?.data?.error || 'Lỗi khi tải tệp lên Google Drive');
+        }
         throw err;
       } finally {
         setIsLoading(false);
@@ -346,7 +296,12 @@ export function useGoogleDrive() {
           return newFolder;
         }
       } catch (err: any) {
-        toast.error(err?.response?.data?.error || 'Lỗi khi tạo thư mục');
+        if (err?.response?.status === 401 || err?.response?.data?.error?.includes('Chưa liên kết')) {
+          setAccount({ isConnected: false });
+          toast.error('Chưa liên kết Google Drive hoặc phiên làm việc đã hết hạn. Vui lòng nhấn Liên kết Google Drive.');
+        } else {
+          toast.error(err?.response?.data?.error || 'Lỗi khi tạo thư mục');
+        }
         throw err;
       } finally {
         setIsLoading(false);

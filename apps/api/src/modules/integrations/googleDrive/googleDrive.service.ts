@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 export interface GoogleTokens {
   access_token: string;
   refresh_token?: string;
@@ -7,8 +10,42 @@ export interface GoogleTokens {
   picture?: string;
 }
 
-// In-memory token store for development (can be backed by DB/Redis)
-const tokenStore = new Map<string, GoogleTokens>();
+const TOKENS_FILE = path.join(process.cwd(), 'scratch', 'google_drive_tokens.json');
+
+function loadTokensFromDisk(): Map<string, GoogleTokens> {
+  const map = new Map<string, GoogleTokens>();
+  try {
+    if (fs.existsSync(TOKENS_FILE)) {
+      const raw = fs.readFileSync(TOKENS_FILE, 'utf-8');
+      const data = JSON.parse(raw);
+      for (const [k, v] of Object.entries(data)) {
+        map.set(k, v as GoogleTokens);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load Google Drive tokens from disk:', err);
+  }
+  return map;
+}
+
+function saveTokensToDisk(map: Map<string, GoogleTokens>): void {
+  try {
+    const dir = path.dirname(TOKENS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    const obj: Record<string, GoogleTokens> = {};
+    for (const [k, v] of map.entries()) {
+      obj[k] = v;
+    }
+    fs.writeFileSync(TOKENS_FILE, JSON.stringify(obj, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to save Google Drive tokens to disk:', err);
+  }
+}
+
+// Persistent token store loaded from disk
+const tokenStore = loadTokensFromDisk();
 
 export class GoogleDriveService {
   private get clientId(): string {
@@ -96,11 +133,18 @@ export class GoogleDriveService {
     };
 
     tokenStore.set(teacherId, tokens);
+    saveTokensToDisk(tokenStore);
     return tokens;
   }
 
   public async getValidAccessToken(teacherId: string): Promise<string | null> {
-    const tokens = tokenStore.get(teacherId);
+    let tokens = tokenStore.get(teacherId);
+    
+    // In local single-teacher dev, fallback to the only saved token if teacherId key differs
+    if (!tokens && tokenStore.size === 1) {
+      tokens = tokenStore.values().next().value;
+    }
+
     if (!tokens) return null;
 
     if (tokens.expiry_date && Date.now() > tokens.expiry_date - 60000 && tokens.refresh_token) {
@@ -120,6 +164,15 @@ export class GoogleDriveService {
           tokens.access_token = data.access_token;
           tokens.expiry_date = Date.now() + (data.expires_in || 3600) * 1000;
           tokenStore.set(teacherId, tokens);
+          saveTokensToDisk(tokenStore);
+        } else {
+          // If refresh token is invalid or revoked
+          const errData = (await res.json()) as any;
+          if (errData.error === 'invalid_grant') {
+            tokenStore.delete(teacherId);
+            saveTokensToDisk(tokenStore);
+            return null;
+          }
         }
       } catch {
         // use existing
@@ -129,15 +182,24 @@ export class GoogleDriveService {
   }
 
   public getTokens(teacherId: string): GoogleTokens | undefined {
-    return tokenStore.get(teacherId);
+    let tokens = tokenStore.get(teacherId);
+    if (!tokens && tokenStore.size === 1) {
+      tokens = tokenStore.values().next().value;
+    }
+    return tokens;
   }
 
   public saveTokens(teacherId: string, tokens: GoogleTokens): void {
     tokenStore.set(teacherId, tokens);
+    saveTokensToDisk(tokenStore);
   }
 
   public removeTokens(teacherId: string): void {
     tokenStore.delete(teacherId);
+    if (tokenStore.size === 1) {
+      tokenStore.clear();
+    }
+    saveTokensToDisk(tokenStore);
   }
 
   // Get Storage Quota & User Info from Google Drive about.get
@@ -149,7 +211,7 @@ export class GoogleDriveService {
     picture?: string;
   }> {
     const accessToken = await this.getValidAccessToken(teacherId);
-    const tokens = tokenStore.get(teacherId);
+    const tokens = this.getTokens(teacherId);
     if (!accessToken) {
       return { storageUsed: 0, storageTotal: 0 };
     }
