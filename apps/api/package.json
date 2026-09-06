@@ -8,7 +8,8 @@
     "start": "node dist/server.js",
     "test": "npx jest",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "npx ts-node prisma/seed.ts"
+    "db:seed": "npx ts-node prisma/seed.ts",
+    "db:seed:realistic": "npx ts-node prisma/seed_realistic.ts"
   },
   "prisma": {
     "seed": "npx ts-node prisma/seed.ts"

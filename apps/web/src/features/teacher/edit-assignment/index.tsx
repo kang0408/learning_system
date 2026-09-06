@@ -24,10 +24,22 @@ export const TeacherClassEditAssignmentFeature: React.FC = () => {
     }
   });
 
+  // Flatten topics to include all descendant leaf nodes
+  const flattenedTopics: any[] = [];
+  const collectTopics = (list: any[]) => {
+    list.forEach((t) => {
+      flattenedTopics.push(t);
+      if (t.children && t.children.length > 0) {
+        collectTopics(t.children);
+      }
+    });
+  };
+  collectTopics(data.topics);
+
   const initialTopicIds: string[] = [];
   const initialQuestionIds: string[] = [];
 
-  data.topics.forEach((topic) => {
+  flattenedTopics.forEach((topic) => {
     const assignedCount = topicCounts[topic.id] || 0;
     const totalCount = topic._count?.questions || 0;
 

@@ -127,6 +127,7 @@ export class AssignmentsService {
         submission_rate: submissionRate,
         submitted_count: submittedCount,
         total_students: totalStudents,
+        total_questions: assignment._count?.assignment_questions ?? (assignment.assignment_questions?.length || 0),
         avg_score: avgScore,
         status: status
       };

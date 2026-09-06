@@ -52,6 +52,25 @@ export class AssignmentsRepository {
               select: { id: true, title: true, order_index: true }
             }
           }
+        },
+        _count: {
+          select: { assignment_questions: true }
+        },
+        assignment_questions: {
+          select: {
+            question_id: true,
+            order_index: true,
+            question: {
+              select: {
+                id: true,
+                content: true,
+                topic_id: true,
+                difficulty: true,
+                question_type: true
+              }
+            }
+          },
+          orderBy: { order_index: 'asc' }
         }
       },
       skip,

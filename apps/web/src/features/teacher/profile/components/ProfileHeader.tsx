@@ -10,9 +10,6 @@ export const ProfileHeader: React.FC = () => {
       <div>
         <div className="flex items-center gap-3">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">{t('teacher.profile.title')}</h1>
-          <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-100 flex items-center gap-1.5">
-            <Award className="w-3.5 h-3.5" /> {t('teacher.profile.badgeTeacher')}
-          </span>
         </div>
         <p className="text-sm text-slate-500 font-medium mt-0.5">{t('teacher.profile.subtitle')}</p>
       </div>

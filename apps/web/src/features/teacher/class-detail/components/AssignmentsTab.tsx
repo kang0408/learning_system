@@ -19,7 +19,7 @@ interface AssignmentsTabProps {
   classId: string;
 }
 
-export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
+export function AssignmentsTab({ assignments, classId, membersCount }: AssignmentsTabProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { deleteAssignment, togglePublish } = useClassMutations(classId);
@@ -299,11 +299,20 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
               </TableHeader>
               <TableBody>
                 {filteredAssignments.map((assignment: any) => {
-                  const submittedCount = assignment.stats?.submitted_count || 0;
-                  const totalCount = assignment.stats?.total_students || 1;
-                  const progressPct = Math.round((submittedCount / totalCount) * 100);
+                  const submittedCount = assignment.submitted_count ?? assignment.stats?.submitted_count ?? 0;
+                  const totalCount =
+                    assignment.total_students ??
+                    assignment.stats?.total_students ??
+                    (assignment.is_all_students ? (membersCount || 1) : (assignment.assigned_students?.length || 1));
+                  const progressPct =
+                    assignment.submission_rate !== undefined
+                      ? assignment.submission_rate
+                      : totalCount > 0
+                      ? Math.round((submittedCount / totalCount) * 100)
+                      : 0;
                   const isOverdue = assignment.deadline && new Date(assignment.deadline) < new Date();
                   const curriculumInfo = assignment.curriculum_assignments?.[0]?.curriculum;
+                  const avgScore = assignment.avg_score ?? assignment.stats?.avg_score;
 
                   return (
                     <TableRow key={assignment.id}>
@@ -317,10 +326,17 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
                           </div>
                         )}
                         <Link
-                          to={`/teacher/classes/${classId}/assignments/${assignment.id}`}
+                          to={`/teacher/classes/${classId}/assignments/${assignment.id}/edit`}
                           className="hover:text-indigo-600 transition-colors block"
                         >
-                          <span className="line-clamp-1">{assignment.title}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="line-clamp-1">{assignment.title}</span>
+                            {(assignment.total_questions || assignment._count?.assignment_questions) ? (
+                              <span className="shrink-0 text-[11px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                {assignment.total_questions || assignment._count?.assignment_questions} câu hỏi
+                              </span>
+                            ) : null}
+                          </div>
                           {assignment.description && (
                             <span className="text-xs text-slate-400 font-normal line-clamp-1 mt-0.5">
                               {assignment.description}
@@ -352,8 +368,8 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
                       </TableCell>
 
                       <TableCell className="font-bold text-slate-900">
-                        {assignment.stats?.avg_score !== undefined && assignment.stats?.avg_score !== null ? (
-                          <span>{Number(assignment.stats.avg_score).toFixed(1)} / 100</span>
+                        {avgScore !== undefined && avgScore !== null && !isNaN(Number(avgScore)) ? (
+                          <span>{Number(avgScore).toFixed(1)} / 100</span>
                         ) : (
                           <span className="text-slate-400 font-normal">--</span>
                         )}
