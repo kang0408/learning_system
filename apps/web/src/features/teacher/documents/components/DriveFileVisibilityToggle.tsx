@@ -16,8 +16,8 @@ export const DriveFileVisibilityToggle: React.FC<DriveFileVisibilityToggleProps>
   compact = false,
 }) => {
   return (
-    <div className="flex items-center gap-2">
-      {/* Switch Button */}
+    <div className="inline-flex items-center gap-2">
+      {/* Clean Modern Switch */}
       <button
         type="button"
         role="switch"
@@ -27,48 +27,47 @@ export const DriveFileVisibilityToggle: React.FC<DriveFileVisibilityToggleProps>
           e.stopPropagation();
           onToggle();
         }}
-        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500/20 ${
-          isPublic ? 'bg-emerald-500' : 'bg-slate-300'
+        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${
+          isPublic ? 'bg-emerald-500' : 'bg-slate-200'
         } ${isLoading ? 'opacity-60 cursor-wait' : ''}`}
         title={isPublic ? 'Chuyển sang Riêng tư' : 'Chuyển sang Công khai xem'}
       >
         <span className="sr-only">Chuyển đổi quyền xem</span>
         <span
-          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out flex items-center justify-center ${
+          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
             isPublic ? 'translate-x-4' : 'translate-x-0'
           }`}
-        >
-          {isLoading ? (
-            <Loader2 className="w-2.5 h-2.5 animate-spin text-slate-600" />
-          ) : isPublic ? (
-            <Globe className="w-2.5 h-2.5 text-emerald-600" />
-          ) : (
-            <Lock className="w-2.5 h-2.5 text-slate-400" />
-          )}
-        </span>
+        />
       </button>
 
       {/* Status Badge */}
       {!compact && (
-        <div
+        <button
+          type="button"
+          disabled={isLoading}
           onClick={(e) => {
             e.stopPropagation();
             onToggle();
           }}
-          className="cursor-pointer select-none"
+          className="cursor-pointer select-none transition-opacity"
         >
-          {isPublic ? (
-            <Badge variant="success" size="sm" className="gap-1 font-semibold hover:bg-emerald-100 transition-colors">
-              <Globe className="w-3 h-3" />
+          {isLoading ? (
+            <Badge variant="secondary" size="sm" className="gap-1.5 font-semibold text-slate-500">
+              <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+              <span>Đang lưu...</span>
+            </Badge>
+          ) : isPublic ? (
+            <Badge variant="success" size="sm" className="gap-1.5 font-semibold hover:bg-emerald-100 transition-colors">
+              <Globe className="w-3 h-3 text-emerald-600" />
               <span>Công khai xem</span>
             </Badge>
           ) : (
-            <Badge variant="secondary" size="sm" className="gap-1 font-semibold hover:bg-slate-200 transition-colors">
-              <Lock className="w-3 h-3 text-slate-500" />
+            <Badge variant="secondary" size="sm" className="gap-1.5 font-semibold hover:bg-slate-200 transition-colors text-slate-600">
+              <Lock className="w-3 h-3 text-slate-400" />
               <span>Riêng tư</span>
             </Badge>
           )}
-        </div>
+        </button>
       )}
     </div>
   );
