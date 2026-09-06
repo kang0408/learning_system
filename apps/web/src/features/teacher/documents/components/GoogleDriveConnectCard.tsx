@@ -112,7 +112,7 @@ export const GoogleDriveConnectCard: React.FC<GoogleDriveConnectCardProps> = ({
               )}
             </span>
             <span className="text-slate-900 font-mono text-xs">
-              {storage.usedText} / {storage.totalText} ({storage.percentText})
+              {storage.usedText} / {storage.totalText}
             </span>
           </div>
           <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
