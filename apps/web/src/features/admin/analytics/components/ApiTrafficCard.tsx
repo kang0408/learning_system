@@ -11,7 +11,6 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { Globe, Gauge, ShieldCheck, Radio } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SystemMetrics } from '../types';
 
@@ -68,7 +67,7 @@ export const ApiTrafficCard: React.FC<Props> = ({ metrics, loading }) => {
   }, [metrics, i18n.language]);
 
   if (loading || !metrics) {
-    return <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-pulse h-80" />;
+    return <div className="bg-white rounded-2xl p-6 border border-slate-200/80 animate-pulse h-80" />;
   }
 
   const traffic = metrics.apiTraffic || {
@@ -95,15 +94,15 @@ export const ApiTrafficCard: React.FC<Props> = ({ metrics, loading }) => {
       {
         label: t('adminAnalytics.apiTraffic.rps', 'Tốc độ xử lý'),
         data: chartRpsData,
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.12)',
-        borderWidth: 2.5,
+        borderColor: '#0284c7',
+        backgroundColor: 'rgba(2, 132, 199, 0.08)',
+        borderWidth: 2,
         tension: 0.35,
         fill: true,
-        pointBackgroundColor: '#3b82f6',
+        pointBackgroundColor: '#0284c7',
         pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 3.5,
+        pointBorderWidth: 1.5,
+        pointRadius: 3,
       },
     ],
   };
@@ -116,9 +115,9 @@ export const ApiTrafficCard: React.FC<Props> = ({ metrics, loading }) => {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleFont: { family: "'Inter', sans-serif", size: 12, weight: 700 },
-        bodyFont: { family: "'Inter', sans-serif", size: 12 },
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        titleFont: { size: 12, weight: 'bold' },
+        bodyFont: { size: 12 },
         padding: 10,
         cornerRadius: 8,
         callbacks: {
@@ -129,55 +128,48 @@ export const ApiTrafficCard: React.FC<Props> = ({ metrics, loading }) => {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8' },
+        ticks: { font: { size: 10 }, color: '#94a3b8' },
       },
       y: {
         beginAtZero: true,
         grid: { color: 'rgba(226, 232, 240, 0.6)' },
-        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8' },
+        ticks: { font: { size: 10 }, color: '#94a3b8' },
       },
     },
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 hover:shadow-md transition-all flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100">
-            <Globe className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-tight">
-              {t('adminAnalytics.apiTraffic.title', 'Lưu Lượng & Tốc Độ API')}
-            </h3>
-            <p className="text-[11px] font-semibold text-slate-400">
-              {t('adminAnalytics.apiTraffic.subtitle', 'Giám sát request realtime theo thời gian')}
-            </p>
-          </div>
+        <div>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            {t('adminAnalytics.apiTraffic.title', 'Lưu Lượng & Tốc Độ API')}
+          </h3>
+          <p className="text-sm font-semibold text-slate-900 mt-0.5">
+            {t('adminAnalytics.apiTraffic.subtitle', 'Giám sát request realtime theo thời gian')}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <ShieldCheck className="w-3.5 h-3.5" />
+          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60 uppercase">
             {traffic.status}
           </span>
         </div>
       </div>
 
       {/* Area Chart Container */}
-      <div className="my-4 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
-        <div className="flex items-center justify-between mb-2">
+      <div className="my-4 bg-slate-50/70 p-4 rounded-xl border border-slate-100">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Gauge className="w-4 h-4 text-blue-600" />
-            <span className="text-xs font-bold text-slate-700">{t('adminAnalytics.apiTraffic.rps', 'Tốc độ xử lý')}</span>
+            <span className="text-xs font-semibold text-slate-600">{t('adminAnalytics.apiTraffic.rps', 'Tốc độ xử lý')}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold font-mono text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">
               {traffic.rps} rps
             </span>
-            <span className="text-[11px] font-semibold text-slate-400">
-              {t('adminAnalytics.apiTraffic.p95', 'Độ trễ P95')}: <strong className="text-slate-700">{traffic.p95LatencyMs}ms</strong>
+            <span className="text-xs text-slate-500">
+              {t('adminAnalytics.apiTraffic.p95', 'Độ trễ P95')}: <strong className="text-slate-900 font-mono font-semibold">{traffic.p95LatencyMs}ms</strong>
             </span>
           </div>
         </div>
@@ -188,24 +180,26 @@ export const ApiTrafficCard: React.FC<Props> = ({ metrics, loading }) => {
 
       {/* HTTP Status Code Meter Bar */}
       <div className="pt-3 border-t border-slate-100 space-y-2">
-        <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-slate-500 uppercase tracking-wider text-[10px]">{t('adminAnalytics.apiTraffic.statusDist', 'Phân bổ mã trạng thái HTTP')}</span>
-          <span className="text-emerald-700 font-mono">2xx: {pct2xx}% | 4xx: {pct4xx}% | 5xx: {pct5xx}%</span>
+        <div className="flex items-center justify-between text-xs font-medium">
+          <span className="text-slate-400 uppercase tracking-wider text-[10px] font-bold">{t('adminAnalytics.apiTraffic.statusDist', 'Phân bổ mã trạng thái HTTP')}</span>
+          <span className="font-mono text-xs text-slate-700">2xx: {pct2xx}% | 4xx: {pct4xx}% | 5xx: {pct5xx}%</span>
         </div>
-        <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden flex">
+        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
           <div style={{ width: `${pct2xx}%` }} className="bg-emerald-500 transition-all duration-500" title={`2xx: ${pct2xx}%`} />
           <div style={{ width: `${pct4xx}%` }} className="bg-amber-500 transition-all duration-500" title={`4xx: ${pct4xx}%`} />
           <div style={{ width: `${pct5xx}%` }} className="bg-rose-500 transition-all duration-500" title={`5xx: ${pct5xx}%`} />
         </div>
 
-        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-1">
-          <span className="flex items-center gap-1">
-            <Radio className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{t('adminAnalytics.apiTraffic.sseConnections', 'Kết nối SSE')}: <strong className="text-slate-900 font-mono">{traffic.activeSseConnections} {t('adminAnalytics.apiTraffic.active', 'hoạt động')}</strong></span>
+        <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <span>
+            {t('adminAnalytics.apiTraffic.sseConnections', 'Kết nối SSE')}: <strong className="text-slate-900 font-mono font-semibold">{traffic.activeSseConnections}</strong>
           </span>
-          <span>{t('adminAnalytics.apiTraffic.lastMinute', '1 phút qua')}: <strong className="text-slate-900 font-mono">{traffic.totalRequests1m} {t('adminAnalytics.apiTraffic.req', 'yêu cầu')}</strong></span>
+          <span>
+            {t('adminAnalytics.apiTraffic.lastMinute', '1 phút qua')}: <strong className="text-slate-900 font-mono font-semibold">{traffic.totalRequests1m} req</strong>
+          </span>
         </div>
       </div>
     </div>
   );
 };
+

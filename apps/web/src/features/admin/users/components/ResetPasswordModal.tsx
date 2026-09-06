@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { UserItem } from '../types';
 import { Dialog, ConfirmDialog } from '../../../../components/ui/Dialog';
@@ -66,26 +66,31 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
   return (
     <>
       <Dialog isOpen={isOpen} onClose={onClose} title={t('adminUsers.resetModal.title', 'Đặt lại mật khẩu người dùng')}>
-        <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-          {t('adminUsers.resetModal.forUser', 'Đổi mật khẩu cho:')} <strong className="text-slate-900 font-bold">{user.full_name || user.email}</strong> ({user.email})
+        <div className="mb-4 p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 text-xs text-slate-600 flex items-center justify-between">
+          <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+            {t('adminUsers.resetModal.forUser', 'Đổi mật khẩu cho')}
+          </span>
+          <span className="text-slate-900 font-mono font-semibold text-xs">{user.email}</span>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-rose-50 text-rose-700 text-xs font-bold rounded-xl border border-rose-200">
+          <div className="mb-4 p-3 bg-rose-50/90 text-rose-800 text-xs font-semibold rounded-xl border border-rose-200">
             {error}
           </div>
         )}
 
         {successMsg && (
-          <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            {successMsg}
+          <div className="mb-4 p-3 bg-emerald-50/90 text-emerald-800 text-xs font-semibold rounded-xl border border-emerald-200 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>{successMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4 pt-1">
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.resetModal.newPassword', 'Mật khẩu mới')} (*)</Label>
+            <Label className="mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider block">
+              {t('adminUsers.resetModal.newPassword', 'Mật khẩu mới')} <span className="text-rose-500 font-mono">*</span>
+            </Label>
             <Input
               type="password"
               required
@@ -93,6 +98,7 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="••••••••"
+              className="bg-slate-50/50 border-slate-200 focus:bg-white text-sm font-mono tracking-wider"
             />
           </div>
 
@@ -101,12 +107,14 @@ export const ResetPasswordModal: React.FC<Props> = ({ isOpen, user, onClose, onS
               type="button"
               variant="outline"
               onClick={onClose}
+              className="border-slate-200 text-slate-700 hover:bg-slate-50"
             >
               {t('adminUsers.resetModal.cancel', 'Hủy')}
             </Button>
             <Button
               type="submit"
-              variant="warning"
+              variant="primary"
+              className="bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-xs"
             >
               {t('adminUsers.resetModal.submit', 'Xác nhận đổi mật khẩu')}
             </Button>

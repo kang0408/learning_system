@@ -98,19 +98,14 @@ export default function AdminUserManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-8 pb-12">
+      {/* Header (Clean Typography-First) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/70">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-md shadow-indigo-200">
-              <Users className="w-5 h-5" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              {t('adminUsers.header.title', 'Quản Lý Người Dùng')}
-            </h1>
-          </div>
-          <p className="text-sm font-semibold text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            {t('adminUsers.header.title', 'Quản Lý Người Dùng')}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
             {t('adminUsers.header.subtitle', 'Danh sách tài khoản học sinh, giáo viên và quản trị viên trong hệ thống')}
           </p>
         </div>
@@ -119,15 +114,15 @@ export default function AdminUserManagement() {
           variant="outline"
           size="sm"
           onClick={handleRefresh}
-          className="gap-2"
+          className="gap-2 border-slate-200/80 hover:bg-slate-50 text-slate-700 shadow-xs"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 text-slate-500 ${loading ? 'animate-spin' : ''}`} />
           {t('adminUsers.header.refresh', 'Làm mới')}
         </Button>
       </div>
 
       {error && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-2xl text-sm font-bold">
+        <div className="bg-rose-50/80 border border-rose-200 text-rose-800 p-4 rounded-xl text-sm font-medium">
           {error}
         </div>
       )}
