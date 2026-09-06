@@ -72,37 +72,37 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
     switch (type) {
       case 'pdf':
         return (
-          <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 border border-red-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0 shadow-xs">
             <FileText className="w-4 h-4" />
           </div>
         );
       case 'docx':
         return (
-          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0 shadow-xs">
             <FileText className="w-4 h-4" />
           </div>
         );
       case 'xlsx':
         return (
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-xs">
             <FileSpreadsheet className="w-4 h-4" />
           </div>
         );
       case 'pptx':
         return (
-          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center shrink-0 shadow-xs">
             <Presentation className="w-4 h-4" />
           </div>
         );
       case 'image':
         return (
-          <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0 shadow-xs">
             <ImageIcon className="w-4 h-4" />
           </div>
         );
       default:
         return (
-          <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center shrink-0 shadow-xs">
             <File className="w-4 h-4" />
           </div>
         );
@@ -139,25 +139,25 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-2xl w-full flex flex-col max-h-[85vh] overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-xl border border-slate-100 max-w-2xl w-full flex flex-col max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="p-5 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0 shadow-xs">
               <HardDrive className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-slate-900">
+              <h3 className="font-extrabold text-base text-slate-900">
                 Chọn tài liệu từ Google Drive
               </h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                {account.isConnected ? `Tài khoản: ${account.email}` : 'Chưa kết nối Google Drive'}
+              <p className="text-xs font-mono text-slate-500 mt-0.5">
+                {account.isConnected ? account.email : 'Chưa kết nối Google Drive'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -172,11 +172,11 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
               placeholder="Tìm kiếm tài liệu theo tên..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50/60 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
             />
           </div>
 
-          <div className="w-44 shrink-0">
+          <div className="w-48 shrink-0">
             <Select
               value={selectedType}
               onChange={(val) => setSelectedType(val as any)}
@@ -190,7 +190,7 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
         <div className="px-5 py-2.5 bg-indigo-50/60 border-b border-indigo-100/60 flex items-center gap-2 text-xs text-indigo-900 shrink-0 font-medium">
           <Globe className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
           <span>
-            Tài liệu khi gán vào bài học sẽ được <strong>tự động bật quyền xem công khai</strong> để học sinh đọc trực tiếp trên trang học.
+            Tài liệu khi gán vào bài học sẽ được <strong>tự động bật quyền xem công khai</strong> để học sinh mở xem trực tiếp trên bài học.
           </span>
         </div>
 
@@ -198,7 +198,7 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
         <div className="p-4 overflow-y-auto flex-1 space-y-2.5">
           {filtered.length === 0 ? (
             <div className="text-center py-12 text-slate-400">
-              <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
+              <FileText className="w-10 h-10 mx-auto mb-2 opacity-30" />
               <p className="text-xs font-medium">Không tìm thấy tài liệu nào phù hợp</p>
             </div>
           ) : (
@@ -207,23 +207,23 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
               return (
                 <div
                   key={file.id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 hover:border-indigo-200 hover:bg-indigo-50/20 bg-white transition-all gap-3 group"
+                  className="flex items-center justify-between p-3.5 rounded-2xl border border-slate-200/80 hover:border-indigo-200 hover:bg-indigo-50/20 bg-white transition-all gap-3 group"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     {getFileIcon(file.fileType)}
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs sm:text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                      <div className="text-sm font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
                         {file.name}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-slate-400 font-mono mt-0.5">
                         <span>{formatFileSize(file.size)}</span>
                         <span>•</span>
                         {file.isPublic ? (
-                          <Badge variant="success" size="sm" className="gap-1 font-medium">
+                          <Badge variant="success" size="sm" className="gap-1 font-semibold">
                             <Globe className="w-3 h-3" /> Đã công khai
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" size="sm" className="gap-1 font-medium">
+                          <Badge variant="secondary" size="sm" className="gap-1 font-semibold">
                             <Lock className="w-3 h-3 text-slate-400" /> Riêng tư
                           </Badge>
                         )}
@@ -240,8 +240,8 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
                       onClick={() => handleSelect(file)}
                       className={
                         file.isPublic
-                          ? 'shadow-xs'
-                          : 'text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200'
+                          ? 'shadow-xs font-semibold'
+                          : 'text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200 font-semibold'
                       }
                     >
                       {isProcessing ? (
@@ -267,6 +267,7 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
             variant="outline"
             size="sm"
             onClick={onClose}
+            className="border-slate-200 text-slate-700 hover:bg-slate-100"
           >
             Đóng
           </Button>

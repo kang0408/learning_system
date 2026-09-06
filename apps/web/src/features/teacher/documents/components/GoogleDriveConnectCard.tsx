@@ -36,37 +36,39 @@ export const GoogleDriveConnectCard: React.FC<GoogleDriveConnectCardProps> = ({
 
   if (!account.isConnected) {
     return (
-      <div className="bg-gradient-to-r from-indigo-50/70 via-purple-50/40 to-white rounded-2xl border border-indigo-100 p-6 sm:p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white rounded-3xl border border-indigo-100 p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-indigo-50/70 via-purple-50/30 to-transparent rounded-full pointer-events-none -mr-20 -mt-20" />
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-100/80 text-indigo-700 text-xs font-bold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100/80">
               <HardDrive className="w-3.5 h-3.5 text-indigo-600" />
               Tích hợp Google Drive
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">
               Kết nối Google Drive để lưu trữ và quản lý giáo án
             </h2>
             <p className="text-slate-600 text-sm leading-relaxed font-normal">
-              Lưu trữ tài liệu trực tiếp trên Google Drive cá nhân của bạn, hoàn toàn miễn phí dung lượng máy chủ. Bạn có thể chủ động bật quyền xem công khai để học sinh mở xem trực tiếp trên web hoặc giữ riêng tư cho tài liệu nội bộ.
+              Lưu trữ tài liệu trực tiếp trên Google Drive cá nhân của bạn mà không chiếm dung lượng máy chủ. Bạn có thể chủ động bật quyền xem công khai để học sinh mở xem trực tiếp trên bài học hoặc giữ riêng tư cho tài liệu nội bộ.
             </p>
             <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-500 pt-1">
               <span className="flex items-center gap-1.5 text-emerald-600 font-semibold">
-                <ShieldCheck className="w-4 h-4" /> Bảo mật chuẩn OAuth 2.0
+                <ShieldCheck className="w-4 h-4" /> Bảo mật OAuth 2.0
               </span>
               <span>•</span>
               <span>Chỉ chia sẻ file bạn cho phép</span>
               <span>•</span>
-              <span>Không chiếm dung lượng lớp học</span>
+              <span>Tích hợp trực tiếp vào lộ trình lớp học</span>
             </div>
           </div>
 
           <div className="shrink-0">
             <Button
               variant="primary"
-              size="md"
+              size="lg"
               onClick={() => onConnect()}
               disabled={isLoading}
-              className="shadow-sm"
+              className="shadow-sm font-bold"
             >
               {isLoading ? (
                 <RefreshCw className="w-4 h-4 animate-spin mr-2" />
@@ -86,11 +88,11 @@ export const GoogleDriveConnectCard: React.FC<GoogleDriveConnectCardProps> = ({
   }
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+    <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         {/* Account Info */}
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 relative shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-center shrink-0 relative shadow-xs">
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg"
               alt="Google Drive"
@@ -104,57 +106,57 @@ export const GoogleDriveConnectCard: React.FC<GoogleDriveConnectCardProps> = ({
           <div>
             <div className="flex items-center gap-2.5">
               <span className="font-bold text-base text-slate-900">
-                {account.displayName || 'Google Drive đã liên kết'}
+                {account.displayName || 'Google Drive đã kết nối'}
               </span>
-              <Badge variant="success" size="sm">
-                Đang hoạt động
+              <Badge variant="success" size="sm" className="font-semibold">
+                Đang kết nối
               </Badge>
             </div>
-            <p className="text-sm font-normal text-slate-500 mt-0.5">
+            <p className="text-xs font-mono text-slate-500 mt-0.5">
               {account.email}
             </p>
           </div>
         </div>
 
-        {/* Storage Progress */}
-        <div className="flex-1 max-w-md bg-slate-50/80 p-3.5 rounded-xl border border-slate-100">
+        {/* Storage Progress Meter */}
+        <div className="flex-1 max-w-md bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/60">
           <div className="flex items-center justify-between text-xs font-semibold mb-2">
             <span className="text-slate-600 flex items-center gap-1.5">
-              <span>Dung lượng Google Drive:</span>
+              <span>Dung lượng Drive:</span>
               {onRefresh && (
                 <button
                   type="button"
                   onClick={() => onRefresh()}
                   disabled={isLoading}
-                  title="Đồng bộ lại dung lượng từ Google Drive"
-                  className="p-1 text-slate-400 hover:text-indigo-600 rounded transition-colors"
+                  title="Đồng bộ lại dung lượng"
+                  className="p-0.5 text-slate-400 hover:text-indigo-600 rounded transition-colors"
                 >
                   <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
                 </button>
               )}
             </span>
-            <span className="text-slate-900 font-mono">
+            <span className="text-slate-900 font-mono text-xs">
               {formatBytes(account.storageUsed)} / {formatBytes(account.storageTotal || 15 * 1024 * 1024 * 1024)} ({usagePercent}%)
             </span>
           </div>
           <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                usagePercent > 85 ? 'bg-red-500' : usagePercent > 65 ? 'bg-amber-500' : 'bg-indigo-600'
+                usagePercent > 85 ? 'bg-rose-500' : usagePercent > 65 ? 'bg-amber-500' : 'bg-indigo-600'
               }`}
               style={{ width: `${Math.max(usagePercent, account.storageUsed ? 1 : 0)}%` }}
             />
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Disconnect Action */}
         <div className="flex items-center gap-3 shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={onDisconnect}
             disabled={isLoading}
-            className="text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200"
+            className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 hover:border-rose-200 border-slate-200"
           >
             <Unplug className="w-3.5 h-3.5 mr-1.5" />
             Hủy liên kết

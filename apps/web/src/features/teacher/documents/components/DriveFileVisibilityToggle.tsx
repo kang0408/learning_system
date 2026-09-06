@@ -34,7 +34,7 @@ export const DriveFileVisibilityToggle: React.FC<DriveFileVisibilityToggleProps>
       >
         <span className="sr-only">Chuyển đổi quyền xem</span>
         <span
-          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out flex items-center justify-center ${
+          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out flex items-center justify-center ${
             isPublic ? 'translate-x-4' : 'translate-x-0'
           }`}
         >
@@ -58,12 +58,12 @@ export const DriveFileVisibilityToggle: React.FC<DriveFileVisibilityToggleProps>
           className="cursor-pointer select-none"
         >
           {isPublic ? (
-            <Badge variant="success" size="sm" className="gap-1 font-medium hover:bg-emerald-100 transition-colors">
+            <Badge variant="success" size="sm" className="gap-1 font-semibold hover:bg-emerald-100 transition-colors">
               <Globe className="w-3 h-3" />
               <span>Công khai xem</span>
             </Badge>
           ) : (
-            <Badge variant="secondary" size="sm" className="gap-1 font-medium hover:bg-slate-200 transition-colors">
+            <Badge variant="secondary" size="sm" className="gap-1 font-semibold hover:bg-slate-200 transition-colors">
               <Lock className="w-3 h-3 text-slate-500" />
               <span>Riêng tư</span>
             </Badge>

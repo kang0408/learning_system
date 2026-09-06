@@ -1,6 +1,7 @@
 import React from 'react';
-import { HardDrive, CheckCircle2 } from 'lucide-react';
+import { HardDrive, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { GoogleDriveConnectCard } from './components/GoogleDriveConnectCard';
 import { DriveFileList } from './components/DriveFileList';
 import { useGoogleDrive } from './hooks/useGoogleDrive';
@@ -27,34 +28,46 @@ export const TeacherDocumentsFeature: React.FC = () => {
   } = useGoogleDrive();
 
   return (
-    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6 mb-16">
-      {/* Header matching Teacher Dashboard Header style */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition duration-300">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+      {/* Header matching Teacher unified style */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-100 gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Quản lý Tài liệu Google Drive
             </h1>
-            <Badge variant="indigo" size="md">
+            <Badge variant="indigo" size="md" className="font-bold">
               {stats.total} tài liệu
             </Badge>
           </div>
-          <p className="text-sm text-slate-500 mt-1 font-medium">
-            Liên kết Google Drive cá nhân, quản lý quyền xem công khai/riêng tư và gán tài liệu vào lộ trình bài học.
+          <p className="text-sm text-slate-500 font-medium mt-1">
+            Liên kết Google Drive cá nhân, quản lý quyền xem và gán tài liệu vào lộ trình bài học
           </p>
         </div>
 
-        {/* Status indicator badge */}
-        <div className="mt-4 md:mt-0 flex items-center gap-2">
+        {/* Status Indicator & Sync Action */}
+        <div className="flex items-center gap-3 mt-2 md:mt-0">
           {account.isConnected ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Đã liên kết Drive</span>
-            </div>
+            <>
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-50/80 border border-emerald-200/80 text-emerald-700 text-xs font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Đã kết nối</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refreshDriveData()}
+                disabled={isLoading}
+                className="bg-white text-slate-700 border-slate-200 hover:bg-slate-50 shadow-xs"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isLoading ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+                Đồng bộ Drive
+              </Button>
+            </>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold">
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold border border-slate-200/80">
               <HardDrive className="w-4 h-4 text-slate-400" />
-              <span>Chưa liên kết</span>
+              <span>Chưa kết nối</span>
             </div>
           )}
         </div>

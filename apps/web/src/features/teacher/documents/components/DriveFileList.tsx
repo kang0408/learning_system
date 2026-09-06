@@ -93,43 +93,43 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
     switch (type) {
       case 'folder':
         return (
-          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0 shadow-xs">
             <Folder className="w-5 h-5 fill-amber-500 text-amber-600" />
           </div>
         );
       case 'pdf':
         return (
-          <div className="w-9 h-9 rounded-xl bg-red-50 text-red-600 border border-red-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0 shadow-xs">
             <FileText className="w-4 h-4" />
           </div>
         );
       case 'docx':
         return (
-          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0 shadow-xs">
             <FileText className="w-4 h-4" />
           </div>
         );
       case 'xlsx':
         return (
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 shadow-xs">
             <FileSpreadsheet className="w-4 h-4" />
           </div>
         );
       case 'pptx':
         return (
-          <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center shrink-0 shadow-xs">
             <Presentation className="w-4 h-4" />
           </div>
         );
       case 'image':
         return (
-          <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0 shadow-xs">
             <ImageIcon className="w-4 h-4" />
           </div>
         );
       default:
         return (
-          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center shrink-0 shadow-xs">
             <File className="w-4 h-4" />
           </div>
         );
@@ -212,7 +212,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
   return (
     <div className="space-y-4">
       {/* Breadcrumbs & Navigation Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-5 py-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-2 text-sm">
           {currentFolderId && (
             <button
@@ -235,7 +235,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                 <React.Fragment key={crumb.id || 'root'}>
                   {idx > 0 && <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />}
                   {isLast ? (
-                    <span className="font-bold text-slate-900 flex items-center gap-1.5 px-2 py-1 bg-slate-100 rounded-lg">
+                    <span className="font-bold text-slate-900 flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 rounded-lg text-xs sm:text-sm">
                       {idx === 0 ? <Folder className="w-3.5 h-3.5 text-indigo-600" /> : <Folder className="w-3.5 h-3.5 text-amber-500" />}
                       {crumb.name}
                     </span>
@@ -243,7 +243,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                     <button
                       type="button"
                       onClick={() => onNavigateToFolder(crumb.id, crumb.name)}
-                      className="text-slate-600 hover:text-indigo-600 font-medium hover:underline flex items-center gap-1"
+                      className="text-slate-600 hover:text-indigo-600 font-medium hover:underline flex items-center gap-1 text-xs sm:text-sm transition-colors"
                     >
                       {idx === 0 && <Folder className="w-3.5 h-3.5 text-indigo-500" />}
                       {crumb.name}
@@ -261,7 +261,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
             variant="outline"
             size="sm"
             onClick={() => setIsFolderModalOpen(true)}
-            className="shadow-xs font-semibold"
+            className="shadow-xs font-semibold bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
           >
             <FolderPlus className="w-4 h-4 mr-1.5 text-amber-600" />
             Tạo thư mục
@@ -282,9 +282,9 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
       </div>
 
       {/* Main Table Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {/* Filters and Controls */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white">
           {/* Search Bar */}
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -293,7 +293,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
               placeholder="Tìm kiếm tài liệu Google Drive theo tên..."
               value={filters.search}
               onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
-              className="w-full pl-10 pr-9 py-2 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
+              className="w-full pl-10 pr-9 py-2 bg-slate-50/60 border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
             />
             {filters.search && (
               <button
@@ -359,17 +359,17 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
           </div>
         </div>
 
-        {/* Tip Banner */}
-        <div className="px-5 py-3 bg-amber-50/70 border-b border-amber-100 flex items-center gap-2.5 text-xs text-amber-800 font-medium">
+        {/* Tip Helper Banner */}
+        <div className="px-5 py-3 bg-amber-50/60 border-b border-amber-100 flex items-center gap-2.5 text-xs text-amber-800 font-medium">
           <Info className="w-4 h-4 text-amber-600 shrink-0" />
           <span>
-            <strong>Mẹo:</strong> Bấm vào thư mục để mở xem các tài liệu bên trong. Bạn có thể bật <strong>Công khai xem</strong> để học sinh mở xem trực tiếp ngay trên trang bài học.
+            <strong>Mẹo:</strong> Nhấn vào thư mục để xem các tài liệu bên trong. Bạn có thể bật <strong>Công khai xem</strong> để học sinh mở xem trực tiếp ngay trên trang bài học.
           </span>
         </div>
 
         {/* Table Content */}
         {files.length === 0 ? (
-          <div className="p-8">
+          <div className="p-12">
             <EmptyState
               title="Thư mục này hiện đang trống"
               description="Bấm 'Tải tệp từ máy' để tải tài liệu lên hoặc 'Tạo thư mục' để gom nhóm bài học."
@@ -379,22 +379,22 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="py-3 px-5">Tên tài liệu / Thư mục</TableHead>
-                  <TableHead className="py-3 px-4 w-32">Kích thước</TableHead>
-                  <TableHead className="py-3 px-4 w-44">Cập nhật</TableHead>
-                  <TableHead className="py-3 px-4 w-52">Quyền xem</TableHead>
-                  <TableHead className="py-3 px-5 text-right w-40">Thao tác</TableHead>
+                <TableRow className="bg-slate-50/70 border-b border-slate-200/70 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <TableHead className="py-3.5 px-6">Tên tài liệu / Thư mục</TableHead>
+                  <TableHead className="py-3.5 px-4 w-32">Kích thước</TableHead>
+                  <TableHead className="py-3.5 px-4 w-44">Cập nhật</TableHead>
+                  <TableHead className="py-3.5 px-4 w-52">Quyền xem</TableHead>
+                  <TableHead className="py-3.5 px-6 text-right w-40">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="divide-y divide-slate-100 text-sm">
                 {files.map((file) => {
                   const isFolder = file.fileType === 'folder';
                   return (
                     <TableRow
                       key={file.id}
-                      className={`hover:bg-slate-50/80 transition-colors ${
-                        isFolder ? 'cursor-pointer bg-amber-50/20' : ''
+                      className={`hover:bg-slate-50/60 transition-colors ${
+                        isFolder ? 'cursor-pointer bg-amber-50/15' : ''
                       }`}
                       onClick={() => {
                         if (isFolder) {
@@ -403,7 +403,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                       }}
                     >
                       {/* Name & Type Icon */}
-                      <TableCell className="py-3 px-5">
+                      <TableCell className="py-3.5 px-6">
                         <div className="flex items-center gap-3">
                           {getFileIcon(file.fileType)}
                           <div className="min-w-0">
@@ -416,7 +416,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                                 {file.name}
                               </p>
                               {isFolder && (
-                                <Badge variant="warning" size="sm">
+                                <Badge variant="warning" size="sm" className="font-semibold">
                                   Thư mục
                                 </Badge>
                               )}
@@ -429,35 +429,34 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                       </TableCell>
 
                       {/* Size */}
-                      <TableCell className="py-3 px-4 text-xs font-mono text-slate-600">
+                      <TableCell className="py-3.5 px-4 text-xs font-mono text-slate-600">
                         {isFolder ? '—' : formatFileSize(file.size)}
                       </TableCell>
 
                       {/* Updated At */}
-                      <TableCell className="py-3 px-4 text-xs text-slate-500 whitespace-nowrap">
+                      <TableCell className="py-3.5 px-4 text-xs font-mono text-slate-500 whitespace-nowrap">
                         {formatDate(file.updatedAt)}
                       </TableCell>
 
                       {/* Public / Private Visibility Toggle */}
                       <TableCell
-                        className="py-3 px-4"
+                        className="py-3.5 px-4"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {isFolder ? (
                           <span className="text-xs text-slate-400 italic">Thư mục nội bộ</span>
                         ) : (
                           <DriveFileVisibilityToggle
-                            fileId={file.id}
                             isPublic={file.isPublic}
                             isLoading={updatingFileId === file.id}
-                            onToggle={onToggleVisibility}
+                            onToggle={() => onToggleVisibility(file.id)}
                           />
                         )}
                       </TableCell>
 
                       {/* Actions */}
                       <TableCell
-                        className="py-3 px-5 text-right"
+                        className="py-3.5 px-6 text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="inline-flex items-center gap-1">
@@ -466,7 +465,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                               variant="outline"
                               size="sm"
                               onClick={() => onNavigateToFolder(file.id, file.name)}
-                              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 bg-white border-slate-200"
                             >
                               Mở thư mục
                             </Button>
@@ -504,7 +503,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                             type="button"
                             onClick={() => onDeleteFile(file.id)}
                             title="Xóa khỏi danh sách"
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors ml-1"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -519,10 +518,10 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
         )}
       </div>
 
-      {/* Upload File Modal (with Real Computer File Picker) */}
+      {/* Upload File Modal */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-lg w-full p-6 space-y-5">
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 max-w-lg w-full p-6 space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="font-bold text-lg text-slate-900">
@@ -534,7 +533,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
               </div>
               <button
                 onClick={() => setIsUploadModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -573,7 +572,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                 ) : (
                   <div className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-200/80 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0 shadow-xs">
                         <FileText className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
@@ -588,7 +587,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                     <button
                       type="button"
                       onClick={() => setSelectedFile(null)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Chọn tệp khác"
                     >
                       <X className="w-4 h-4" />
@@ -597,8 +596,8 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                 )}
               </div>
 
-              {/* Public Visibility Checkbox */}
-              <div className="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-2">
+              {/* Public Visibility Checkbox Card */}
+              <div className="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200/80 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-emerald-900">
                     Bật quyền xem công khai (Khuyên dùng)
@@ -616,12 +615,13 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
               </div>
 
               {/* Modal Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-3">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsUploadModalOpen(false)}
+                  className="border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   Hủy
                 </Button>
@@ -630,6 +630,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                   variant="primary"
                   size="sm"
                   disabled={!selectedFile || isUploading}
+                  className="font-bold shadow-xs"
                 >
                   {isUploading ? 'Đang tải lên...' : 'Tải lên Google Drive'}
                 </Button>
@@ -642,10 +643,10 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
       {/* Create Folder Modal */}
       {isFolderModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 max-w-sm w-full p-6 space-y-5">
+          <div className="bg-white rounded-3xl shadow-xl border border-slate-100 max-w-sm w-full p-6 space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-xs">
                   <FolderPlus className="w-4 h-4" />
                 </div>
                 <h3 className="font-bold text-base text-slate-900">
@@ -654,7 +655,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
               </div>
               <button
                 onClick={() => setIsFolderModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -672,20 +673,21 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                   placeholder="Ví dụ: IELTS Listening, Giáo án Unit 1..."
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-xs"
+                  className="w-full px-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-xs"
                 />
               </div>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Thư mục sẽ được tạo trực tiếp bên trong <strong>{breadcrumbs[breadcrumbs.length - 1]?.name}</strong> trên Google Drive của bạn.
               </p>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setIsFolderModalOpen(false)}
+                  className="border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   Hủy
                 </Button>
@@ -694,6 +696,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                   variant="primary"
                   size="sm"
                   disabled={!newFolderName.trim() || isCreatingFolder}
+                  className="font-bold shadow-xs"
                 >
                   {isCreatingFolder ? 'Đang tạo...' : 'Tạo thư mục'}
                 </Button>
