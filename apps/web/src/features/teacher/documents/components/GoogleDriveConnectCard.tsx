@@ -2,6 +2,7 @@ import React from 'react';
 import { HardDrive, RefreshCw, Unplug, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { formatStorageUsage } from '../utils/driveFormatters';
 import type { GoogleDriveAccount } from '../types/drive.types';
 
 interface GoogleDriveConnectCardProps {
@@ -19,20 +20,7 @@ export const GoogleDriveConnectCard: React.FC<GoogleDriveConnectCardProps> = ({
   onDisconnect,
   onRefresh,
 }) => {
-  const formatBytes = (bytes?: number) => {
-    if (!bytes || bytes === 0) return '0 MB';
-    const mb = bytes / (1024 * 1024);
-    if (mb < 1024) {
-      return `${mb.toFixed(1)} MB`;
-    }
-    const gb = bytes / (1024 * 1024 * 1024);
-    return `${gb.toFixed(2)} GB`;
-  };
-
-  const usagePercent =
-    account.storageUsed && account.storageTotal
-      ? Math.min(100, Math.max(1, Math.round((account.storageUsed / account.storageTotal) * 100)))
-      : 0;
+  const storage = formatStorageUsage(account.storageUsed, account.storageTotal);
 
   if (!account.isConnected) {
     return (
@@ -124,15 +112,15 @@ export const GoogleDriveConnectCard: React.FC<GoogleDriveConnectCardProps> = ({
               )}
             </span>
             <span className="text-slate-900 font-mono text-xs">
-              {formatBytes(account.storageUsed)} / {formatBytes(account.storageTotal || 15 * 1024 * 1024 * 1024)} ({usagePercent}%)
+              {storage.usedText} / {storage.totalText} ({storage.percentText})
             </span>
           </div>
           <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                usagePercent > 85 ? 'bg-rose-500' : usagePercent > 65 ? 'bg-amber-500' : 'bg-indigo-600'
+                storage.percentValue > 85 ? 'bg-rose-500' : storage.percentValue > 65 ? 'bg-amber-500' : 'bg-indigo-600'
               }`}
-              style={{ width: `${Math.max(usagePercent, account.storageUsed ? 1 : 0)}%` }}
+              style={{ width: `${storage.percentValue}%` }}
             />
           </div>
         </div>

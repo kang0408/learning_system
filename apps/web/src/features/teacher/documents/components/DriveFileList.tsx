@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/Table';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { DriveFileVisibilityToggle } from './DriveFileVisibilityToggle';
+import { formatBytes } from '../utils/driveFormatters';
 import type { GoogleDriveFile, DriveFilterOptions, GoogleDriveFileType } from '../types/drive.types';
 
 interface DriveFileListProps {
@@ -162,10 +163,7 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
 
   const formatFileSize = (bytes: number) => {
     if (!bytes || bytes === 0) return '—';
-    const kb = bytes / 1024;
-    if (kb < 1024) return `${kb.toFixed(1)} KB`;
-    const mb = kb / 1024;
-    return `${mb.toFixed(1)} MB`;
+    return formatBytes(bytes);
   };
 
   const formatDate = (isoString: string) => {

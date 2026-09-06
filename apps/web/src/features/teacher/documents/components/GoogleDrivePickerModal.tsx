@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Select, type SelectOption } from '@/components/ui/Select';
 import { useGoogleDrive } from '../hooks/useGoogleDrive';
+import { formatBytes } from '../utils/driveFormatters';
 import type { GoogleDriveFile, GoogleDriveFileType } from '../types/drive.types';
 
 interface GoogleDrivePickerModalProps {
@@ -110,10 +111,8 @@ export const GoogleDrivePickerModal: React.FC<GoogleDrivePickerModalProps> = ({
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes) return '0 B';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (!bytes || bytes === 0) return '0 B';
+    return formatBytes(bytes);
   };
 
   const handleSelect = async (file: GoogleDriveFile) => {
