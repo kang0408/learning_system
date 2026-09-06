@@ -165,9 +165,9 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-slate-50/40 rounded-3xl border border-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Header */}
-      <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
+      <div className="p-5 sm:p-6 border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/80">
         <div>
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-indigo-600" aria-hidden="true" /> {t('teacher.classDetail.manageAssignments')}
@@ -175,7 +175,7 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
           <p className="text-sm text-slate-500 mt-1 font-medium">{t('teacher.classDetail.assignmentsDesc')}</p>
         </div>
         <Link to={`/teacher/classes/${classId}/assignments/new`} className="w-full sm:w-auto">
-          <Button variant="primary" size="md" className="w-full sm:w-auto">
+          <Button variant="primary" size="md" className="w-full sm:w-auto shadow-xs">
             <Plus className="w-4 h-4 mr-2" /> {t('teacher.classDetail.createNewAssignment')}
           </Button>
         </Link>
@@ -184,7 +184,7 @@ export function AssignmentsTab({ assignments, classId }: AssignmentsTabProps) {
       {assignments && assignments.length > 0 ? (
         <>
           {/* Search & Filter Toolbar */}
-          <div className="p-4 sm:px-6 border-b border-gray-100 bg-white flex flex-col xl:flex-row gap-3 justify-between items-stretch xl:items-center">
+          <div className="p-4 sm:px-6 border-b border-slate-200/60 bg-white/70 flex flex-col xl:flex-row gap-3 justify-between items-stretch xl:items-center">
             <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 flex-1">
               {/* Search Bar */}
               <div className="relative flex-1 min-w-[200px] max-w-md">

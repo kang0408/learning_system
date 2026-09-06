@@ -54,21 +54,21 @@ export const TeacherClassDetailFeature: React.FC = () => {
 
   if (!classDetails) {
     return (
-      <div className="max-w-md mx-auto my-12 bg-white border-4 border-zinc-900 shadow-[8px_8px_0px_0px_rgba(24,24,27,1)] rounded-none p-8 text-center animate-in fade-in zoom-in-95 duration-500">
-        <h3 className="text-2xl font-black uppercase tracking-tight text-zinc-900 mb-2">{t('teacher.classDetail.classNotFound')}</h3>
-        <p className="text-zinc-500 font-bold uppercase tracking-wider mb-8">{t('teacher.classDetail.cannotLoadClass')}</p>
+      <div className="max-w-md mx-auto my-12 bg-slate-50 border border-slate-200 shadow-sm rounded-3xl p-8 text-center animate-in fade-in zoom-in-95 duration-300">
+        <h3 className="text-xl font-bold tracking-tight text-slate-900 mb-2">{t('teacher.classDetail.classNotFound')}</h3>
+        <p className="text-slate-500 font-medium text-sm mb-6">{t('teacher.classDetail.cannotLoadClass')}</p>
         <Link 
           to="/teacher" 
-          className="inline-flex items-center px-6 py-4 bg-zinc-900 text-white font-black uppercase tracking-widest border-2 border-zinc-900 hover:bg-indigo-600 transition-colors shadow-[4px_4px_0px_0px_rgba(24,24,27,1)] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]"
+          className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-xs"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" /> {t('teacher.classDetail.back')}
+          <ArrowLeft className="w-4 h-4 mr-2" /> {t('teacher.classDetail.back')}
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="space-y-12 max-w-8xl mx-auto px-4 sm:px-6 mb-16 animate-in fade-in duration-700 slide-in-from-bottom-4">
+    <div className="space-y-8 w-full animate-in fade-in duration-300">
       <ClassHeader 
         classDetails={classDetails} 
         activeTab={activeTab} 

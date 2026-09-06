@@ -21,8 +21,8 @@ export const TeacherPageLoading: React.FC<{ className?: string; size?: 'sm' | 'm
   };
 
   return (
-    <div className={cn('flex flex-1 min-h-[calc(100vh-10rem)] w-full items-center justify-center', className)}>
-      <Loader2 className={cn('animate-spin text-slate-800', sizeClasses[size])} />
+    <div className={cn('flex flex-1 flex-col min-h-[50vh] md:min-h-[65vh] h-full w-full items-center justify-center m-auto p-8', className)}>
+      <Loader2 className={cn('animate-spin text-indigo-600', sizeClasses[size])} />
     </div>
   );
 };

@@ -116,11 +116,11 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
       </div>
 
       {classStats?.sm2_summary && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-slate-50/40 rounded-3xl border border-slate-200/80 p-6">
           <div className="mb-6 flex justify-between items-end">
             <div>
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <BarChart2 className="w-5 h-5 text-purple-600" aria-hidden="true" /> {t('teacher.classDetail.sm2Status')}
+                <BarChart2 className="w-5 h-5 text-indigo-600" aria-hidden="true" /> {t('teacher.classDetail.sm2Status')}
               </h2>
               <p className="text-sm text-slate-500 mt-1 font-medium">
                 {t('teacher.classDetail.sm2Overview', { total: classStats.sm2_summary.total_questions })}
@@ -168,10 +168,10 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+      <div className="bg-slate-50/40 rounded-3xl border border-slate-200/80 p-6">
         <div className="mb-4">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-slate-900" aria-hidden="true" /> {t('teacher.classDetail.accuracyByTopic')}
+            <BarChart2 className="w-5 h-5 text-indigo-600" aria-hidden="true" /> {t('teacher.classDetail.accuracyByTopic')}
           </h2>
           <p className="text-sm text-slate-500 mt-1 font-medium">
             {t('teacher.classDetail.clickChartToViewDetails')}
