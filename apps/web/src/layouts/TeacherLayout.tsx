@@ -1,5 +1,5 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 import { Users, FileText, LogOut, Menu, X, User as UserIcon, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
@@ -37,6 +37,15 @@ export default function TeacherLayout() {
     }
   }, [token, login, logout, navigate]);
 
+  const location = useLocation();
+  const navRef = useRef<HTMLElement>(null);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState<{ top: number; height: number; opacity: number }>({
+    top: 0,
+    height: 0,
+    opacity: 0,
+  });
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -47,6 +56,53 @@ export default function TeacherLayout() {
     { to: '/teacher/questions', icon: FileText, label: t('layout.teacher.nav.questionBank') },
     { to: '/teacher/profile', icon: UserIcon, label: t('layout.teacher.nav.profile') },
   ];
+
+  const activeIndex = navItems.findIndex((item) => {
+    if (item.to === '/teacher/classes') {
+      return location.pathname.startsWith('/teacher/classes') || location.pathname === '/teacher';
+    }
+    return location.pathname.startsWith(item.to);
+  });
+
+  useEffect(() => {
+    const updateIndicator = () => {
+      if (activeIndex !== -1 && itemRefs.current[activeIndex] && navRef.current) {
+        const activeEl = itemRefs.current[activeIndex];
+        const navEl = navRef.current;
+        if (activeEl && navEl) {
+          const navRect = navEl.getBoundingClientRect();
+          const activeRect = activeEl.getBoundingClientRect();
+          setIndicatorStyle({
+            top: activeRect.top - navRect.top,
+            height: activeRect.height,
+            opacity: 1,
+          });
+        }
+      } else {
+        setIndicatorStyle((prev) => ({ ...prev, opacity: 0 }));
+      }
+    };
+
+    updateIndicator();
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (navRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        updateIndicator();
+      });
+      resizeObserver.observe(navRef.current);
+      if (activeIndex !== -1 && itemRefs.current[activeIndex]) {
+        resizeObserver.observe(itemRefs.current[activeIndex]!);
+      }
+    }
+
+    const frameId = requestAnimationFrame(updateIndicator);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      resizeObserver?.disconnect();
+    };
+  }, [activeIndex, isSidebarCollapsed, location.pathname]);
 
   const avatarUrl = user?.avatar_url ? `${import.meta.env.VITE_API_URL}${user.avatar_url}` : undefined;
 
@@ -133,36 +189,46 @@ export default function TeacherLayout() {
 
           {/* Navigation Items */}
           <div className={`flex-1 ${isSidebarCollapsed ? 'overflow-visible' : 'overflow-y-auto overflow-x-hidden'}`}>
-            <nav className="space-y-1.5 flex flex-col w-full px-1">
-              {navItems.map((item) => {
+            <nav ref={navRef} className="relative space-y-1.5 flex flex-col w-full px-1">
+              {/* Sliding Active Background Pill */}
+              <div
+                aria-hidden="true"
+                className="absolute left-1 right-1 rounded-2xl bg-white border border-slate-200/80 shadow-xs shadow-indigo-950/5 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] z-0"
+                style={{
+                  transform: `translateY(${indicatorStyle.top}px)`,
+                  height: `${indicatorStyle.height}px`,
+                  opacity: indicatorStyle.opacity,
+                  top: 0,
+                }}
+              />
+
+              {navItems.map((item, idx) => {
                 const Icon = item.icon;
+                const isActive = activeIndex === idx;
                 return (
                   <Tooltip key={item.to} content={isSidebarCollapsed ? item.label : undefined} position="right" className="w-full flex">
                     <NavLink
                       to={item.to}
+                      ref={(el) => {
+                        itemRefs.current[idx] = el;
+                      }}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={({ isActive }) =>
-                        `relative flex items-center ${
-                          isSidebarCollapsed ? 'justify-center px-0 py-3' : 'px-3.5 py-2.5'
-                        } text-sm font-semibold rounded-2xl transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group w-full border ${
-                          isActive
-                            ? 'bg-white text-indigo-600 shadow-sm border-slate-200/80 shadow-indigo-950/5'
-                            : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-white/60'
-                        }`
-                      }
+                      className={`relative z-10 flex items-center ${
+                        isSidebarCollapsed ? 'justify-center px-0 py-3' : 'px-3.5 py-2.5'
+                      } text-sm font-semibold rounded-2xl transition-colors duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group w-full border border-transparent ${
+                        isActive
+                          ? 'text-indigo-600'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                      }`}
                     >
-                      {({ isActive }) => (
-                        <>
-                          <Icon className={`w-5 h-5 transition-transform duration-200 ease-out flex-shrink-0 ${!isSidebarCollapsed ? 'mr-3' : ''} ${
-                            isActive ? 'text-indigo-600 scale-105' : 'text-slate-400 group-hover:text-indigo-600 group-hover:scale-105'
-                          }`} />
-                          <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap ${isSidebarCollapsed ? 'w-0 opacity-0 hidden' : 'flex-1 opacity-100'}`}>
-                            {item.label}
-                          </div>
-                          {isActive && !isSidebarCollapsed && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 ml-2" />
-                          )}
-                        </>
+                      <Icon className={`w-5 h-5 transition-transform duration-200 ease-out flex-shrink-0 ${!isSidebarCollapsed ? 'mr-3' : ''} ${
+                        isActive ? 'text-indigo-600 scale-105' : 'text-slate-400 group-hover:text-indigo-600 group-hover:scale-105'
+                      }`} />
+                      <div className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] whitespace-nowrap ${isSidebarCollapsed ? 'w-0 opacity-0 hidden' : 'flex-1 opacity-100'}`}>
+                        {item.label}
+                      </div>
+                      {isActive && !isSidebarCollapsed && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 ml-2 animate-in fade-in zoom-in duration-200" />
                       )}
                     </NavLink>
                   </Tooltip>
