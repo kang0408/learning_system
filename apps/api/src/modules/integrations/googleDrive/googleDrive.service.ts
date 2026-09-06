@@ -462,4 +462,29 @@ export class GoogleDriveService {
       return true;
     }
   }
+
+  public async deleteFile(teacherId: string, fileId: string): Promise<boolean> {
+    const accessToken = await this.getValidAccessToken(teacherId);
+    if (!accessToken) {
+      throw new Error('Chưa liên kết Google Drive');
+    }
+
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (res.status === 204 || res.status === 200) {
+      return true;
+    }
+
+    if (!res.ok) {
+      const errData = (await res.json().catch(() => ({}))) as any;
+      throw new Error(errData?.error?.message || 'Không thể xóa tệp/thư mục trên Google Drive');
+    }
+
+    return true;
+  }
 }

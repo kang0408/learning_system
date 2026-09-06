@@ -233,11 +233,30 @@ export function useGoogleDrive() {
     }
   }, []);
 
-  // Delete file
-  const deleteFile = useCallback(async (fileId: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== fileId));
-    toast.success('Đã xóa tài liệu khỏi danh sách');
-  }, []);
+  // Delete file or folder from Google Drive
+  const deleteFile = useCallback(
+    async (fileId: string): Promise<boolean> => {
+      setIsLoading(true);
+      try {
+        await api.delete(`/api/integrations/google-drive/files/${encodeURIComponent(fileId)}`);
+        setFiles((prev) => prev.filter((f) => f.id !== fileId));
+        toast.success('Đã xóa thành công khỏi Google Drive');
+        refreshDriveData();
+        return true;
+      } catch (err: any) {
+        if (err?.response?.status === 401 || err?.response?.data?.error?.includes('Chưa liên kết')) {
+          setAccount({ isConnected: false });
+          toast.error('Chưa liên kết Google Drive hoặc phiên làm việc đã hết hạn. Vui lòng liên kết lại.');
+        } else {
+          toast.error(err?.response?.data?.error || 'Lỗi khi xóa tệp trên Google Drive');
+        }
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [refreshDriveData]
+  );
 
   // Upload real file from computer using FormData
   const uploadFile = useCallback(

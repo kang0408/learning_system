@@ -45,6 +45,9 @@ router.post(
 // Toggle file visibility (Public / Private)
 router.post('/files/visibility', requireAuth, requireRole(['teacher']), asyncWrapper(googleDriveController.toggleVisibility));
 
+// Delete a file or folder from Google Drive
+router.delete('/files/:fileId', requireAuth, requireRole(['teacher']), asyncWrapper(googleDriveController.deleteFile));
+
 // Disconnect
 router.post('/disconnect', requireAuth, requireRole(['teacher']), asyncWrapper(googleDriveController.disconnect));
 

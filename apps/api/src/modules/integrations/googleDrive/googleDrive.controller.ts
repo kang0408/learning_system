@@ -162,6 +162,26 @@ export class GoogleDriveController {
     }
   };
 
+  deleteFile = async (req: AuthRequest, res: Response) => {
+    const teacherId = req.user?.userId || '';
+    const fileId = (req.params.fileId || req.body.fileId) as string;
+
+    if (!fileId) {
+      return res.status(400).json({ success: false, error: 'Thiếu fileId cần xóa' });
+    }
+
+    try {
+      await this.service.deleteFile(teacherId, fileId);
+      return res.json({
+        success: true,
+        message: 'Đã xóa thành công khỏi Google Drive',
+      });
+    } catch (err: any) {
+      const isAuthErr = err.message?.includes('Chưa liên kết Google Drive');
+      return res.status(isAuthErr ? 401 : 500).json({ success: false, error: err.message });
+    }
+  };
+
   disconnect = async (req: AuthRequest, res: Response) => {
     const teacherId = req.user?.userId || '';
     this.service.removeTokens(teacherId);

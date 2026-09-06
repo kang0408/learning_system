@@ -20,6 +20,7 @@ import {
   ChevronRight,
   ArrowLeft,
   UploadCloud,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -44,7 +45,7 @@ interface DriveFileListProps {
   filters: DriveFilterOptions;
   onFilterChange: (newFilters: DriveFilterOptions) => void;
   onToggleVisibility: (fileId: string) => Promise<boolean>;
-  onDeleteFile: (fileId: string) => void;
+  onDeleteFile: (fileId: string) => Promise<any> | void;
   onUploadFile: (file: File, isPublic?: boolean) => Promise<any>;
   currentFolderId: string | null;
   breadcrumbs: Array<{ id: string | null; name: string }>;
@@ -85,6 +86,10 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
   setIsFolderOpenExternal,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Delete Confirmation State
+  const [fileToDelete, setFileToDelete] = useState<GoogleDriveFile | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Upload Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -226,8 +231,15 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
       await onCreateFolder(newFolderName.trim());
       setIsFolderModalOpen(false);
       setNewFolderName('');
+  // Delete confirmation handler
+  const handleConfirmDelete = async () => {
+    if (!fileToDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteFile(fileToDelete.id);
+      setFileToDelete(null);
     } finally {
-      setIsCreatingFolder(false);
+      setIsDeleting(false);
     }
   };
 
@@ -496,8 +508,8 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                         {/* Delete File / Folder */}
                         <button
                           type="button"
-                          onClick={() => onDeleteFile(file.id)}
-                          title="Xóa khỏi danh sách"
+                          onClick={() => setFileToDelete(file)}
+                          title={isFolder ? 'Xóa thư mục khỏi Google Drive' : 'Xóa tài liệu khỏi Google Drive'}
                           className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-0.5"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -702,6 +714,67 @@ export const DriveFileList: React.FC<DriveFileListProps> = ({
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {fileToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-md w-full p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0 shadow-xs">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-base text-slate-900">
+                  {fileToDelete.fileType === 'folder' ? 'Xác nhận xóa thư mục' : 'Xác nhận xóa tài liệu'}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed font-normal">
+                  Bạn có chắc chắn muốn xóa{' '}
+                  <strong className="text-slate-800 font-semibold truncate inline-block max-w-[260px] align-bottom">
+                    "{fileToDelete.name}"
+                  </strong>{' '}
+                  khỏi Google Drive không?
+                  {fileToDelete.fileType === 'folder' && (
+                    <span className="block mt-1.5 text-amber-600 font-medium">
+                      * Lưu ý: Thư mục và tất cả các tệp con bên trong sẽ bị xóa trên Google Drive.
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setFileToDelete(null)}
+                disabled={isDeleting}
+                className="border-slate-200 text-slate-700"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-xs border-rose-600"
+              >
+                {isDeleting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1.5" /> Đang xóa...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Xóa vĩnh viễn
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       )}
