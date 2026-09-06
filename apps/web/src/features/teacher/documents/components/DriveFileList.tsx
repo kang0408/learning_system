@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Select, SelectOption } from '@/components/ui/Select';
+import { Select, type SelectOption } from '@/components/ui/Select';
 import {
   Table,
   TableHeader,
