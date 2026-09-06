@@ -18,21 +18,21 @@ export const QuestionBankHeader: React.FC<QuestionBankHeaderProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition duration-300">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-100 gap-4">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">{t('teacher.questionBank.header.title')}</h1>
-          <Badge variant="warning" size="md">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">{t('teacher.questionBank.header.title')}</h1>
+          <Badge variant="indigo" size="md" className="font-bold">
             {t('teacher.questionBank.header.topicCount', { count: totalTopics })}
           </Badge>
         </div>
         <p className="text-sm text-slate-500 font-medium mt-1">{t('teacher.questionBank.header.description')}</p>
       </div>
-      <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
+      <div className="flex flex-wrap gap-3 mt-2 md:mt-0">
         <Button
           variant="outline"
           size="md"
-          className="bg-indigo-50/70 text-indigo-700 border-indigo-200 hover:bg-indigo-100/80"
+          className="bg-indigo-50/70 text-indigo-700 border-indigo-200 hover:bg-indigo-100/80 shadow-xs"
           onClick={onOpenCreateTopic}
         >
           <Folder className="w-4 h-4 mr-2 text-indigo-600" /> {t('teacher.questionBank.header.createTopic')}
@@ -40,6 +40,7 @@ export const QuestionBankHeader: React.FC<QuestionBankHeaderProps> = ({
         <Button
           variant="primary"
           size="md"
+          className="shadow-xs"
           onClick={onOpenCreateQuestion}
         >
           <Plus className="w-4 h-4 mr-2" /> {t('teacher.questionBank.header.createQuestion')}

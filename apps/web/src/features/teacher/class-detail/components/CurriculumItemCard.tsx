@@ -90,7 +90,7 @@ export const CurriculumItemCard: React.FC<CurriculumItemCardProps> = ({
         </div>
 
         {/* Number Index */}
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-900 text-white font-bold text-xs shrink-0 shadow-sm">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-bold text-xs shrink-0 shadow-xs">
           #{index + 1}
         </div>
 

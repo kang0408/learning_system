@@ -10,7 +10,7 @@ export default function TeacherClassNewAssignmentFeature() {
   const { data } = useNewAssignmentData(classId);
 
   return (
-    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6">
+    <div className="space-y-6 sm:space-y-8 w-full">
       <NewAssignmentHeader classId={classId} />
       <NewAssignmentForm classId={classId} topics={data.topics} members={data.members} />
     </div>

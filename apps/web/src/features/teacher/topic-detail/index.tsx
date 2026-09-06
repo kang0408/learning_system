@@ -93,7 +93,7 @@ export default function TeacherTopicDetailFeature() {
   };
 
   return (
-    <div className="space-y-8 max-w-8xl mx-auto px-4 sm:px-6">
+    <div className="space-y-6 sm:space-y-8 w-full">
       <TopicDetailHeader
         topic={topic}
         onOpenEditTopic={() => setShowEditTopicModal(true)}

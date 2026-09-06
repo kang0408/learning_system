@@ -11,7 +11,6 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import { Server, HardDrive, Cpu, Clock, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SystemMetrics } from '../types';
 
@@ -68,7 +67,7 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
   }, [metrics, i18n.language]);
 
   if (loading || !metrics) {
-    return <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 animate-pulse h-80" />;
+    return <div className="bg-white rounded-2xl p-6 border border-slate-200/80 animate-pulse h-80" />;
   }
 
   const { memory, uptimeSeconds, cpuUsageUserMs, cpuUsageSystemMs, nodeVersion, platform } = metrics.server;
@@ -90,22 +89,22 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
       {
         label: t('adminAnalytics.serverMemory.heapUsed', 'RAM Đang Dùng'),
         data: chartDataPoints,
-        borderColor: '#4f46e5',
-        backgroundColor: 'rgba(79, 70, 229, 0.12)',
-        borderWidth: 2.5,
+        borderColor: '#475569',
+        backgroundColor: 'rgba(71, 85, 105, 0.08)',
+        borderWidth: 2,
         tension: 0.35,
         fill: true,
-        pointBackgroundColor: '#4f46e5',
+        pointBackgroundColor: '#475569',
         pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        pointRadius: 3.5,
+        pointBorderWidth: 1.5,
+        pointRadius: 3,
       },
       {
         label: t('adminAnalytics.serverMemory.threshold85', 'Ngưỡng cảnh báo 85%'),
         data: chartWarningThreshold,
-        borderColor: 'rgba(239, 68, 68, 0.6)',
+        borderColor: 'rgba(239, 68, 68, 0.5)',
         borderWidth: 1.5,
-        borderDash: [5, 5],
+        borderDash: [4, 4],
         fill: false,
         pointRadius: 0,
       },
@@ -120,9 +119,9 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleFont: { family: "'Inter', sans-serif", size: 12, weight: 700 },
-        bodyFont: { family: "'Inter', sans-serif", size: 12 },
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        titleFont: { size: 12, weight: 'bold' },
+        bodyFont: { size: 12 },
         padding: 10,
         cornerRadius: 8,
         callbacks: {
@@ -133,13 +132,13 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { font: { size: 10, weight: '600' }, color: '#94a3b8', maxRotation: 0 },
+        ticks: { font: { size: 10 }, color: '#94a3b8', maxRotation: 0 },
       },
       y: {
         beginAtZero: false,
         grid: { color: 'rgba(226, 232, 240, 0.6)' },
         ticks: {
-          font: { size: 10, weight: '600' },
+          font: { size: 10 },
           color: '#94a3b8',
           callback: (value: any) => `${value} MB`,
         },
@@ -148,44 +147,34 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 hover:shadow-md transition-all flex flex-col justify-between">
+    <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
       {/* Card Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
-            <Server className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-tight">
-              {t('adminAnalytics.serverMemory.title', 'Hiệu Năng Máy Chủ')}
-            </h3>
-            <p className="text-[11px] font-semibold text-slate-400">
-              {t('adminAnalytics.serverMemory.subtitle', 'Bộ nhớ RAM Heap & Thời gian CPU theo thời gian thực')}
-            </p>
-          </div>
+        <div>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            {t('adminAnalytics.serverMemory.title', 'Hiệu Năng Máy Chủ')}
+          </h3>
+          <p className="text-sm font-semibold text-slate-900 mt-0.5">
+            {t('adminAnalytics.serverMemory.subtitle', 'Bộ nhớ RAM Heap & Thời gian CPU')}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-lg border border-slate-200">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <span>{t('adminAnalytics.serverMemory.uptime', 'Thời gian hoạt động')}: {uptimeString}</span>
+          <span className="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-md">
+            {t('adminAnalytics.serverMemory.uptime', 'Uptime')}: <strong className="text-slate-900">{uptimeString}</strong>
           </span>
         </div>
       </div>
 
       {/* Chart Section */}
-      <div className="my-4 bg-slate-50/70 p-3 rounded-xl border border-slate-100">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-            <HardDrive className="w-4 h-4 text-indigo-600" />
-            <span>{t('adminAnalytics.serverMemory.chartTitle', 'Biểu đồ bộ nhớ RAM Heap')}</span>
-          </div>
+      <div className="my-4 bg-slate-50/70 p-4 rounded-xl border border-slate-100">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-semibold text-slate-600">{t('adminAnalytics.serverMemory.chartTitle', 'Bộ nhớ RAM Heap')}</span>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
+            <span className="text-sm font-bold font-mono text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded">
               {memory.heapUsedMB} MB
             </span>
-            <span className="text-[11px] font-semibold text-slate-400">
+            <span className="text-xs text-slate-400 font-mono">
               / {memory.heapTotalMB} MB ({heapPct}%)
             </span>
           </div>
@@ -196,28 +185,24 @@ export const ServerMemoryCard: React.FC<Props> = ({ metrics, loading }) => {
       </div>
 
       {/* CPU & Node Runtime Footer */}
-      <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-3 text-xs font-semibold text-slate-500">
-        <div className="flex items-center gap-2">
-          <Cpu className="w-4 h-4 text-indigo-500 shrink-0" />
-          <div>
-            <span className="text-[10px] uppercase text-slate-400 block">
-              {t('adminAnalytics.serverMemory.cpuTime', 'Thời gian CPU')}
-            </span>
-            <strong className="text-slate-900 font-mono">
-              {Math.round(cpuUsageUserMs / 1000)}s / {Math.round(cpuUsageSystemMs / 1000)}s
-            </strong>
-          </div>
+      <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-3 text-xs text-slate-500">
+        <div>
+          <span className="text-[10px] uppercase text-slate-400 block font-bold">
+            {t('adminAnalytics.serverMemory.cpuTime', 'Thời gian CPU')}
+          </span>
+          <strong className="text-slate-900 font-mono font-semibold">
+            {Math.round(cpuUsageUserMs / 1000)}s / {Math.round(cpuUsageSystemMs / 1000)}s
+          </strong>
         </div>
 
-        <div className="flex items-center gap-2 justify-end">
-          <div className="text-right">
-            <span className="text-[10px] uppercase text-slate-400 block">
-              {t('adminAnalytics.serverMemory.runtime', 'Môi trường thực thi')}
-            </span>
-            <strong className="text-slate-900 font-mono">{nodeVersion} - {platform}</strong>
-          </div>
+        <div className="text-right">
+          <span className="text-[10px] uppercase text-slate-400 block font-bold">
+            {t('adminAnalytics.serverMemory.runtime', 'Môi trường')}
+          </span>
+          <strong className="text-slate-900 font-mono font-semibold">{nodeVersion} - {platform}</strong>
         </div>
       </div>
     </div>
   );
 };
+

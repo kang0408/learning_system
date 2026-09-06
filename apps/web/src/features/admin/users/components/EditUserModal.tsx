@@ -81,64 +81,79 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
   return (
     <>
       <Dialog isOpen={isOpen} onClose={onClose} title={t('adminUsers.editModal.title', 'Chỉnh sửa thông tin người dùng')}>
-        <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600">
-          {t('adminUsers.editModal.emailReadOnly', 'Email')}: <strong className="text-slate-900 font-bold">{user.email}</strong>
+        <div className="mb-4 p-3 bg-slate-50/80 rounded-xl border border-slate-200/80 text-xs text-slate-600 flex items-center justify-between">
+          <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+            {t('adminUsers.editModal.emailReadOnly', 'Email')}
+          </span>
+          <span className="text-slate-900 font-mono font-semibold text-xs">{user.email}</span>
         </div>
 
         {isSelf && (
-          <div className="mb-4 p-3 bg-amber-50 text-amber-700 text-xs font-bold rounded-xl border border-amber-200 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {t('adminUsers.editModal.selfEditWarning', 'Bạn đang sửa tài khoản Admin của chính mình.')}
+          <div className="mb-4 p-3 bg-amber-50/80 text-amber-800 text-xs font-medium rounded-xl border border-amber-200/80 flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <span>{t('adminUsers.editModal.selfEditWarning', 'Bạn đang sửa tài khoản Admin của chính mình.')}</span>
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-rose-50 text-rose-700 text-xs font-bold rounded-xl border border-rose-200">
+          <div className="mb-4 p-3 bg-rose-50/90 text-rose-800 text-xs font-semibold rounded-xl border border-rose-200">
             {error}
           </div>
         )}
 
         <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.fullName', 'Họ và tên')} (*)</Label>
+            <Label className="mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider block">
+              {t('adminUsers.editModal.fullName', 'Họ và tên')} <span className="text-rose-500 font-mono">*</span>
+            </Label>
             <Input
               type="text"
               required
               value={formData.full_name}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+              className="bg-slate-50/50 border-slate-200 focus:bg-white text-sm"
             />
           </div>
 
           <div>
-            <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.role', 'Vai trò')} (*)</Label>
+            <Label className="mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider block">
+              {t('adminUsers.editModal.role', 'Vai trò')} <span className="text-rose-500 font-mono">*</span>
+            </Label>
             <Select
               value={formData.role}
               onChange={(val) => setFormData({ ...formData, role: val })}
               options={roleOptions}
+              className="bg-slate-50/50 border-slate-200 focus:bg-white text-sm"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.phone', 'Số điện thoại')}</Label>
+              <Label className="mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                {t('adminUsers.editModal.phone', 'Số điện thoại')}
+              </Label>
               <Input
                 type="text"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="bg-slate-50/50 border-slate-200 focus:bg-white text-sm font-mono"
               />
             </div>
             <div>
-              <Label className="mb-1.5 font-bold text-slate-700">{t('adminUsers.editModal.address', 'Địa chỉ')}</Label>
+              <Label className="mb-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider block">
+                {t('adminUsers.editModal.address', 'Địa chỉ')}
+              </Label>
               <Input
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="bg-slate-50/50 border-slate-200 focus:bg-white text-sm"
               />
             </div>
           </div>
 
           {/* Active Status Switch Component */}
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80">
             <Switch
               checked={formData.is_active}
               onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
@@ -154,6 +169,7 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
               type="button"
               variant="outline"
               onClick={onClose}
+              className="border-slate-200 text-slate-700 hover:bg-slate-50"
             >
               {t('adminUsers.editModal.cancel', 'Hủy')}
             </Button>
@@ -161,6 +177,7 @@ export const EditUserModal: React.FC<Props> = ({ isOpen, user, onClose, onSubmit
               type="submit"
               variant="primary"
               isLoading={loading}
+              className="bg-slate-900 hover:bg-slate-800 text-white font-semibold shadow-xs"
             >
               {t('adminUsers.editModal.save', 'Lưu thay đổi')}
             </Button>

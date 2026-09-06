@@ -11,11 +11,11 @@ interface DashboardHeaderProps {
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ totalClasses, onCreateClick }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition duration-300">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-100 gap-4">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">{t('teacher.dashboard.title')}</h1>
-          <Badge variant="indigo" size="md">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">{t('teacher.dashboard.title')}</h1>
+          <Badge variant="indigo" size="md" className="font-bold">
             {t('teacher.dashboard.totalCount', { count: totalClasses })}
           </Badge>
         </div>
@@ -25,7 +25,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ totalClasses, 
         onClick={onCreateClick}
         variant="primary"
         size="md"
-        className="mt-4 md:mt-0"
+        className="mt-2 md:mt-0 shadow-xs"
       >
         <Plus className="w-4 h-4 mr-2" /> {t('teacher.dashboard.createBtn')}
       </Button>

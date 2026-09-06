@@ -167,7 +167,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
       )}
 
       {/* Top Banner / Actions */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-slate-50/40 rounded-3xl border border-slate-200/80 p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -187,7 +187,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
             variant="outline"
             size="md"
             onClick={() => setShowAiWizardModal(true)}
-            className="flex-1 sm:flex-initial text-indigo-600 border-indigo-200 hover:bg-indigo-50/60 shadow-sm"
+            className="flex-1 sm:flex-initial text-indigo-600 border-indigo-200 hover:bg-indigo-50/60 shadow-xs"
           >
             <Sparkles className="w-4 h-4 mr-1.5 text-indigo-600" />
             {t('teacher.aiWizard.curriculumTab.createWithAi')}
@@ -197,7 +197,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
             variant="primary"
             size="md"
             onClick={handleOpenCreate}
-            className="flex-1 sm:flex-initial shrink-0 shadow-md shadow-indigo-100"
+            className="flex-1 sm:flex-initial shrink-0 shadow-xs"
           >
             <Plus className="w-4 h-4 mr-1.5" /> {t('teacher.classDetail.addLesson')}
           </Button>
@@ -206,14 +206,14 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
 
       {/* Curriculum List or Empty State */}
       {curriculums.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-slate-50/40 rounded-3xl border-2 border-dashed border-slate-200/80 p-12 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 border border-indigo-100">
             <Layers className="w-8 h-8" />
           </div>
           <h3 className="text-lg font-bold text-slate-900 mb-1">
             {t('teacher.classDetail.noLessons')}
           </h3>
-          <p className="text-sm text-slate-500 max-w-md mx-auto mb-6">
+          <p className="text-sm text-slate-500 max-w-md mx-auto mb-6 font-medium">
             {t('teacher.classDetail.noLessonsDesc')}
           </p>
           <div className="flex items-center justify-center gap-3">
@@ -234,7 +234,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
       ) : (
         <div className="space-y-4">
           {/* Search Bar */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          <div className="bg-slate-50/40 rounded-2xl border border-slate-200/80 p-3.5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
             <div className="relative flex-1 max-w-md">
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               <input

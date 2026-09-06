@@ -122,16 +122,16 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-slate-50/40 rounded-3xl border border-slate-200/80 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
       {/* Header */}
-      <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-slate-50/50">
+      <div className="p-5 sm:p-6 border-b border-slate-200/60 flex justify-between items-center bg-slate-50/80">
         <div>
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <GraduationCap className="w-5 h-5 text-indigo-600" aria-hidden="true" /> {t('teacher.classDetail.studentListAndRanking')}
           </h2>
           <p className="text-sm text-slate-500 mt-1 font-medium">{t('teacher.classDetail.studentStatsDesc')}</p>
         </div>
-        <Badge variant="secondary" size="md">
+        <Badge variant="indigo" size="md">
           {t('teacher.classDetail.totalStudentsCount', { count: members?.length || 0 })}
         </Badge>
       </div>
@@ -139,7 +139,7 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
       {analytics?.leaderboard && analytics.leaderboard.length > 0 ? (
         <>
           {/* Search & Filter Toolbar */}
-          <div className="p-4 sm:px-6 border-b border-gray-100 bg-white flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
+          <div className="p-4 sm:px-6 border-b border-slate-200/60 bg-white/70 flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
               {/* Search Bar */}
               <div className="relative flex-1 max-w-md">
