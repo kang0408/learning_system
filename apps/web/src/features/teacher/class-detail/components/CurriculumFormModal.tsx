@@ -3,13 +3,15 @@ import {
   X,
   Plus,
   Trash2,
-  Check
+  Check,
+  HardDrive
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Select, type SelectOption } from '@/components/ui/Select';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
+import { GoogleDrivePickerModal } from '@/features/teacher/documents/components/GoogleDrivePickerModal';
 import type {
   ClassCurriculum,
   CreateCurriculumPayload,
@@ -60,6 +62,7 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
     initialData?.assignments?.map(a => a.assignment_id) || []
   );
 
+  const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Auto-detect video type from URL
@@ -94,6 +97,24 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
       updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
+  };
+
+  const handleSelectFromDrive = (driveFile: {
+    title: string;
+    file_url: string;
+    file_type: string;
+    file_size: number;
+    drive_id: string;
+  }) => {
+    setMaterials(prev => [
+      ...prev,
+      {
+        title: driveFile.title,
+        file_url: driveFile.file_url,
+        file_type: driveFile.file_type || 'pdf',
+        file_size: driveFile.file_size || 0
+      }
+    ]);
   };
 
   // Assignment checkbox toggle
@@ -264,15 +285,26 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
                 <label className="text-sm font-bold text-slate-800">
                   {t('teacher.classDetail.attachedMaterials')} ({materials.length})
                 </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddMaterial}
-                  className="text-xs h-8"
-                >
-                  <Plus className="w-3.5 h-3.5 mr-1" /> {t('teacher.classDetail.addMaterialBtn')}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setIsDrivePickerOpen(true)}
+                    className="text-xs h-8 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-xs"
+                  >
+                    <HardDrive className="w-3.5 h-3.5 mr-1.5" /> Chọn từ Google Drive
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddMaterial}
+                    className="text-xs h-8"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> {t('teacher.classDetail.addMaterialBtn')}
+                  </Button>
+                </div>
               </div>
 
               {materials.length === 0 ? (
@@ -397,6 +429,12 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
           </div>
         </form>
       </div>
+
+      <GoogleDrivePickerModal
+        isOpen={isDrivePickerOpen}
+        onClose={() => setIsDrivePickerOpen(false)}
+        onSelectFile={handleSelectFromDrive}
+      />
     </div>
   );
 };

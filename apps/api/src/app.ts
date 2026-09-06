@@ -14,6 +14,7 @@ import usersRoutes from './modules/users/users.routes';
 import sm2Routes from './modules/sm2/sm2.routes';
 import curriculumsRoutes from './modules/curriculums/curriculums.routes';
 import aiWizardRoutes from './modules/ai/ai-wizard.routes';
+import googleDriveRoutes from './modules/integrations/googleDrive/googleDrive.routes';
 import { metricsCollectorMiddleware } from './middlewares/metrics.middleware';
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/sessions', sessionsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/sm2', sm2Routes);
 app.use('/api/ai/wizard', aiWizardRoutes);
+app.use('/api/integrations/google-drive', googleDriveRoutes);
 
 
 import * as Sentry from '@sentry/node';

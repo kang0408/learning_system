@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Users, FileText, LogOut, Menu, X, User as UserIcon, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
+import { Users, FileText, LogOut, Menu, X, User as UserIcon, ChevronLeft, ChevronRight, Globe, HardDrive } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/axios';
@@ -45,6 +45,7 @@ export default function TeacherLayout() {
   const navItems = [
     { to: '/teacher/classes', icon: Users, label: t('layout.teacher.nav.classes') },
     { to: '/teacher/questions', icon: FileText, label: t('layout.teacher.nav.questionBank') },
+    { to: '/teacher/documents', icon: HardDrive, label: t('layout.teacher.nav.documents', 'Tài liệu Drive') },
     { to: '/teacher/profile', icon: UserIcon, label: t('layout.teacher.nav.profile') },
   ];
 

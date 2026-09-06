@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -10,6 +10,8 @@ import { useStudentCurriculumDetail } from '../hooks/useStudentCurriculumDetail'
 import { CurriculumVideoPlayer } from './CurriculumVideoPlayer';
 import { LessonMaterialsList } from './LessonMaterialsList';
 import { LessonAssignmentsList } from './LessonAssignmentsList';
+import { GoogleDocPreviewModal } from './GoogleDocPreviewModal';
+import type { CurriculumMaterial } from '../types/curriculum.types';
 
 export const StudentCurriculumDetailFeature: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +28,8 @@ export const StudentCurriculumDetailFeature: React.FC = () => {
     prevCurriculum,
     nextCurriculum
   } = useStudentCurriculumDetail(classId, curriculumId);
+
+  const [previewMaterial, setPreviewMaterial] = useState<CurriculumMaterial | null>(null);
 
   if (!curriculum) {
     return (
@@ -133,7 +137,10 @@ export const StudentCurriculumDetailFeature: React.FC = () => {
         {/* Materials */}
         {materialsCount > 0 && (
           <div className="border-4 border-zinc-900 bg-white p-6 md:p-8 shadow-[6px_6px_0_0_#18181b]">
-            <LessonMaterialsList materials={curriculum.materials} />
+            <LessonMaterialsList
+              materials={curriculum.materials}
+              onSelectMaterial={setPreviewMaterial}
+            />
           </div>
         )}
 
@@ -181,6 +188,13 @@ export const StudentCurriculumDetailFeature: React.FC = () => {
           <div className="hidden sm:block" />
         )}
       </div>
+
+      {/* Google Preview Modal for Students */}
+      <GoogleDocPreviewModal
+        isOpen={!!previewMaterial}
+        material={previewMaterial}
+        onClose={() => setPreviewMaterial(null)}
+      />
     </div>
   );
 };
