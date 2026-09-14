@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, X } from 'lucide-react';
+import { BookOpen, X, EyeOff } from 'lucide-react';
 import { toast } from '@/utils/toast';
 import { AiWizardUploadStep } from './AiWizardUploadStep';
 import { AiWizardLessonsStage } from './AiWizardLessonsStage';
@@ -17,10 +17,14 @@ import type {
 interface AiWizardModalProps {
   classId: string;
   onClose: () => void;
+  wizard?: ReturnType<typeof useAiWizard>;
 }
 
-export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }) => {
+export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose, wizard: propWizard }) => {
   const { t } = useTranslation();
+  const internalWizard = useAiWizard(classId);
+  const wizard = propWizard || internalWizard;
+
   const {
     curriculumTitle,
     setCurriculumTitle,
@@ -38,7 +42,7 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
     regenerateQuestionMutation,
     commitMutation,
     deleteDraftMutation,
-  } = useAiWizard(classId);
+  } = wizard;
 
   const [inspectingLessonId, setInspectingLessonId] = useState<string | null>(null);
   const [commitResult, setCommitResult] = useState<CommitWizardResult | null>(null);
@@ -73,9 +77,8 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
   const handleStartBatchGen = async (lessonTempIds?: string[]) => {
     try {
       await startBatchGeneration(lessonTempIds);
-      toast.success(t('teacher.aiWizard.modal.batchGenSuccess'));
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || err?.message || t('teacher.aiWizard.modal.batchGenError'));
+    } catch {
+      // Toast already handled by useAiWizard
     }
   };
 
@@ -147,7 +150,17 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !commitMutation.isPending) {
+          if (isGenerating) {
+            toast.info(t('teacher.aiWizard.modal.backgroundRunningNotice', 'Tiến trình tạo câu hỏi & chủ đề AI đang tiếp tục chạy trong nền.'));
+          }
+          onClose();
+        }
+      }}
+    >
       <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl w-full max-w-5xl max-h-[95vh] flex flex-col overflow-hidden">
         {/* Main Wizard Top Header */}
         <div className="px-6 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50 shrink-0">
@@ -167,14 +180,37 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isGenerating || commitMutation.isPending}
-            className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-30"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {isGenerating && (
+              <button
+                type="button"
+                onClick={() => {
+                  toast.info(t('teacher.aiWizard.modal.backgroundRunningNotice', 'Tiến trình tạo câu hỏi & chủ đề AI đang tiếp tục chạy trong nền.'));
+                  onClose();
+                }}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100/80 rounded-xl border border-indigo-200 transition-colors"
+                title={t('teacher.aiWizard.modal.minimizeTooltip', 'Ẩn tiến trình (tiếp tục chạy trong nền)')}
+              >
+                <EyeOff className="w-3.5 h-3.5 text-indigo-600" />
+                <span>{t('teacher.aiWizard.modal.minimizeBtn', 'Ẩn / Chạy trong nền')}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                if (isGenerating) {
+                  toast.info(t('teacher.aiWizard.modal.backgroundRunningNotice', 'Tiến trình tạo câu hỏi & chủ đề AI đang tiếp tục chạy trong nền.'));
+                }
+                onClose();
+              }}
+              disabled={commitMutation.isPending}
+              title={isGenerating ? t('teacher.aiWizard.modal.minimizeTooltip', 'Ẩn tiến trình (tiếp tục chạy trong nền)') : t('teacher.aiWizard.modal.closeTooltip', 'Đóng')}
+              className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-30"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Wizard Body */}
@@ -198,6 +234,10 @@ export const AiWizardModal: React.FC<AiWizardModalProps> = ({ classId, onClose }
               isCommitting={commitMutation.isPending}
               onDiscardDraft={handleDiscardDraft}
               isDiscarding={deleteDraftMutation.isPending}
+              onMinimize={() => {
+                toast.info(t('teacher.aiWizard.modal.backgroundRunningNotice', 'Tiến trình tạo câu hỏi & chủ đề AI đang tiếp tục chạy trong nền.'));
+                onClose();
+              }}
             />
           )}
         </div>

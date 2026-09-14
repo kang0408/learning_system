@@ -549,7 +549,11 @@
         "lessonCount": "{{count}} lessons",
         "desc": "You have a saved AI curriculum creation progress. You can resume editing or discard it to start fresh.",
         "discardDraft": "Discard draft",
-        "resume": "Resume Curriculum Creation"
+        "resume": "Resume Curriculum Creation",
+        "generatingTitle": "Generating questions & topics with AI...",
+        "generatingDesc": "AI process is running in the background. You can reopen anytime to view details or commit.",
+        "viewProgress": "View AI Progress",
+        "generatingProgress": "Progress: {{percent}}%"
       },
       "curriculumTab": {
         "draftDiscardSuccess": "AI draft discarded successfully",
@@ -579,7 +583,12 @@
         "modeExamDesc": "Strict time limit with accurate scoring.",
         "lessonDraft": "Not Public",
         "lessonPublic": "Public",
-        "assignmentDraft": "Draft Assignment"
+        "assignmentDraft": "Draft Assignment",
+        "minimizeTooltip": "Minimize (keep running in background)",
+        "closeTooltip": "Close",
+        "backgroundRunningNotice": "AI question & topic generation is continuing in the background.",
+        "minimizeBtn": "Run in Background",
+        "runningInBackgroundBanner": "AI is generating topics & questions in parallel... You can safely minimize this modal and continue your work."
       },
       "uploadStep": {
         "title": "Automated Curriculum & Question Bank Generator",

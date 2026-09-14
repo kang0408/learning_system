@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { toast } from '@/utils/toast';
 import { teacherAiWizardApi } from '../api/teacherAiWizardApi';
 import type {
   WizardDraft,
@@ -10,6 +12,7 @@ import type {
 } from '../types/aiWizard.types';
 
 export function useAiWizard(classId: string) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   // Local working state
@@ -194,12 +197,18 @@ export function useAiWizard(classId: string) {
         setIsGenerating(false);
         setOverallProgress(100);
         queryClient.invalidateQueries({ queryKey: ['ai-wizard-draft', classId] });
-      } catch (err) {
+        toast.success(t('teacher.aiWizard.modal.batchGenSuccess', 'Đã hoàn thành sinh toàn bộ chủ đề và câu hỏi!'));
+      } catch (err: any) {
         setIsGenerating(false);
+        toast.error(
+          err?.response?.data?.message ||
+            err?.message ||
+            t('teacher.aiWizard.modal.batchGenError', 'Có lỗi xảy ra trong quá trình sinh nội dung')
+        );
         throw err;
       }
     },
-    [classId, queryClient]
+    [classId, queryClient, t]
   );
 
   // 5. Update detail modal (Topics + Questions of 1 lesson + Settings)

@@ -9,6 +9,7 @@ import {
   Layers,
   BookOpen,
   RefreshCw,
+  EyeOff,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { AiLessonCard } from './AiLessonCard';
@@ -27,6 +28,7 @@ interface AiWizardLessonsStageProps {
   isCommitting: boolean;
   onDiscardDraft: () => void;
   isDiscarding: boolean;
+  onMinimize?: () => void;
 }
 
 export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
@@ -42,6 +44,7 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
   isCommitting,
   onDiscardDraft,
   isDiscarding,
+  onMinimize,
 }) => {
   const { t } = useTranslation();
   const [isAddingLesson, setIsAddingLesson] = useState(false);
@@ -170,6 +173,33 @@ export const AiWizardLessonsStage: React.FC<AiWizardLessonsStageProps> = ({
           className="w-full text-xs sm:text-sm text-slate-600 bg-white border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
         />
       </div>
+
+      {/* Background Running Notification Banner */}
+      {isGenerating && (
+        <div className="bg-indigo-50/80 border border-indigo-200 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5 text-xs text-indigo-900 font-medium min-w-0">
+            <Loader2 className="w-4 h-4 animate-spin text-indigo-600 shrink-0" />
+            <span>
+              {t(
+                'teacher.aiWizard.modal.runningInBackgroundBanner',
+                'Đang sinh nội dung bằng AI song song... Bạn có thể ẩn cửa sổ này để làm việc khác mà không bị gián đoạn.'
+              )}
+            </span>
+          </div>
+          {onMinimize && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onMinimize}
+              className="text-xs shrink-0 bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-100/60 shadow-xs self-end sm:self-center"
+            >
+              <EyeOff className="w-3.5 h-3.5 mr-1 text-indigo-600" />
+              {t('teacher.aiWizard.modal.minimizeBtn', 'Ẩn / Chạy trong nền')}
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Cards List Control Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">

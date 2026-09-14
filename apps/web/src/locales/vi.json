@@ -549,7 +549,11 @@
         "lessonCount": "{{count}} bài học",
         "desc": "Bạn có một tiến trình tạo lộ trình bằng AI đã lưu tạm. Bạn có thể tiếp tục chỉnh sửa hoặc hủy để bắt đầu mới.",
         "discardDraft": "Hủy bản nháp",
-        "resume": "Tiếp tục tạo lộ trình"
+        "resume": "Tiếp tục tạo lộ trình",
+        "generatingTitle": "Đang sinh câu hỏi & chủ đề bằng AI...",
+        "generatingDesc": "Tiến trình AI đang chạy ngầm trong nền. Bạn có thể mở lại bất cứ lúc nào để theo dõi chi tiết hoặc lưu lộ trình.",
+        "viewProgress": "Xem tiến trình AI",
+        "generatingProgress": "Tiến độ: {{percent}}%"
       },
       "curriculumTab": {
         "draftDiscardSuccess": "Đã hủy bản nháp AI thành công",
@@ -581,7 +585,12 @@
         "modeExamDesc": "Tính điểm chính xác, thời gian giới hạn nghiêm ngặt.",
         "lessonDraft": "Không công khai",
         "lessonPublic": "Công khai",
-        "assignmentDraft": "Bài tập nháp"
+        "assignmentDraft": "Bài tập nháp",
+        "minimizeTooltip": "Ẩn tiến trình (tiếp tục chạy trong nền)",
+        "closeTooltip": "Đóng",
+        "backgroundRunningNotice": "Tiến trình tạo câu hỏi & chủ đề AI đang tiếp tục chạy trong nền.",
+        "minimizeBtn": "Ẩn / Chạy trong nền",
+        "runningInBackgroundBanner": "Đang sinh nội dung bằng AI song song... Bạn có thể ẩn cửa sổ này để làm việc khác mà không bị gián đoạn."
       },
       "uploadStep": {
         "title": "Tạo Lộ Trình & Ngân Hàng Bài Tập Tự Động",

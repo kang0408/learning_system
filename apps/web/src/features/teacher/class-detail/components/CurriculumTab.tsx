@@ -16,7 +16,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { toast } from '@/utils/toast';
 
 import { useCurriculums, useCurriculumMutations } from '../hooks/useCurriculumData';
-import { teacherAiWizardApi } from '../api/teacherAiWizardApi';
+import { useAiWizard } from '../hooks/useAiWizard';
 import { DraggableCurriculumList } from './DraggableCurriculumList';
 import { CurriculumFormModal } from './CurriculumFormModal';
 import { CurriculumDetailModal } from './CurriculumDetailModal';
@@ -37,7 +37,6 @@ interface CurriculumTabProps {
 
 export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignments }) => {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const { data: curriculums = [], isLoading, isError } = useCurriculums(classId);
   const {
     createCurriculum,
@@ -46,21 +45,8 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
     reorderCurriculums,
   } = useCurriculumMutations(classId);
 
-  // Active Draft query
-  const { data: activeDraft } = useQuery({
-    queryKey: ['ai-wizard-draft', classId],
-    queryFn: () => teacherAiWizardApi.getActiveDraft(classId),
-    enabled: !!classId,
-  });
-
-  const discardDraftMutation = useMutation({
-    mutationFn: () => teacherAiWizardApi.deleteDraft(classId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ai-wizard-draft', classId] });
-      queryClient.invalidateQueries({ queryKey: ['teacher', 'class-curriculums', classId] });
-      toast.success(t('teacher.aiWizard.curriculumTab.draftDiscardSuccess'));
-    },
-  });
+  // Shared AI Wizard state
+  const aiWizard = useAiWizard(classId);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showAiWizardModal, setShowAiWizardModal] = useState(false);
@@ -133,7 +119,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
 
   const handleDiscardDraft = () => {
     if (window.confirm(t('teacher.aiWizard.curriculumTab.draftDiscardConfirm'))) {
-      discardDraftMutation.mutate();
+      aiWizard.deleteDraftMutation.mutate();
     }
   };
 
@@ -156,13 +142,32 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
 
   return (
     <div className="space-y-6">
-      {/* Resume Draft Banner */}
-      {activeDraft && (
+      {/* Resume Draft Banner / Background Generation Banner */}
+      {(aiWizard.activeDraft || aiWizard.isGenerating || aiWizard.lessons.length > 0) && (
         <AiWizardResumeBanner
-          draft={activeDraft}
+          draft={
+            aiWizard.activeDraft || {
+              id: 'active_draft',
+              user_id: '',
+              class_id: classId,
+              status: aiWizard.isGenerating ? 'processing' : 'ready_for_review',
+              document_name: null,
+              payload: {
+                curriculum_title: aiWizard.curriculumTitle,
+                description: aiWizard.curriculumDescription,
+                lessons: aiWizard.lessons,
+                topicsByLesson: aiWizard.topicsByLesson,
+                questionsByLesson: aiWizard.questionsByLesson,
+              },
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }
+          }
+          isGenerating={aiWizard.isGenerating}
+          overallProgress={aiWizard.overallProgress}
           onResume={() => setShowAiWizardModal(true)}
           onDiscard={handleDiscardDraft}
-          isDiscarding={discardDraftMutation.isPending}
+          isDiscarding={aiWizard.deleteDraftMutation.isPending}
         />
       )}
 
@@ -312,6 +317,7 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
       {showAiWizardModal && (
         <AiWizardModal
           classId={classId}
+          wizard={aiWizard}
           onClose={() => setShowAiWizardModal(false)}
         />
       )}
