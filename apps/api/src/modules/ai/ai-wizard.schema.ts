@@ -107,6 +107,7 @@ export interface WizardLesson {
   temp_id: string;
   title: string;
   summary?: string;
+  content_html?: string;
   order_index: number;
   page_range?: string;
   status: 'pending' | 'processing' | 'ready' | 'error';
