@@ -3,6 +3,7 @@ import { QuestionsService } from './questions.service';
 import { BaseController } from '../../controllers/BaseController';
 import { createQuestionSchema, updateQuestionSchema, generateAiQuestionsSchema, bulkCreateQuestionsSchema, aiGeneratedQuestionResponseSchema } from './questions.schema';
 import { AiService } from '../ai/ai.service';
+import { parseDocumentBuffer } from '../../utils/documentParser';
 
 export class QuestionsController extends BaseController {
   constructor(
@@ -16,7 +17,6 @@ export class QuestionsController extends BaseController {
     this.updateQuestion = this.updateQuestion.bind(this);
     this.togglePublish = this.togglePublish.bind(this);
     this.deleteQuestion = this.deleteQuestion.bind(this);
-    this.importCSV = this.importCSV.bind(this);
     this.generateAiQuestions = this.generateAiQuestions.bind(this);
     this.bulkCreateQuestions = this.bulkCreateQuestions.bind(this);
   }
@@ -54,22 +54,23 @@ export class QuestionsController extends BaseController {
     this.handleSuccess(res, null);
   }
 
-  async importCSV(req: any, res: Response) {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
-    }
-    try {
-      const csvData = req.file.buffer.toString('utf-8');
-      const result = await this.questionsService.importCSV(csvData, req.user.userId);
-      this.handleSuccess(res, result);
-    } catch (e: any) {
-      res.status(500).json({ success: false, message: e.message || 'Error processing CSV' });
-    }
-  }
-
-  async generateAiQuestions(req: Request, res: Response) {
+  async generateAiQuestions(req: any, res: Response) {
     const payload = generateAiQuestionsSchema.parse(req.body);
-    const questions = await this.aiService.generateQuizQuestions(payload);
+    let documentText: string | undefined = undefined;
+
+    if (req.file) {
+      const parsedDoc = await parseDocumentBuffer(
+        req.file.buffer,
+        req.file.mimetype,
+        req.file.originalname
+      );
+      documentText = parsedDoc.text;
+    }
+
+    const questions = await this.aiService.generateQuizQuestions({
+      ...payload,
+      documentText,
+    });
     const validatedQuestions = aiGeneratedQuestionResponseSchema.parse(questions);
     
     this.handleSuccess(res, validatedQuestions);

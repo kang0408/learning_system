@@ -12,6 +12,7 @@ export interface CurriculumOutlineResult {
 }
 
 export interface UnitContentResult {
+  content_html: string;
   topics: WizardTopic[];
   questions: WizardQuestion[];
 }
@@ -161,19 +162,27 @@ ${textContent.slice(0, 50000)}`;
     retries = 3
   ): Promise<UnitContentResult> {
     try {
-      const prompt = `Bạn là chuyên gia ra đề thi và phân loại kiến thức theo phương pháp sư phạm hiện đại.
-Hãy tạo Chủ đề kiến thức (Topic) đại diện và Ngân hàng câu hỏi trắc nghiệm/bài tập (Questions) cho bài học sau:
+      const prompt = `Bạn là chuyên gia sư phạm và thiết kế bài giảng giáo dục chuyên nghiệp.
+Hãy phân tích nội dung bài học sau để tổng hợp BÀI GIẢNG LÝ THUYẾT CHI TIẾT, CHỦ ĐỀ KIẾN THỨC và NGÂN HÀNG CÂU HỎI BÀI TẬP:
 - Tên bài học: ${lesson.title}
 - Tóm tắt bài học: ${lesson.summary || 'Không có'}
 ${previousLessonSummary ? `- Kiến thức bài trước (để tích hợp ôn tập ngắt quãng): ${previousLessonSummary}` : ''}
 
 QUY TẮC BẮT BUỘC:
-1. Tạo ĐÚNG 1 Chủ đề kiến thức (Topic) đại diện, trọng tâm và bao quát nhất cho bài học này. Đặt tên Topic ngắn gọn, chuẩn xác. Gán temp_id theo định dạng: 'top_${lesson.temp_id}_1'.
-2. Tạo 4-8 Câu hỏi bài tập đa dạng độ khó (difficulty: 1 đến 4), thuộc các dạng câu hỏi: 'multiple_choice', 'multi_select', 'true_false', 'fill_blank', 'matching'.
-3. BẮT BUỘC gán topic_temp_id của tất cả các câu hỏi khớp với temp_id của Topic duy nhất đã tạo ở mục 1 ('top_${lesson.temp_id}_1').
-4. NEO DẪN CHỨNG (evidence_quote): BẮT BUỘC trích dẫn 1 câu văn/đoạn trích trong bài làm căn cứ cho đáp án đúng.
-5. ĐÁP ÁN NHIỄU (Distractors): Các phương án sai phải mô phỏng các lỗi sai ngữ pháp/từ vựng kinh điển của học sinh.
-6. Với câu hỏi 'matching', điền metadata dạng: { pairs: [{ leftText: "...", rightText: "..." }] } và để answer_options rỗng.
+1. BÀI GIẢNG LÝ THUYẾT CHI TIẾT (content_html):
+   Tổng hợp một bài giảng lý thuyết hoàn chỉnh, sâu sắc, có cấu trúc sư phạm rõ ràng dưới định dạng HTML phong phú (Rich Semantic HTML):
+   - <h3>1. Mục tiêu bài học</h3>: Liệt kê rõ các kiến thức, kỹ năng học sinh cần nắm được.
+   - <h3>2. Kiến thức cốt lõi & Lý thuyết trọng tâm</h3>: Trình bày chi tiết, giải thích rõ ràng các khái niệm, quy tắc, định lý hoặc cấu trúc ngữ pháp/từ vựng từ tài liệu.
+   - <h3>3. Ví dụ minh họa & Phân tích chuyên sâu</h3>: Đưa ra các ví dụ cụ thể, các bước giải mẫu hoặc câu mẫu có phân tích tại sao đúng/sai.
+   - <h3>4. Tổng kết & Lưu ý quan trọng</h3>: Nhấn mạnh các điểm then chốt, lưu ý đặc biệt hoặc các bẫy/lỗi sai kinh điển học sinh hay mắc.
+   * Yêu cầu dùng các thẻ HTML chuẩn: <h3>, <p>, <ul>, <ol>, <li>, <strong>, <em>, <blockquote>, <table> (nếu cần so sánh).
+   * Nếu có công thức toán/ký hiệu, viết chuẩn LaTeX kẹp giữa $...$ hoặc $$...$$.
+2. TẠO ĐÚNG 1 Chủ đề kiến thức (Topic) đại diện, trọng tâm và bao quát nhất cho bài học này. Đặt tên Topic ngắn gọn, chuẩn xác. Gán temp_id theo định dạng: 'top_${lesson.temp_id}_1'.
+3. Tạo 4-8 Câu hỏi bài tập đa dạng độ khó (difficulty: 1 đến 4), thuộc các dạng câu hỏi: 'multiple_choice', 'multi_select', 'true_false', 'fill_blank', 'matching'.
+4. BẮT BUỘC gán topic_temp_id của tất cả các câu hỏi khớp với temp_id của Topic duy nhất đã tạo ở mục 2 ('top_${lesson.temp_id}_1').
+5. NEO DẪN CHỨNG (evidence_quote): BẮT BUỘC trích dẫn 1 câu văn/đoạn trích trong bài làm căn cứ cho đáp án đúng.
+6. ĐÁP ÁN NHIỄU (Distractors): Các phương án sai phải mô phỏng các lỗi sai ngữ pháp/từ vựng kinh điển của học sinh.
+7. Với câu hỏi 'matching', điền metadata dạng: { pairs: [{ leftText: "...", rightText: "..." }] } và để answer_options rỗng.
 
 NỘI DUNG CHI TIẾT CỦA BÀI HỌC NÀY:
 ${unitText.slice(0, 30000)}`;
@@ -185,6 +194,7 @@ ${unitText.slice(0, 30000)}`;
           responseSchema: {
             type: Type.OBJECT,
             properties: {
+              content_html: { type: Type.STRING },
               topics: {
                 type: Type.ARRAY,
                 items: {
@@ -249,6 +259,10 @@ ${unitText.slice(0, 30000)}`;
       });
 
       const parsed = JSON.parse(response.text || '{}');
+      const content_html = parsed.content_html && parsed.content_html.trim().length > 0
+        ? parsed.content_html
+        : `<p>${lesson.summary || lesson.title}</p>`;
+
       const topics: WizardTopic[] = (parsed.topics || []).map((t: any, idx: number) => ({
         temp_id: t.temp_id || `top_${lesson.temp_id}_${idx + 1}`,
         name: t.name || `Chủ đề ${idx + 1}`,
@@ -271,7 +285,7 @@ ${unitText.slice(0, 30000)}`;
         metadata: q.metadata || {},
       }));
 
-      return { topics, questions };
+      return { content_html, topics, questions };
     } catch (error: any) {
       if (retries > 0) {
         const delayMs = (4 - retries) * 1500;
@@ -293,6 +307,7 @@ ${unitText.slice(0, 30000)}`;
       type: 'unit_started' | 'unit_completed' | 'all_completed' | 'unit_error';
       lesson_temp_id?: string;
       progress_pct: number;
+      content_html?: string;
       topics?: WizardTopic[];
       questions?: WizardQuestion[];
       error?: string;
@@ -308,7 +323,7 @@ ${unitText.slice(0, 30000)}`;
     const total = lessons.length;
 
     await asyncPool(2, lessons, async (lesson, index) => {
-      const unitText = textChunks[lesson.temp_id] || lesson.summary || lesson.title;
+      const unitText = textChunks[lesson.temp_id] || textChunks.full || lesson.summary || lesson.title;
       const prevSummary = index > 0 ? lessons[index - 1].summary : undefined;
 
       if (onProgress) {
@@ -326,6 +341,7 @@ ${unitText.slice(0, 30000)}`;
         const result = await this.generateUnitTopicsAndQuestions(lesson, unitText, prevSummary);
         topicsByLesson[lesson.temp_id] = result.topics;
         questionsByLesson[lesson.temp_id] = result.questions;
+        lesson.content_html = result.content_html;
         lesson.status = 'ready';
         lesson.topics_count = result.topics.length;
         lesson.questions_count = result.questions.length;
@@ -336,6 +352,7 @@ ${unitText.slice(0, 30000)}`;
             type: 'unit_completed',
             lesson_temp_id: lesson.temp_id,
             progress_pct: Math.round((completedCount / total) * 100),
+            content_html: result.content_html,
             topics: result.topics,
             questions: result.questions,
           });

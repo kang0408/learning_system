@@ -53,7 +53,8 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
   onRegenerateQuestion,
 }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'questions' | 'topics' | 'settings'>('questions');
+  const [activeTab, setActiveTab] = useState<'content' | 'questions' | 'topics' | 'settings'>('content');
+  const [contentHtml, setContentHtml] = useState<string>(lesson.content_html || '');
   const [topics, setTopics] = useState<WizardTopic[]>(initialTopics || []);
   const [questions, setQuestions] = useState<WizardQuestion[]>(initialQuestions || []);
   const [isSaving, setIsSaving] = useState(false);
@@ -172,6 +173,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
     setIsSaving(true);
     try {
       await onSave(topics, questions, {
+        content_html: contentHtml,
         assignment_mode: assignmentMode,
         is_curriculum_published: isCurriculumPublished,
         is_assignment_published: isAssignmentPublished,
@@ -230,11 +232,24 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-slate-100 px-6 bg-white shrink-0">
+        <div className="flex border-b border-slate-100 px-6 bg-white shrink-0 overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('content')}
+            className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all shrink-0 ${
+              activeTab === 'content'
+                ? 'border-indigo-600 text-indigo-600'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            {t('teacher.aiWizard.detailModal.tabContent', 'Nội dung bài giảng')}
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('questions')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all shrink-0 ${
               activeTab === 'questions'
                 ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -247,7 +262,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('topics')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all shrink-0 ${
               activeTab === 'topics'
                 ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -260,7 +275,7 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all ${
+            className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition-all shrink-0 ${
               activeTab === 'settings'
                 ? 'border-indigo-600 text-indigo-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
@@ -273,6 +288,81 @@ export const AiLessonDetailModal: React.FC<AiLessonDetailModalProps> = ({
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+          {/* TAB 0: LESSON CONTENT (LECTURE / THEORY) */}
+          {activeTab === 'content' && (
+            <div className="space-y-4">
+              {/* Reading time & Word count banner */}
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900">
+                      {t('teacher.aiWizard.detailModal.contentHeading', 'Bài giảng lý thuyết chi tiết')}
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      {t('teacher.aiWizard.detailModal.contentEditHint', 'Xem trước và chỉnh sửa nội dung bài giảng trước khi xuất bản cho học sinh.')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-semibold text-indigo-700 bg-white border border-indigo-200/80 px-3 py-1.5 rounded-xl shadow-xs">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>
+                    ~{Math.max(1, Math.round((contentHtml.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length || 100) / 150))} {t('student.classDetail.readingTimeMinutes', 'phút đọc')}
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span>
+                    {contentHtml.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} {t('teacher.aiWizard.detailModal.words', 'từ')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Edit vs Preview Section */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  {t('teacher.aiWizard.detailModal.lessonTheory', 'Nội dung bài giảng')}
+                </span>
+                <span className="text-xs text-slate-400">
+                  {t('teacher.aiWizard.detailModal.htmlSupported', 'Hỗ trợ thẻ HTML chuẩn: h3, p, ul, ol, li, strong, blockquote')}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Editor textarea */}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-500 flex items-center justify-between">
+                    <span>{t('teacher.aiWizard.detailModal.editorLabel', 'Soạn thảo / Chỉnh sửa (HTML)')}</span>
+                  </div>
+                  <textarea
+                    value={contentHtml}
+                    onChange={(e) => setContentHtml(e.target.value)}
+                    rows={16}
+                    placeholder="<h3>1. Mục tiêu bài học</h3><p>...</p>"
+                    className="w-full p-4 text-xs font-mono border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 leading-relaxed resize-y"
+                  />
+                </div>
+
+                {/* Live Preview */}
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-slate-500">
+                    <span>{t('teacher.aiWizard.detailModal.previewLabel', 'Xem trước hiển thị')}</span>
+                  </div>
+                  <div className="h-[340px] overflow-y-auto p-4 border border-slate-200 rounded-xl bg-white rich-text-content prose prose-sm max-w-none text-slate-800 leading-relaxed shadow-inner">
+                    {contentHtml ? (
+                      <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+                    ) : (
+                      <div className="text-slate-400 text-xs italic text-center py-12">
+                        {t('teacher.aiWizard.detailModal.emptyContent', 'Chưa có nội dung bài giảng. Vui lòng nhập nội dung hoặc để AI tự tổng hợp.')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* TAB 1: QUESTIONS LIST */}
           {activeTab === 'questions' && (
             <div className="space-y-4">

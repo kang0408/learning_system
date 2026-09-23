@@ -2,9 +2,14 @@ import { Request, Response } from 'express';
 import { TopicsService } from './topics.service';
 import { BaseController } from '../../controllers/BaseController';
 import { createTopicSchema, updateTopicSchema } from './topics.schema';
+import { AiService } from '../ai/ai.service';
+import { parseDocumentBuffer } from '../../utils/documentParser';
 
 export class TopicsController extends BaseController {
-  constructor(private readonly topicsService: TopicsService) {
+  constructor(
+    private readonly topicsService: TopicsService,
+    private readonly aiService?: AiService
+  ) {
     super();
     this.createTopic = this.createTopic.bind(this);
     this.getTopics = this.getTopics.bind(this);
@@ -12,6 +17,7 @@ export class TopicsController extends BaseController {
     this.updateTopic = this.updateTopic.bind(this);
     this.deleteTopic = this.deleteTopic.bind(this);
     this.batchDeleteTopics = this.batchDeleteTopics.bind(this);
+    this.generateFromDocument = this.generateFromDocument.bind(this);
   }
 
   async createTopic(req: any, res: Response) {
@@ -49,6 +55,39 @@ export class TopicsController extends BaseController {
       return res.status(400).json({ success: false, error: 'topicIds phải là mảng không rỗng' });
     }
     const result = await this.topicsService.deleteTopicsBatch(topicIds, req.user.userId);
+    this.handleSuccess(res, result);
+  }
+
+  async generateFromDocument(req: any, res: Response) {
+    if (!this.aiService) {
+      return res.status(500).json({ success: false, message: 'AI Service chưa được khởi tạo' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Vui lòng tải lên 1 tệp tài liệu' });
+    }
+
+    const parsedDoc = await parseDocumentBuffer(
+      req.file.buffer,
+      req.file.mimetype,
+      req.file.originalname
+    );
+
+    if (!parsedDoc.text || parsedDoc.text.trim().length < 20) {
+      return res.status(400).json({ success: false, message: 'Tệp tài liệu không chứa đủ nội dung văn bản để phân tích' });
+    }
+
+    const quantity = req.body.quantity ? Number(req.body.quantity) : 10;
+    const difficulty = req.body.difficulty && req.body.difficulty !== 'random' ? Number(req.body.difficulty) : undefined;
+    const question_type = req.body.question_type || 'mixed';
+
+    const result = await this.aiService.generateTopicAndQuestionsFromDocument({
+      documentText: parsedDoc.text,
+      question_type,
+      quantity,
+      difficulty,
+    });
+
     this.handleSuccess(res, result);
   }
 }

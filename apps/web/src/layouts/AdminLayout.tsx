@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/axios';
 import { NotificationProvider } from '../components/ui/NotificationProvider';
-import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/Avatar';
+import { Avatar, AvatarImage, AvatarFallback, getAvatarUrl } from '../components/ui/Avatar';
 import { Tooltip } from '../components/ui/Tooltip';
 import { Button } from '../components/ui/Button';
 
@@ -98,7 +98,7 @@ export default function AdminLayout() {
     };
   }, [activeIndex, isSidebarCollapsed, location.pathname]);
 
-  const avatarUrl = user?.avatar_url ? `${import.meta.env.VITE_API_URL}${user.avatar_url}` : undefined;
+  const avatarUrl = getAvatarUrl(user?.avatar_url);
 
   return (
     <div className="flex h-screen bg-slate-50/60 font-sans text-slate-900 antialiased overflow-hidden selection:bg-slate-900 selection:text-white">

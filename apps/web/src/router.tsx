@@ -117,7 +117,8 @@ export const router = createBrowserRouter([
       { path: 'classes/:id/assignments/:assignmentId/edit', element: <TeacherClassEditAssignment /> },
       { path: 'questions', element: <QuestionBank /> },
       { path: 'questions/topics/:topicId', element: <TeacherTopicDetail /> },
-      { path: 'documents', element: <TeacherDocuments /> },
+      // Tạm ẩn Google Drive documents - chuyển hướng về classes
+      { path: 'documents', element: <Navigate to="/teacher/classes" replace /> },
       { path: 'profile', element: <TeacherProfile /> },
     ]
   },

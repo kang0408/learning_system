@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/axios';
 import { NotificationProvider } from '../components/ui/NotificationProvider';
-import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/Avatar';
+import { Avatar, AvatarImage, AvatarFallback, getAvatarUrl } from '../components/ui/Avatar';
 import { Tooltip } from '../components/ui/Tooltip';
 import { Button } from '../components/ui/Button';
 
@@ -54,7 +54,8 @@ export default function TeacherLayout() {
   const navItems = [
     { to: '/teacher/classes', icon: Users, label: t('layout.teacher.nav.classes') },
     { to: '/teacher/questions', icon: FileText, label: t('layout.teacher.nav.questionBank') },
-    { to: '/teacher/documents', icon: HardDrive, label: t('layout.teacher.nav.documents', 'Tài liệu Drive') },
+    // Tạm ẩn Google Drive:
+    // { to: '/teacher/documents', icon: HardDrive, label: t('layout.teacher.nav.documents', 'Tài liệu Drive') },
     { to: '/teacher/profile', icon: UserIcon, label: t('layout.teacher.nav.profile') },
   ];
 
@@ -105,7 +106,7 @@ export default function TeacherLayout() {
     };
   }, [activeIndex, isSidebarCollapsed, location.pathname]);
 
-  const avatarUrl = user?.avatar_url ? `${import.meta.env.VITE_API_URL}${user.avatar_url}` : undefined;
+  const avatarUrl = getAvatarUrl(user?.avatar_url);
 
   return (
     <div className="flex h-screen bg-slate-100/75 text-slate-800 font-sans antialiased overflow-hidden selection:bg-indigo-600 selection:text-white">

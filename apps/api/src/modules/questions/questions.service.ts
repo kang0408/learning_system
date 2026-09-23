@@ -1,4 +1,3 @@
-import Papa from 'papaparse';
 import { randomUUID } from 'crypto';
 import { ApiError } from '../../lib/ApiError';
 import { QuestionsRepository } from './questions.repository';
@@ -169,98 +168,6 @@ export class QuestionsService {
   async deleteQuestion(questionId: string, teacherId: string) {
     await this.getQuestionById(questionId, teacherId);
     return this.questionsRepository.deleteQuestion(questionId);
-  }
-
-  async importCSV(fileData: string, teacherId: string) {
-    const parsed = Papa.parse(fileData, {
-      header: true,
-      skipEmptyLines: true
-    });
-
-    if (parsed.errors.length > 0) {
-      return { importedCount: 0, errors: parsed.errors.map((e: any) => `Dòng ${e.row}: ${e.message}`) };
-    }
-
-    let importedCount = 0;
-    const errors: string[] = [];
-
-    for (let i = 0; i < parsed.data.length; i++) {
-      const row: any = parsed.data[i];
-      try {
-        if (!row['Nội dung câu hỏi']) throw new ApiError(400, 'Thiếu Nội dung câu hỏi');
-        
-        let questionType = 'multiple_choice';
-        if (row['Loại câu hỏi'] === 'true_false') questionType = 'true_false';
-        
-        let difficulty = parseInt(row['Độ khó']);
-        if (isNaN(difficulty) || difficulty < 1 || difficulty > 5) difficulty = 3;
-
-        let topicId = null;
-        const topicCodeInput = (row['Mã Chủ đề (Code)'] || row['ID Chủ đề'] || '').toString().trim().toUpperCase();
-        
-        if (topicCodeInput) {
-          let topic = await this.questionsRepository.findTopic({ code: topicCodeInput });
-          if (!topic) {
-            topic = await this.questionsRepository.createTopic({
-              name: topicCodeInput,
-              code: topicCodeInput,
-              created_by: teacherId
-            });
-          }
-          topicId = topic.id;
-        } else {
-          topicId = await this.getOrCreateDefaultTopic(teacherId);
-        }
-        
-        const answerOptions = [];
-        const correctCol = (row['Đáp án Đúng'] || '').toString().trim().toUpperCase();
-
-        if (questionType === 'multiple_choice') {
-          let correctIndex = -1;
-          if (correctCol === 'A' || correctCol === '1') correctIndex = 1;
-          else if (correctCol === 'B' || correctCol === '2') correctIndex = 2;
-          else if (correctCol === 'C' || correctCol === '3') correctIndex = 3;
-          else if (correctCol === 'D' || correctCol === '4') correctIndex = 4;
-          else throw new ApiError(400, `Với câu trắc nghiệm, cột "Đáp án Đúng" phải là A, B, C hoặc D. Giá trị hiện tại: ${correctCol}`);
-
-          for (let j = 1; j <= 4; j++) {
-            const content = row[`Đáp án ${j}`];
-            if (content) {
-              answerOptions.push({
-                content: content.toString().trim(),
-                is_correct: j === correctIndex,
-                order_index: j - 1
-              });
-            } else if (j === correctIndex) {
-               throw new ApiError(400, `Bạn chọn đáp án đúng là ${correctCol} nhưng cột Đáp án ${j} lại bị trống.`);
-            }
-          }
-          if (answerOptions.length < 2) throw new ApiError(400, 'Câu hỏi trắc nghiệm cần ít nhất 2 đáp án');
-        } else if (questionType === 'true_false') {
-          const isTrue = correctCol === 'TRUE' || correctCol === 'ĐÚNG' || correctCol === '1';
-          answerOptions.push({ content: 'Đúng', is_correct: isTrue, order_index: 0 });
-          answerOptions.push({ content: 'Sai', is_correct: !isTrue, order_index: 1 });
-        }
-
-        await this.questionsRepository.createQuestion({
-          content: row['Nội dung câu hỏi'].toString().trim(),
-          question_type: questionType as any,
-          difficulty: difficulty,
-          explanation: row['Giải thích'] ? row['Giải thích'].toString().trim() : null,
-          topic_id: topicId,
-          created_by: teacherId,
-          answer_options: {
-            create: answerOptions
-          }
-        });
-        
-        importedCount++;
-      } catch (err: any) {
-        errors.push(`Dòng ${i + 2}: ${err.message}`);
-      }
-    }
-
-    return { importedCount, errors };
   }
 
   async bulkCreateQuestions(data: { topic_id: string, questions: any[] }, teacherId: string) {

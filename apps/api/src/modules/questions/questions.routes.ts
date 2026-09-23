@@ -26,9 +26,7 @@ const questionsController = new QuestionsController(questionsService, aiService)
 router.post('/', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.createQuestion));
 router.get('/', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.getQuestions));
 router.post('/bulk', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.bulkCreateQuestions));
-router.post('/generate-ai', requireAuth, requireRole(['teacher']), asyncWrapper(questionsController.generateAiQuestions));
-router.post('/import', requireAuth, requireRole(['teacher']), upload.single('file'), asyncWrapper(questionsController.importCSV));
-router.post('/import-csv', requireAuth, requireRole(['teacher']), upload.single('file'), asyncWrapper(questionsController.importCSV));
+router.post('/generate-ai', requireAuth, requireRole(['teacher']), upload.single('file'), asyncWrapper(questionsController.generateAiQuestions));
 
 
 // Question routes

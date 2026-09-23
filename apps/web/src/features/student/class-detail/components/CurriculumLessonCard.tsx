@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, BookOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StudentCurriculum } from '../types/curriculum.types';
 
@@ -22,6 +22,21 @@ export const CurriculumLessonCard: React.FC<CurriculumLessonCardProps> = ({
   const materialsCount = curriculum.materials?.length || 0;
   const assignmentsCount = curriculum.assignments?.length || 0;
 
+  // Extract clean plain text excerpt from content_html
+  const previewExcerpt = useMemo(() => {
+    if (!curriculum.content_html) return '';
+    const plainText = curriculum.content_html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (plainText.length <= 150) return plainText;
+    return plainText.substring(0, 150).trim() + '...';
+  }, [curriculum.content_html]);
+
+  const hasRichTheory = curriculum.content_html && curriculum.content_html.trim().length > 60;
+
   return (
     <Link
       to={`/student/classes/${classId}/curriculums/${curriculum.id}`}
@@ -38,8 +53,20 @@ export const CurriculumLessonCard: React.FC<CurriculumLessonCardProps> = ({
               {curriculum.title}
             </h3>
 
+            {previewExcerpt && (
+              <p className="text-xs md:text-sm font-medium text-zinc-600 line-clamp-2 mt-1 leading-relaxed">
+                {previewExcerpt}
+              </p>
+            )}
+
             {/* Quick Meta Badges */}
-            <div className="flex flex-wrap items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2.5">
+              {hasRichTheory && (
+                <span className="inline-flex items-center gap-1 font-mono font-bold text-[11px] uppercase px-2.5 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300">
+                  <BookOpen className="w-3 h-3" />
+                  {t('student.classDetail.hasTheory', 'Lý thuyết chi tiết')}
+                </span>
+              )}
               {curriculum.video_url && (
                 <span className="inline-flex items-center font-mono font-bold text-[11px] uppercase px-2.5 py-1 bg-red-100 text-red-900 border border-red-300">
                   {t('student.classDetail.hasVideo')}

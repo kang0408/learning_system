@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { getInitials, getAvatarUrl } from '@/components/ui/Avatar';
 import type { StudentInfo } from '../types';
 
 interface StudentDetailHeaderProps {
@@ -26,14 +27,14 @@ export const StudentDetailHeader: React.FC<StudentDetailHeaderProps> = ({ classI
         <div className="flex items-center gap-4">
           {studentInfo ? (
             <div className="w-13 h-13 rounded-2xl bg-indigo-50 text-indigo-700 border border-indigo-200/80 flex items-center justify-center font-bold text-xl shadow-xs overflow-hidden">
-              {studentInfo.avatar_url ? (
+              {getAvatarUrl(studentInfo.avatar_url) ? (
                 <img 
-                  src={studentInfo.avatar_url.startsWith('http') ? studentInfo.avatar_url : `${import.meta.env.VITE_API_URL}${studentInfo.avatar_url}`} 
+                  src={getAvatarUrl(studentInfo.avatar_url)} 
                   alt={studentInfo.full_name} 
                   className="w-full h-full object-cover" 
                 />
               ) : (
-                studentInfo.full_name.charAt(0).toUpperCase()
+                getInitials(studentInfo.full_name)
               )}
             </div>
           ) : (

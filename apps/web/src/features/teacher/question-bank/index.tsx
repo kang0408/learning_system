@@ -5,6 +5,7 @@ import { QuestionBankHeader } from './components/QuestionBankHeader';
 import { TopicList } from './components/TopicList';
 import { CreateTopicModal } from './components/CreateTopicModal';
 import { CreateQuestionModal } from './components/CreateQuestionModal';
+import { CreateTopicFromDocumentModal } from './components/CreateTopicFromDocumentModal';
 
 export default function TeacherQuestionBankFeature() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +17,7 @@ export default function TeacherQuestionBankFeature() {
 
   const [showTopicModal, setShowTopicModal] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
+  const [showAiDocModal, setShowAiDocModal] = useState(false);
 
   return (
     <div className="space-y-6 sm:space-y-8 w-full">
@@ -23,6 +25,7 @@ export default function TeacherQuestionBankFeature() {
         totalTopics={topics.length}
         onOpenCreateTopic={() => setShowTopicModal(true)}
         onOpenCreateQuestion={() => setShowQuestionModal(true)}
+        onOpenAiCreateTopic={() => setShowAiDocModal(true)}
       />
 
       <TopicList 
@@ -44,6 +47,11 @@ export default function TeacherQuestionBankFeature() {
         isOpen={showQuestionModal} 
         onClose={() => setShowQuestionModal(false)} 
         topics={topics}
+      />
+
+      <CreateTopicFromDocumentModal
+        isOpen={showAiDocModal}
+        onClose={() => setShowAiDocModal(false)}
       />
     </div>
   );

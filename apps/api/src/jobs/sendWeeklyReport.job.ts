@@ -5,7 +5,7 @@ export async function sendWeeklyReport() {
   console.log('[Job] Running weekly report job at 8:00 AM Sunday...');
   
   try {
-    // Basic implementation: fetch active classes and parents to send emails
+    // Basic implementation: fetch active classes and students/teachers to send emails
     // For now, this is just a skeleton for the logic required by Phan 6
     
     console.log('[Job] Generating HTML templates and sending via Nodemailer...');
@@ -14,8 +14,8 @@ export async function sendWeeklyReport() {
     // const transporter = nodemailer.createTransport({ ... });
     // await transporter.sendMail({
     //   from: '"Adaptive Lang" <no-reply@adaptive-lang.com>',
-    //   to: 'parent@example.com',
-    //   subject: '[Adaptive Lang] Báo cáo tuần của con bạn',
+    //   to: 'student@example.com',
+    //   subject: '[Adaptive Lang] Báo cáo học tập định kỳ',
     //   html: '<b>Báo cáo chi tiết...</b>'
     // });
     

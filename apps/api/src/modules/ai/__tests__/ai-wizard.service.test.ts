@@ -53,6 +53,7 @@ describe('AiWizardService', () => {
 
     mockGenerateContent.mockResolvedValueOnce({
       text: JSON.stringify({
+        content_html: '<h3>1. Mục tiêu bài học</h3><p>Nắm vững thì hiện tại đơn.</p>',
         topics: [
           { temp_id: 'top_lesson_1_1', name: 'Present Simple', description: 'Grammar' },
         ],
@@ -75,6 +76,7 @@ describe('AiWizardService', () => {
     });
 
     const result = await aiWizardService.generateUnitTopicsAndQuestions(lesson, 'unit 1 text');
+    expect(result.content_html).toContain('Mục tiêu bài học');
     expect(result.topics).toHaveLength(1);
     expect(result.questions).toHaveLength(1);
     expect(result.questions[0].evidence_quote).toBe('Page 5: She studies English.');
@@ -144,8 +146,9 @@ describe('AiWizardService', () => {
 
     expect(result.lessons[0].status).toBe('ready');
     expect(result.lessons[1].status).toBe('ready');
+    expect(result.lessons[0].content_html).toBeDefined();
     expect(progressEvents.some((e) => e.type === 'unit_started')).toBe(true);
-    expect(progressEvents.some((e) => e.type === 'unit_completed')).toBe(true);
+    expect(progressEvents.some((e) => e.type === 'unit_completed' && e.content_html !== undefined)).toBe(true);
     expect(progressEvents.some((e) => e.type === 'all_completed')).toBe(true);
   });
 

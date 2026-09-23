@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Folder } from 'lucide-react';
+import { Plus, Folder, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 
@@ -8,12 +8,14 @@ interface QuestionBankHeaderProps {
   totalTopics: number;
   onOpenCreateTopic: () => void;
   onOpenCreateQuestion: () => void;
+  onOpenAiCreateTopic: () => void;
 }
 
 export const QuestionBankHeader: React.FC<QuestionBankHeaderProps> = ({
   totalTopics,
   onOpenCreateTopic,
-  onOpenCreateQuestion
+  onOpenCreateQuestion,
+  onOpenAiCreateTopic,
 }) => {
   const { t } = useTranslation();
 
@@ -29,6 +31,14 @@ export const QuestionBankHeader: React.FC<QuestionBankHeaderProps> = ({
         <p className="text-sm text-slate-500 font-medium mt-1">{t('teacher.questionBank.header.description')}</p>
       </div>
       <div className="flex flex-wrap gap-3 mt-2 md:mt-0">
+        <Button
+          variant="outline"
+          size="md"
+          className="bg-gradient-to-r from-purple-50 to-indigo-50 text-indigo-700 border-indigo-200 hover:from-purple-100 hover:to-indigo-100 shadow-xs font-semibold"
+          onClick={onOpenAiCreateTopic}
+        >
+          <Sparkles className="w-4 h-4 mr-2 text-purple-600" /> {t('teacher.questionBank.header.createFromDoc')}
+        </Button>
         <Button
           variant="outline"
           size="md"

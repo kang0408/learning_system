@@ -269,9 +269,15 @@ Báo cáo gồm 3 phần chẩn đoán và trả về ĐÚNG định dạng JSON
   }
 
   /**
-   * Generates quiz questions based on topic, type, quantity, and difficulty
+   * Generates quiz questions based on topic, type, quantity, difficulty, and optional document text
    */
-  async generateQuizQuestions(params: { topic: string; question_type: string; quantity: number; difficulty?: number }) {
+  async generateQuizQuestions(params: {
+    topic: string;
+    question_type: string;
+    quantity: number;
+    difficulty?: number;
+    documentText?: string;
+  }) {
     try {
       let typeStr = '';
       let formatInstruction = '';
@@ -313,10 +319,50 @@ Báo cáo gồm 3 phần chẩn đoán và trả về ĐÚNG định dạng JSON
       }
       
       const difficultyStr = params.difficulty ? `${params.difficulty}/5 sao` : 'ngẫu nhiên';
+      const docInstruction = params.documentText
+        ? `\n\n═══════════════════════════════════════════════════════════════════
+QUAN TRỌNG - CHỈ THỊ XỬ LÝ NỘI DUNG TÀI LIỆU ĐÍNH KÈM:
+Dưới đây là nội dung tài liệu đính kèm. Bạn hãy thực hiện theo các chỉ thị nghiêm ngặt sau:
+
+★ QUY TẮC ĐẶC BIỆT KHI TÀI LIỆU LÀ ĐỀ THI / NGÂN HÀNG CÂU HỎI CÓ SẴN (CHỐNG THIÊN VỊ BÀI ĐỌC HIỂU):
+1. [TỰ ĐỘNG NHẬN DIỆN ĐỀ THI & SỐ HÓA NGUYÊN VẸN]:
+   - Dấu hiệu đề thi/phiếu bài tập: Xuất hiện các câu hỏi được đánh số thứ tự (như "Câu 1", "Question 1", "Bài 1", "1.", "2."...), kèm các phương án lựa chọn A, B, C, D hoặc bài tập trắc nghiệm ngữ âm, từ vựng, ngữ pháp, điền từ, đọc hiểu.
+   - Khi tài liệu đã có sẵn câu hỏi: Mục tiêu HÀNG ĐẦU là SỐ HÓA NGUYÊN BẢN CÁC CÂU HỎI CÓ SẴN trong tài liệu vào danh sách câu hỏi. Giữ nguyên câu từ đề bài và nội dung các phương án lựa chọn A, B, C, D. TUYỆT ĐỐI KHÔNG TỰ SÁNG TÁC THÊM CÂU HỎI MỚI khi tài liệu đã có sẵn các câu hỏi.
+
+2. [CẢNH BÁO TỐI CAO - NGHIÊM CẤM THIÊN VỊ BÀI ĐỌC HIỂU (ANTI-READING-PASSAGE BIAS)]:
+   - Khi tài liệu là một đề thi tổng hợp gồm nhiều phần (Ngữ âm, Trọng âm, Ngữ pháp, Từ vựng, Tìm lỗi sai, Giao tiếp, Điền từ, Đọc hiểu):
+     • TUYỆT ĐỐI KHÔNG ĐƯỢC CHỈ TẬP TRUNG VÀO PHẦN ĐỌC HIỂU HOẶC TỰ SÁNG TÁC CÂU HỎI TỪ BÀI ĐỌC!
+     • TUYỆT ĐỐI KHÔNG bỏ qua các câu hỏi trắc nghiệm ngữ âm, từ vựng, ngữ pháp, hoàn thành câu! Đây là những câu hỏi trắc nghiệm độc lập cực kỳ chuẩn mực và cần được số hóa ưu tiên.
+     • BẮT BUỘC QUÉT TUẦN TỰ TỪ TRÊN XUỐNG DƯỚI: Trích xuất các câu hỏi theo đúng thứ tự xuất hiện trong đề thi (bắt đầu từ Câu 1, Câu 2, Câu 3... cho đến khi đủ ${params.quantity} câu), hoặc phân bổ đều giữa các dạng câu hỏi (ngữ pháp, từ vựng, ngữ âm, đọc hiểu).
+     • NẾU LẤY CÂU HỎI ĐỌC HIỂU: Chỉ số hóa câu hỏi đọc hiểu ĐÃ CÓ SẴN trong đề thi (KHÔNG tự sáng tác câu mới). Nếu câu hỏi đọc hiểu cần đoạn văn để trả lời, phải trích kèm đoạn văn ngắn ngữ cảnh vào "content" để học sinh làm bài trên hệ thống có đầy đủ dữ liệu trả lời.
+
+3. [XỬ LÝ ĐÁP ÁN & GIẢI ĐỀ]:
+   - Nếu tài liệu ĐÃ CÓ đáp án: Trích xuất chính xác đáp án đúng (is_correct: true) và lời giải thích có sẵn.
+   - Nếu tài liệu CHƯA CÓ đáp án: Bạn hãy đóng vai trò Giám khảo / Chuyên gia giải đề, tự giải và xác định ĐÁP ÁN ĐÚNG CHÍNH XÁC 100% cho từng câu hỏi, đồng thời biên soạn lời giải thích (explanation) chi tiết, sư phạm và phân tích vì sao các phương án khác sai.
+
+4. [ĐIỀU PHỐI SỐ LƯỢNG]:
+   - Nếu tài liệu có nhiều hơn ${params.quantity} câu: Hãy lấy lần lượt theo thứ tự từ trên xuống dưới (từ Câu 1 trở đi) hoặc chọn đều qua các dạng bài (ngữ âm, ngữ pháp, từ vựng, đọc hiểu) để đủ ${params.quantity} câu. KHÔNG ĐƯỢC dồn toàn bộ ${params.quantity} câu vào một bài đọc hiểu!
+   - Nếu tài liệu có ít hơn ${params.quantity} câu: Số hóa toàn bộ các câu trong tài liệu trước, sau đó mới tự biên soạn thêm các câu hỏi phát triển tương đương cùng dạng/chủ đề cho đủ số lượng ${params.quantity} câu.
+
+5. [LÀM SẠCH NỘI DUNG]:
+   - "content" câu hỏi: Bỏ tiền tố số thứ tự như "Câu 1:", "Question 1:", "1." ở đầu.
+   - "answer_options": Chỉ chứa nội dung đáp án, LOẠI BỎ tiền tố nhãn ("A.", "B.", "C.", "D.", "A)", "B)") vì giao diện hệ thống sẽ tự hiển thị nhãn chữ cái.
+
+6. [QUY TẮC EVIDENCE_QUOTE]:
+   - Với câu hỏi đọc hiểu: Trích 1 câu văn trong bài đọc làm căn cứ.
+   - Với câu hỏi ngữ pháp / từ vựng / phát âm độc lập: Trích chính câu gốc trong đề bài hoặc ghi ngắn gọn quy tắc/cấu trúc ngữ pháp tương ứng (Ví dụ: "Quy tắc hòa hợp Chủ ngữ - Vị ngữ", "Cấu trúc used to + V-inf"). Nếu không có đoạn văn, có thể để rỗng "". TUYỆT ĐỐI KHÔNG VÌ THIẾU ĐOẠN VĂN MÀ BỎ QUA CÁC CÂU NGỮ PHÁP/TỪ VỰNG!
+
+NỘI DUNG TÀI LIỆU:
+${params.documentText.slice(0, 30000)}`
+        : '';
       
-      const prompt = `Bạn là một chuyên gia giáo dục hàng đầu. Hãy tạo ${params.quantity} câu hỏi dạng ${typeStr} cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết.
+      const taskIntro = params.documentText
+        ? `Bạn là một Chuyên gia Thẩm định Giáo dục và Thiết kế Đề thi. Hãy trích xuất và số hóa ${params.quantity} câu hỏi dạng ${typeStr} từ tài liệu đính kèm cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết sư phạm.`
+        : `Bạn là một chuyên gia giáo dục hàng đầu. Hãy tạo ${params.quantity} câu hỏi dạng ${typeStr} cho chủ đề "${params.topic}". Độ khó: ${difficultyStr}. Nội dung giải thích cần chi tiết.`;
+
+      const prompt = `${taskIntro}
 ${typeInstruction}
-${formatInstruction}`;
+${formatInstruction}${docInstruction}`;
 
       const { response } = await generateContentWithFallback(this.ai, {
         contents: prompt,
@@ -331,6 +377,7 @@ ${formatInstruction}`;
                 question_type: { type: Type.STRING },
                 difficulty: { type: Type.INTEGER },
                 explanation: { type: Type.STRING },
+                evidence_quote: { type: Type.STRING },
                 answer_options: {
                   type: Type.ARRAY,
                   items: {
@@ -390,12 +437,262 @@ ${formatInstruction}`;
           }
         }
 
+        // Clean prefix "Câu X:", "Question X:", "1.", "1/ ", "1) " from content if present
+        let cleanContent = typeof q.content === 'string'
+          ? q.content.replace(/^(?:(?:câu|question|bài)\s*\d+|\d+)\s*[\.\)\:\-\/]\s*/i, '').trim()
+          : q.content;
+        if (!cleanContent) cleanContent = q.content || '';
+
+        // Clean option prefixes like "A.", "B)", "C - ", "(A)", "[A]"
+        let cleanOptions = q.answer_options;
+        if (Array.isArray(cleanOptions)) {
+          cleanOptions = cleanOptions.map((opt: any) => ({
+            ...opt,
+            content: typeof opt.content === 'string'
+              ? opt.content.replace(/^(?:\[[A-Fa-f]\]|\([A-Fa-f]\)|[A-Fa-f]\s*[\.\)\:\-])\s*/, '').trim()
+              : opt.content,
+            is_correct: Boolean(opt.is_correct),
+          }));
+        }
+
         return {
           ...q,
+          content: cleanContent,
+          answer_options: cleanOptions,
           question_type: qType,
           difficulty: Math.max(1, Math.min(5, Number(q.difficulty) || 3)),
+          evidence_quote: q.evidence_quote || undefined,
         };
       });
+    } catch (error) {
+      Sentry.captureException(error);
+      throw error;
+    }
+  }
+
+  /**
+   * Analyzes an uploaded document to extract a suggested topic and a batch of questions
+   */
+  async generateTopicAndQuestionsFromDocument(params: {
+    documentText: string;
+    question_type?: string;
+    quantity?: number;
+    difficulty?: number;
+  }): Promise<{
+    topic_name: string;
+    topic_code: string;
+    topic_description: string;
+    questions: any[];
+  }> {
+    try {
+      const quantity = Math.min(20, Math.max(1, params.quantity || 10));
+      const qType = params.question_type || 'mixed';
+      const difficultyStr = params.difficulty ? `${params.difficulty}/5 sao` : 'ngẫu nhiên (1-5 sao)';
+
+      let typeStr = '';
+      let formatInstruction = '';
+      let typeInstruction = '';
+
+      switch (qType) {
+        case 'multiple_choice':
+          typeStr = 'trắc nghiệm (1 đáp án đúng trong 4 lựa chọn)';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "multiple_choice" cho tất cả câu hỏi được tạo ra!';
+          break;
+        case 'multi_select':
+          typeStr = 'trắc nghiệm nhiều đáp án (có thể có nhiều đáp án đúng)';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "multi_select" cho tất cả câu hỏi được tạo ra!';
+          formatInstruction = 'Đảm bảo có ít nhất 1 đáp án is_correct: true.';
+          break;
+        case 'true_false':
+          typeStr = 'đúng/sai (2 đáp án)';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "true_false" cho tất cả câu hỏi được tạo ra!';
+          break;
+        case 'fill_blank':
+          typeStr = 'điền vào chỗ trống';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "fill_blank" cho tất cả câu hỏi được tạo ra!';
+          formatInstruction = 'Với dạng điền vào chỗ trống, nội dung câu hỏi chứa "____" để điền. Mảng answer_options chứa 1 phần tử duy nhất là từ/cụm từ đúng đắn (is_correct: true).';
+          break;
+        case 'matching':
+          typeStr = 'ghép cặp';
+          typeInstruction = 'QUAN TRỌNG: Bạn BẮT BUỘC phải gán thuộc tính "question_type" là "matching" cho tất cả câu hỏi được tạo ra!';
+          formatInstruction = 'Với dạng ghép cặp, bỏ trống mảng answer_options. Thay vào đó hãy trả về đối tượng metadata: { "pairs": [ { "leftText": "...", "rightText": "..." } ] } chứa ít nhất 3 cặp tương ứng nhau.';
+          break;
+        default:
+          typeStr = 'tổng hợp đa dạng (kết hợp các loại: trắc nghiệm multiple_choice, trắc nghiệm nhiều đáp án multi_select, đúng/sai true_false, điền từ fill_blank, ghép cặp matching)';
+          typeInstruction = 'QUAN TRỌNG: Với TỪNG câu hỏi, bạn BẮT BUỘC phải gán thuộc tính "question_type" là một trong các loại cụ thể sau: "multiple_choice", "multi_select", "true_false", "fill_blank", hoặc "matching". TUYỆT ĐỐI KHÔNG gán "mixed" vào question_type!';
+          formatInstruction = `Định dạng chi tiết theo từng loại:
+- "multiple_choice": có 4 answer_options, đúng 1 đáp án is_correct: true.
+- "multi_select": có 4 answer_options, 2 hoặc nhiều đáp án is_correct: true.
+- "true_false": có 2 answer_options (Đúng / Sai).
+- "fill_blank": nội dung câu hỏi chứa "____", answer_options chứa 1 đáp án là từ cần điền.
+- "matching": answer_options để rỗng [], thay vào đó trả về đối tượng metadata: { "pairs": [ { "leftText": "...", "rightText": "..." } ] } có ít nhất 3 cặp.`;
+      }
+
+      const prompt = `Bạn là một Chuyên gia Thẩm định Giáo dục, Giám khảo Quốc gia và Thiết kế Đề thi Sư phạm cấp cao.
+Hãy phân tích kỹ lưỡng nội dung tài liệu học tập dưới đây để:
+1. Đề xuất TÊN CHỦ ĐỀ (topic_name) súc tích, bao quát và chuẩn học thuật nhất cho tài liệu này (Ví dụ: "Thì Hiện tại Hoàn thành", "Từ vựng Unit 1: Family Life", "Hình học không gian: Thể tích khối lăng trụ").
+   - LƯU Ý ĐẶC BIỆT KHI TÀI LIỆU LÀ ĐỀ THI / PHIẾU BÀI TẬP: Đặt tên chủ đề theo tiêu đề của đề thi hoặc nội dung kiến thức tổng thể của cả đề (Ví dụ: "Đề ôn tập tổng hợp Ngữ pháp & Từ vựng Tiếng Anh", "Đề thi thử THPT Quốc gia Tiếng Anh", "Kiểm tra Tiếng Anh Học kỳ 1"). TUYỆT ĐỐI KHÔNG lấy chủ đề của một đoạn văn đọc hiểu lẻ bên trong đề (như "Bảo vệ động vật", "Mạng xã hội tại Úc") để đặt tên cho cả chủ đề!
+2. Đề xuất MÃ CHỦ ĐỀ (topic_code) viết hoa không dấu gồm ĐÚNG 6 KÝ TỰ chữ cái và số, không chứa dấu cách hay ký tự đặc biệt (Ví dụ: "READ01", "ENG101", "GRAM02", "VOC001", "TEST01").
+3. Đề xuất MÔ TẢ CHỦ ĐỀ (topic_description) tóm tắt ngắn trong 1-2 câu về nội dung kiến thức trọng tâm của chủ đề.
+4. Trích xuất và số hóa ${quantity} câu hỏi bài tập dạng ${typeStr} với độ khó ${difficultyStr} từ các câu hỏi có sẵn trong tài liệu (nếu tài liệu là văn bản lý thuyết/bài đọc thuần túy không có câu hỏi thì mới tự biên soạn câu hỏi mới bám sát tài liệu).
+${typeInstruction}
+${formatInstruction}
+
+★ QUY TẮC ĐẶC BIỆT KHI TÀI LIỆU LÀ ĐỀ THI / NGÂN HÀNG CÂU HỎI CÓ SẴN (BẮT BUỘC TUÂN THỦ NGHIÊM NGẶT):
+1. [TỰ ĐỘNG NHẬN DIỆN ĐỀ THI & SỐ HÓA NGUYÊN VẸN]:
+   - Dấu hiệu đề thi/phiếu bài tập: Xuất hiện các câu hỏi được đánh số thứ tự (như "Câu 1", "Question 1", "Bài 1", "1.", "2."...), kèm các phương án lựa chọn A, B, C, D hoặc bài tập trắc nghiệm ngữ âm, từ vựng, ngữ pháp, điền từ, đọc hiểu.
+   - Khi tài liệu đã có sẵn câu hỏi: Mục tiêu HÀNG ĐẦU là SỐ HÓA NGUYÊN BẢN CÁC CÂU HỎI CÓ SẴN trong tài liệu vào hệ thống. Giữ nguyên câu từ đề bài và nội dung các phương án lựa chọn A, B, C, D. TUYỆT ĐỐI KHÔNG TỰ SÁNG TÁC THÊM CÂU HỎI MỚI khi tài liệu đã có sẵn các câu hỏi.
+
+2. [CẢNH BÁO TỐI CAO - NGHIÊM CẤM THIÊN VỊ BÀI ĐỌC HIỂU (ANTI-READING-PASSAGE BIAS)]:
+   - Khi tài liệu là một đề thi tổng hợp gồm nhiều phần (Ngữ âm, Trọng âm, Ngữ pháp, Từ vựng, Tìm lỗi sai, Giao tiếp, Điền từ, Đọc hiểu):
+     • TUYỆT ĐỐI KHÔNG ĐƯỢC CHỈ TẬP TRUNG VÀO PHẦN ĐỌC HIỂU HOẶC TỰ SÁNG TÁC CÂU HỎI TỪ BÀI ĐỌC!
+     • TUYỆT ĐỐI KHÔNG bỏ qua các câu hỏi trắc nghiệm ngữ âm, trọng âm, từ vựng, ngữ pháp, hoàn thành câu! Đây là các câu hỏi cực kỳ quan trọng và phải được số hóa ưu tiên.
+     • BẮT BUỘC QUÉT TUẦN TỰ TỪ TRÊN XUỐNG DƯỚI: Trích xuất các câu hỏi theo đúng thứ tự xuất hiện trong đề bài (bắt đầu từ Câu 1, Câu 2, Câu 3... cho đến khi đủ ${quantity} câu), hoặc phân bổ đều giữa các phần (Ngữ âm -> Ngữ pháp & Từ vựng -> Đọc điền -> Đọc hiểu).
+     • NẾU LẤY CÂU HỎI ĐỌC HIỂU: Chỉ số hóa câu hỏi đọc hiểu ĐÃ CÓ SẴN trong đề bài (KHÔNG tự sáng tác câu mới). Nếu câu hỏi đọc hiểu cần đoạn văn để trả lời, phải trích kèm đoạn văn ngắn ngữ cảnh vào "content" để học sinh làm bài không bị thiếu thông tin.
+
+3. [XỬ LÝ ĐÁP ÁN & GIẢI ĐỀ]:
+   - Nếu tài liệu ĐÃ CÓ đáp án/lời giải: Trích xuất chính xác đáp án đúng (is_correct: true) và lời giải thích có sẵn.
+   - Nếu tài liệu CHƯA CÓ đáp án (đề thi chưa giải): Bạn hãy đóng vai trò Giám khảo Quốc gia / Chuyên gia giải đề, tự giải và xác định ĐÁP ÁN ĐÚNG CHÍNH XÁC 100% cho từng câu hỏi, đồng thời tự biên soạn lời giải thích (explanation) chi tiết, sư phạm và phân tích vì sao các phương án còn lại sai.
+
+4. [ĐIỀU PHỐI SỐ LƯỢNG]:
+   - Nếu tài liệu có nhiều hơn ${quantity} câu: Hãy lấy lần lượt theo thứ tự từ trên xuống dưới (từ Câu 1 trở đi) hoặc chọn đều qua các dạng bài (ngữ âm, ngữ pháp, từ vựng, đọc hiểu) để đủ ${quantity} câu. KHÔNG ĐƯỢC dồn toàn bộ ${quantity} câu vào một bài đọc hiểu!
+   - Nếu tài liệu có ít hơn ${quantity} câu: Trích xuất toàn bộ các câu hỏi có trong tài liệu trước, sau đó mới tự biên soạn thêm các câu hỏi phát triển tương đương cùng dạng/chủ đề cho đủ ${quantity} câu.
+
+5. [LÀM SẠCH NỘI DUNG]:
+   - Thuộc tính "content" của câu hỏi: Loại bỏ các tiền tố số thứ tự như "Câu 1:", "Question 1:", "Bài 1.", "1." ở đầu để câu hỏi độc lập.
+   - Thuộc tính "content" trong từng phần tử của "answer_options": Chỉ chứa nội dung câu trả lời, LOẠI BỎ tiền tố nhãn (như "A.", "B.", "C.", "D.", "A)", "B)") vì giao diện hệ thống sẽ tự động hiển thị nhãn chữ cái.
+
+6. [QUY TẮC EVIDENCE_QUOTE]:
+   - Với câu hỏi đọc hiểu: Trích 1 câu trong đoạn văn làm bằng chứng cho đáp án.
+   - Với câu hỏi ngữ pháp / từ vựng / phát âm độc lập: Trích lại chính câu hỏi của đề bài hoặc ghi ngắn gọn quy tắc/cấu trúc tương ứng (Ví dụ: "Công thức thì Quá khứ đơn: S + V2/ed", "Quy tắc phát âm đuôi -ed"). Nếu không có đoạn văn, có thể để rỗng "". TUYỆT ĐỐI KHÔNG VÌ THIẾU ĐOẠN VĂN MÀ BỎ QUA CÁC CÂU NGỮ PHÁP/TỪ VỰNG!
+
+NỘI DUNG TÀI LIỆU HỌC TẬP:
+${params.documentText.slice(0, 30000)}`;
+
+      const { response } = await generateContentWithFallback(this.ai, {
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              topic_name: { type: Type.STRING },
+              topic_code: { type: Type.STRING },
+              topic_description: { type: Type.STRING },
+              questions: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    content: { type: Type.STRING },
+                    question_type: { type: Type.STRING },
+                    difficulty: { type: Type.INTEGER },
+                    explanation: { type: Type.STRING },
+                    evidence_quote: { type: Type.STRING },
+                    answer_options: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          content: { type: Type.STRING },
+                          is_correct: { type: Type.BOOLEAN }
+                        }
+                      }
+                    },
+                    metadata: {
+                      type: Type.OBJECT,
+                      properties: {
+                        pairs: {
+                          type: Type.ARRAY,
+                          items: {
+                            type: Type.OBJECT,
+                            properties: {
+                              leftText: { type: Type.STRING },
+                              rightText: { type: Type.STRING }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  required: ["content", "question_type", "difficulty", "explanation"]
+                }
+              }
+            },
+            required: ["topic_name", "topic_code", "topic_description", "questions"]
+          }
+        }
+      });
+
+      const parsed = JSON.parse(response.text || '{}');
+      const validTypes = new Set(['multiple_choice', 'multi_select', 'true_false', 'fill_blank', 'matching']);
+
+      const rawQuestions = Array.isArray(parsed.questions) ? parsed.questions : [];
+      const sanitizedQuestions = rawQuestions.map((q: any) => {
+        let qType = q.question_type;
+        if (!validTypes.has(qType)) {
+          if (q.metadata?.pairs && Array.isArray(q.metadata.pairs) && q.metadata.pairs.length > 0) {
+            qType = 'matching';
+          } else if (
+            Array.isArray(q.answer_options) && 
+            q.answer_options.length === 2 && 
+            (q.answer_options[0]?.content === 'Đúng' || q.answer_options[0]?.content === 'True')
+          ) {
+            qType = 'true_false';
+          } else if (q.content?.includes('____') && Array.isArray(q.answer_options) && q.answer_options.length === 1) {
+            qType = 'fill_blank';
+          } else if (Array.isArray(q.answer_options) && q.answer_options.filter((o: any) => o.is_correct).length > 1) {
+            qType = 'multi_select';
+          } else {
+            qType = 'multiple_choice';
+          }
+        }
+
+        // Clean prefix "Câu X:", "Question X:", "1.", "1/ ", "1) " from content if present
+        let cleanContent = typeof q.content === 'string'
+          ? q.content.replace(/^(?:(?:câu|question|bài)\s*\d+|\d+)\s*[\.\)\:\-\/]\s*/i, '').trim()
+          : q.content;
+        if (!cleanContent) cleanContent = q.content || '';
+
+        // Clean option prefixes like "A.", "B)", "C - ", "(A)", "[A]"
+        let cleanOptions = q.answer_options;
+        if (Array.isArray(cleanOptions)) {
+          cleanOptions = cleanOptions.map((opt: any) => ({
+            ...opt,
+            content: typeof opt.content === 'string'
+              ? opt.content.replace(/^(?:\[[A-Fa-f]\]|\([A-Fa-f]\)|[A-Fa-f]\s*[\.\)\:\-])\s*/, '').trim()
+              : opt.content,
+            is_correct: Boolean(opt.is_correct),
+          }));
+        }
+
+        return {
+          ...q,
+          content: cleanContent,
+          answer_options: cleanOptions,
+          question_type: qType,
+          difficulty: Math.max(1, Math.min(5, Number(q.difficulty) || 3)),
+          evidence_quote: q.evidence_quote || undefined,
+        };
+      });
+
+      let sanitizedCode = (parsed.topic_code || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '');
+      if (sanitizedCode.length > 6) {
+        sanitizedCode = sanitizedCode.slice(0, 6);
+      } else if (sanitizedCode.length > 0 && sanitizedCode.length < 6) {
+        sanitizedCode = sanitizedCode.padEnd(6, '0');
+      } else if (!sanitizedCode) {
+        sanitizedCode = 'TOP001';
+      }
+
+      return {
+        topic_name: parsed.topic_name || 'Chủ đề từ tài liệu',
+        topic_code: sanitizedCode,
+        topic_description: parsed.topic_description || 'Chủ đề được tạo tự động từ tài liệu học tập',
+        questions: sanitizedQuestions,
+      };
     } catch (error) {
       Sentry.captureException(error);
       throw error;

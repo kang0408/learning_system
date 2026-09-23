@@ -85,7 +85,7 @@ export class UsersService {
     return user;
   }
 
-  async adminCreateUser(data: { email: string; password: string; full_name: string; role: 'student' | 'teacher' | 'parent' | 'admin'; phone?: string; address?: string }) {
+  async adminCreateUser(data: { email: string; password: string; full_name: string; role: 'student' | 'teacher' | 'admin'; phone?: string; address?: string }) {
     const existing = await this.usersRepository.findByEmail(data.email);
     if (existing) {
       throw new ApiError(400, 'Email này đã được sử dụng');

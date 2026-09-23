@@ -51,6 +51,21 @@ export const teacherTopicDetailApi = {
   },
 
   generateAiQuestions: async (payload: GenerateAiQuestionsPayload): Promise<AiGeneratedQuestion[]> => {
+    if (payload.file) {
+      const formData = new FormData();
+      formData.append('file', payload.file);
+      formData.append('topic', payload.topic);
+      formData.append('question_type', payload.question_type);
+      formData.append('quantity', String(payload.quantity));
+      if (payload.difficulty !== undefined) {
+        formData.append('difficulty', String(payload.difficulty));
+      }
+      const res = await api.post('/api/questions/generate-ai', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return res.data.data || [];
+    }
+
     const res = await api.post('/api/questions/generate-ai', payload);
     return res.data.data || [];
   },

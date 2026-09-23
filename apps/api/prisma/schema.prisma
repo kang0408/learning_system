@@ -33,8 +33,6 @@ model User {
   ai_reports           AiReport[]
   ai_wizard_drafts     AiWizardDraft[]
 
-  @@index([email])
-
   @@index([role])
   @@map("users")
 }
@@ -74,7 +72,6 @@ model ClassMember {
   student User  @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@unique([class_id, student_id])
-  @@index([class_id])
   @@index([student_id])
   @@map("class_members")
 }
@@ -124,8 +121,6 @@ model Question {
   difficulty    Int          @default(3) @db.SmallInt
   metadata      Json?
   explanation   String?      @db.Text
-  audio_url     String?      @db.VarChar(500)
-  image_url     String?      @db.VarChar(500)
   is_public     Boolean      @default(false)
   created_at    DateTime     @default(now()) @db.Timestamptz
   updated_at    DateTime     @default(now()) @updatedAt @db.Timestamptz
@@ -183,7 +178,6 @@ model Assignment {
   assigned_students    AssignmentStudent[]
   curriculum_assignments CurriculumAssignment[]
 
-  @@index([class_id])
   @@index([class_id, is_published, deleted_at, deadline])
   @@index([created_by])
   @@map("assignments")
@@ -198,7 +192,6 @@ model AssignmentStudent {
   student    User       @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@unique([assignment_id, student_id])
-  @@index([assignment_id])
   @@index([student_id])
   @@map("assignment_students")
 }
@@ -213,7 +206,6 @@ model AssignmentQuestion {
   question   Question   @relation(fields: [question_id], references: [id], onDelete: Cascade)
 
   @@unique([assignment_id, question_id])
-  @@index([assignment_id])
   @@index([question_id])
   @@map("assignment_questions")
 }
@@ -236,7 +228,6 @@ model Sm2Progress {
   question Question @relation(fields: [question_id], references: [id], onDelete: Cascade)
 
   @@unique([student_id, question_id])
-  @@index([student_id])
   @@index([student_id, next_review_date])
   @@index([student_id, easiness_factor])
   @@index([question_id])
@@ -294,7 +285,6 @@ model OtpCode {
   created_at DateTime @default(now()) @db.Timestamptz
   is_used    Boolean  @default(false)
 
-  @@index([email])
   @@index([email, code])
   @@map("otp_codes")
 }
@@ -333,7 +323,6 @@ model ClassCurriculum {
   materials    CurriculumMaterial[]
   assignments  CurriculumAssignment[]
 
-  @@index([class_id])
   @@index([class_id, order_index])
   @@map("class_curriculums")
 }
@@ -365,7 +354,6 @@ model CurriculumAssignment {
   assignment Assignment      @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
 
   @@unique([curriculum_id, assignment_id])
-  @@index([curriculum_id])
   @@index([assignment_id])
   @@map("curriculum_assignments")
 }
@@ -402,7 +390,6 @@ model StudentTopicStats {
   topic   Topic @relation(fields: [topic_id], references: [id], onDelete: Cascade)
 
   @@unique([student_id, topic_id])
-  @@index([student_id])
   @@index([topic_id])
   @@map("student_topic_stats")
 }

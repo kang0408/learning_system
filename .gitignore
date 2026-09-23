@@ -2,7 +2,10 @@ node_modules
 dist
 .env
 
+# Documentation & internal project files (not public to GitHub)
 docs/
+docs
+
 !README.md
 *.pdf
 *.tsbuildinfo

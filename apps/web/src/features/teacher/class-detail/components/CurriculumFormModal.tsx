@@ -306,6 +306,7 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
                   {t('teacher.classDetail.attachedMaterials')} ({materials.length})
                 </label>
                 <div className="flex items-center gap-2">
+                  {/* Tạm ẩn chọn từ Google Drive
                   <Button
                     type="button"
                     variant="primary"
@@ -315,6 +316,7 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
                   >
                     <HardDrive className="w-3.5 h-3.5 mr-1.5" /> Chọn từ Google Drive
                   </Button>
+                  */}
                   <Button
                     type="button"
                     variant="outline"
@@ -450,11 +452,13 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
         </form>
       </div>
 
+      {/* Tạm ẩn GoogleDrivePickerModal
       <GoogleDrivePickerModal
         isOpen={isDrivePickerOpen}
         onClose={() => setIsDrivePickerOpen(false)}
         onSelectFile={handleSelectFromDrive}
       />
+      */}
     </div>
   );
 };

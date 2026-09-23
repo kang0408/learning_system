@@ -129,7 +129,7 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
                       : 'bg-emerald-100 text-emerald-800 border-emerald-300'
                   }`}
                 >
-                  {isImage ? 'Hình ảnh / Image' : 'Google Drive Preview'}
+                  {isImage ? 'Hình ảnh / Image' : 'Xem tài liệu / Document Preview'}
                 </span>
               </div>
               <h3 className="text-base sm:text-lg font-black uppercase tracking-tight text-zinc-900 truncate mt-0.5">
@@ -180,7 +180,7 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
             <div className="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center gap-3">
               <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
               <p className="font-mono text-xs font-bold uppercase text-zinc-700 tracking-wider">
-                {isImage ? 'Đang tải hình ảnh...' : 'Đang tải tài liệu từ Google Drive...'}
+                {isImage ? 'Đang tải hình ảnh...' : 'Đang tải tài liệu...'}
               </p>
             </div>
           )}
@@ -231,7 +231,7 @@ export const GoogleDocPreviewModal: React.FC<GoogleDocPreviewModalProps> = ({
             <span>
               {isDirectImage
                 ? 'Đang xem trước hình ảnh trực tiếp'
-                : 'Đang xem trực tiếp qua Google Drive Viewer'}
+                : 'Đang xem trực tiếp tài liệu'}
             </span>
           </div>
           <div className="text-zinc-500">

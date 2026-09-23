@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, Award, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { UserItem, UserDetail } from '../types';
-import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/Avatar';
+import { Avatar, AvatarImage, AvatarFallback, getAvatarUrl } from '../../../../components/ui/Avatar';
 import { Dialog } from '../../../../components/ui/Dialog';
 import { Button } from '../../../../components/ui/Button';
 
@@ -30,7 +30,7 @@ export const UserDetailModal: React.FC<Props> = ({ isOpen, user, onClose, onFetc
 
   if (!user) return null;
 
-  const avatarUrl = user.avatar_url ? `${import.meta.env.VITE_API_URL}${user.avatar_url}` : undefined;
+  const avatarUrl = getAvatarUrl(user.avatar_url);
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title={t('adminUsers.detailModal.title', 'Chi tiết người dùng')} maxWidth="lg">

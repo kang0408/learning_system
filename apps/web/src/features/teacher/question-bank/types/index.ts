@@ -32,7 +32,21 @@ export interface CreateQuestionPayload {
   metadata?: any;
 }
 
-export interface ImportCsvResult {
-  importedCount: number;
-  errors: string[];
+export interface AiGeneratedTopicData {
+  topic_name: string;
+  topic_code?: string;
+  topic_description?: string;
+  questions: Array<{
+    content: string;
+    question_type: string;
+    difficulty: number;
+    explanation?: string;
+    evidence_quote?: string;
+    answer_options?: Array<{
+      content: string;
+      is_correct: boolean;
+      order_index?: number;
+    }>;
+    metadata?: any;
+  }>;
 }

@@ -233,21 +233,74 @@ describe('Questions & Gemini AI Test Suite (Section 4.2.4)', () => {
     });
   });
 
-  describe('TC_QST_04: Nhập câu hỏi từ tệp CSV', () => {
-    it('should parse CSV file and import questions into database', async () => {
-      const csvContent = `Nội dung câu hỏi,Loại câu hỏi,Độ khó,Giải thích,Mã Chủ đề (Code),Đáp án Đúng,Đáp án 1,Đáp án 2,Đáp án 3,Đáp án 4
-He _____ soccer yesterday.,multiple_choice,3,Yesterday là quá khứ đơn,GRAMMAR,B,plays,played,playing,has played`;
+  describe('TC_QST_04: Sinh câu hỏi AI từ nội dung tài liệu (Document Generation)', () => {
+    it('should generate quiz questions with evidence_quote when documentText is provided', async () => {
+      const mockCacheRepo = {} as any;
+      const mockAiRepo = {} as any;
 
-      (prisma.topic.findFirst as jest.Mock).mockResolvedValue({ id: 'topic-grammar', code: 'GRAMMAR' });
-      (prisma.question.create as jest.Mock).mockResolvedValue({ id: 'q-csv-1' });
+      mockGenerateContent.mockResolvedValueOnce({
+        text: JSON.stringify([
+          {
+            content: 'Where did they travel last summer?',
+            question_type: 'multiple_choice',
+            difficulty: 2,
+            explanation: 'In the text, line 2 mentions London.',
+            evidence_quote: 'They traveled to London last summer.',
+            answer_options: [
+              { content: 'London', is_correct: true },
+              { content: 'Paris', is_correct: false },
+            ],
+          },
+        ]),
+      });
 
-      const res = await request(app)
-        .post('/api/questions/import-csv')
-        .set('Authorization', `Bearer ${teacherToken}`)
-        .attach('file', Buffer.from(csvContent, 'utf-8'), 'questions.csv');
+      const aiService = new AiService(mockCacheRepo, mockAiRepo);
+      const questions = await aiService.generateQuizQuestions({
+        topic: 'Summer Holiday',
+        question_type: 'multiple_choice',
+        quantity: 1,
+        documentText: 'They traveled to London last summer.',
+      });
 
-      expect(res.status).toBe(200);
-      expect(res.body.data.importedCount).toBe(1);
+      expect(questions).toHaveLength(1);
+      expect(questions[0].evidence_quote).toBe('They traveled to London last summer.');
+    });
+
+    it('should generate topic details and questions from documentText', async () => {
+      const mockCacheRepo = {} as any;
+      const mockAiRepo = {} as any;
+
+      mockGenerateContent.mockResolvedValueOnce({
+        text: JSON.stringify({
+          topic_name: 'Summer Holiday',
+          topic_code: 'HOLI01',
+          topic_description: 'Vocabulary about travel and holiday',
+          questions: [
+            {
+              content: 'Where did they travel?',
+              question_type: 'multiple_choice',
+              difficulty: 2,
+              explanation: 'Based on the text',
+              evidence_quote: 'They visited London.',
+              answer_options: [
+                { content: 'London', is_correct: true },
+                { content: 'Tokyo', is_correct: false },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const aiService = new AiService(mockCacheRepo, mockAiRepo);
+      const result = await aiService.generateTopicAndQuestionsFromDocument({
+        documentText: 'They visited London during the summer holiday.',
+        quantity: 1,
+      });
+
+      expect(result.topic_name).toBe('Summer Holiday');
+      expect(result.topic_code).toBe('HOLI01');
+      expect(result.questions).toHaveLength(1);
+      expect(result.questions[0].evidence_quote).toBe('They visited London.');
     });
   });
 

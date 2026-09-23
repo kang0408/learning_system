@@ -5,6 +5,7 @@ export interface WizardProgressEvent {
   class_id: string;
   lesson_temp_id?: string;
   progress_pct: number;
+  content_html?: string;
   topics?: any[];
   questions?: any[];
   error?: string;

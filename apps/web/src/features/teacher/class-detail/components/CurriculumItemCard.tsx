@@ -49,7 +49,7 @@ export const CurriculumItemCard: React.FC<CurriculumItemCardProps> = ({
   const getVideoSourceLabel = (type?: string | null) => {
     switch (type) {
       case 'drive':
-        return 'Google Drive';
+        return 'Video';
       case 'youtube':
         return 'YouTube';
       case 'vimeo':

@@ -157,6 +157,7 @@ export function useAiWizard(classId: string) {
                 l.temp_id === unitId
                   ? {
                       ...l,
+                      content_html: event.content_html ?? l.content_html,
                       status: 'ready',
                       topics_count: event.topics?.length ?? l.topics_count,
                       questions_count: event.questions?.length ?? l.questions_count,

@@ -45,6 +45,7 @@ export interface WizardLesson {
   temp_id: string;
   title: string;
   summary?: string;
+  content_html?: string;
   order_index: number;
   page_range?: string;
   status: LessonCardStatus;
@@ -85,6 +86,7 @@ export interface WizardProgressEvent {
   class_id: string;
   lesson_temp_id?: string;
   progress_pct: number;
+  content_html?: string;
   topics?: WizardTopic[];
   questions?: WizardQuestion[];
   error?: string;

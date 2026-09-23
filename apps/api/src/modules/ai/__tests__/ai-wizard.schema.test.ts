@@ -61,4 +61,17 @@ describe('AI Wizard Zod Schemas', () => {
 
     expect(() => wizardQuestionSchema.parse(invalidQuestion)).toThrow();
   });
+
+  it('should validate and parse content_html in updateLessonDetailSchema and wizardLessonSchema', () => {
+    const updateData = {
+      class_id: '123e4567-e89b-12d3-a456-426614174000',
+      lesson_temp_id: 'lesson_1',
+      topics: [{ temp_id: 'top_1', name: 'Topic 1' }],
+      questions: [],
+      content_html: '<h3>1. Mục tiêu bài học</h3><p>Lý thuyết chi tiết</p>',
+    };
+
+    const parsed = updateLessonDetailSchema.parse(updateData);
+    expect(parsed.content_html).toBe('<h3>1. Mục tiêu bài học</h3><p>Lý thuyết chi tiết</p>');
+  });
 });

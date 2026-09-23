@@ -57,6 +57,7 @@ export interface GenerateAiQuestionsPayload {
   question_type: string;
   quantity: number;
   difficulty?: number;
+  file?: File;
 }
 
 export interface AiGeneratedQuestion {
@@ -64,6 +65,7 @@ export interface AiGeneratedQuestion {
   question_type: string;
   difficulty: number;
   explanation: string;
+  evidence_quote?: string;
   answer_options: {
     content: string;
     is_correct: boolean;

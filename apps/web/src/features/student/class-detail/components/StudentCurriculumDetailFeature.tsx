@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen,
+  Clock,
+  Sparkles,
+  ArrowDown
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useStudentCurriculumDetail } from '../hooks/useStudentCurriculumDetail';
@@ -52,6 +56,27 @@ export const StudentCurriculumDetailFeature: React.FC = () => {
 
   const materialsCount = curriculum.materials?.length || 0;
   const assignmentsCount = curriculum.assignments?.length || 0;
+
+  const readingTimeMinutes = useMemo(() => {
+    if (!curriculum?.content_html) return 1;
+    const words = curriculum.content_html
+      .replace(/<[^>]+>/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean).length;
+    return Math.max(1, Math.round(words / 150));
+  }, [curriculum?.content_html]);
+
+  const sections = useMemo(() => {
+    if (!curriculum?.content_html) return [];
+    const regex = /<h3[^>]*>(.*?)<\/h3>/gi;
+    const matches: string[] = [];
+    let match;
+    while ((match = regex.exec(curriculum.content_html)) !== null) {
+      const cleanTitle = match[1].replace(/<[^>]+>/g, '').trim();
+      if (cleanTitle) matches.push(cleanTitle);
+    }
+    return matches;
+  }, [curriculum?.content_html]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -121,16 +146,89 @@ export const StudentCurriculumDetailFeature: React.FC = () => {
           </div>
         )}
 
-        {/* HTML Lesson Content */}
+        {/* HTML Lesson Content - Deep Reading Space */}
         {curriculum.content_html && (
-          <div className="border-4 border-zinc-900 bg-white p-6 md:p-8 shadow-[6px_6px_0_0_#18181b] space-y-4">
-            <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase tracking-widest text-zinc-500">
-              <span>{t('student.classDetail.lessonContent')}</span>
+          <div className="border-4 border-zinc-900 bg-white shadow-[6px_6px_0_0_#18181b] overflow-hidden">
+            {/* Reading Header Banner */}
+            <div className="bg-zinc-900 text-white p-5 md:p-6 flex flex-wrap items-center justify-between gap-4 border-b-4 border-zinc-900">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 border-2 border-white bg-indigo-600 text-white flex items-center justify-center font-bold shadow-[2px_2px_0_0_#ffffff]">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-mono font-bold text-sm md:text-base uppercase tracking-wider text-white">
+                    {t('student.classDetail.lessonContent', 'Nội dung bài giảng lý thuyết')}
+                  </h3>
+                  <p className="font-mono text-xs text-zinc-400">
+                    {t('student.classDetail.theorySubtitle', 'Đọc kỹ lý thuyết và các ví dụ minh họa trước khi làm bài tập củng cố')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 font-mono font-bold text-xs uppercase px-3 py-1.5 bg-zinc-800 text-zinc-200 border-2 border-zinc-700">
+                  <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                  {t('student.classDetail.readingTime', { minutes: readingTimeMinutes, defaultValue: `~${readingTimeMinutes} phút đọc` })}
+                </span>
+              </div>
             </div>
-            <div
-              className="p-6 md:p-8 border-2 border-zinc-900 bg-zinc-50/50 shadow-[4px_4px_0_0_#18181b] rich-text-content prose prose-zinc max-w-none text-zinc-800 leading-relaxed font-medium break-words"
-              dangerouslySetInnerHTML={{ __html: curriculum.content_html }}
-            />
+
+            {/* Quick TOC pills (if headings exist) */}
+            {sections.length > 1 && (
+              <div className="bg-zinc-50 border-b-2 border-zinc-200 p-4 px-6 md:px-8">
+                <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase text-zinc-500 mb-2">
+                  <span>{t('student.classDetail.quickJump', 'Mục lục nhanh:')}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {sections.map((sec, idx) => (
+                    <span
+                      key={idx}
+                      className="font-mono text-xs font-semibold px-3 py-1 bg-white border-2 border-zinc-900 text-zinc-800 shadow-[2px_2px_0_0_#18181b]"
+                    >
+                      {sec}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Body Rich Text with Enhanced Styles */}
+            <div className="p-6 md:p-10">
+              <div
+                className="rich-text-content prose prose-zinc max-w-none text-zinc-900 leading-relaxed font-normal break-words prose-headings:font-black prose-headings:tracking-tight prose-headings:uppercase prose-h3:text-lg prose-h3:text-indigo-950 prose-h3:border-b-2 prose-h3:border-zinc-200 prose-h3:pb-2 prose-h3:mt-8 prose-h3:mb-4 prose-p:my-3 prose-ul:my-3 prose-li:my-1 prose-strong:text-zinc-950 prose-blockquote:border-l-4 prose-blockquote:border-indigo-600 prose-blockquote:bg-indigo-50/50 prose-blockquote:p-4 prose-blockquote:rounded-r-lg"
+                dangerouslySetInnerHTML={{ __html: curriculum.content_html }}
+              />
+
+              {/* End of Theory CTA Banner (Jump to assignments) */}
+              {assignmentsCount > 0 && (
+                <div className="mt-10 p-6 md:p-8 border-4 border-zinc-900 bg-amber-50 shadow-[4px_4px_0_0_#18181b] flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 border-2 border-zinc-900 bg-amber-400 text-zinc-900 flex items-center justify-center shrink-0 shadow-[2px_2px_0_0_#18181b]">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-base md:text-lg uppercase tracking-tight text-zinc-900">
+                        {t('student.classDetail.theoryDoneCtaTitle', 'Đã nắm vững lý thuyết bài này?')}
+                      </h4>
+                      <p className="text-xs md:text-sm text-zinc-700 font-medium mt-1">
+                        {t('student.classDetail.theoryDoneCtaDesc', 'Hãy thử sức ngay với các bài tập củng cố bên dưới để ghi nhớ kiến thức sâu sắc hơn.')}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.getElementById('lesson-assignments')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full sm:w-auto shrink-0 inline-flex items-center justify-center gap-2 font-mono font-bold text-xs uppercase px-6 py-3.5 border-2 border-zinc-900 bg-indigo-600 text-white shadow-[3px_3px_0_0_#18181b] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] transition-all cursor-pointer"
+                  >
+                    <span>{t('student.classDetail.theoryDoneCtaBtn', 'Làm bài tập củng cố ngay')}</span>
+                    <ArrowDown className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -146,7 +244,7 @@ export const StudentCurriculumDetailFeature: React.FC = () => {
 
         {/* Assignments */}
         {assignmentsCount > 0 && (
-          <div className="border-4 border-zinc-900 bg-white p-6 md:p-8 shadow-[6px_6px_0_0_#18181b]">
+          <div id="lesson-assignments" className="border-4 border-zinc-900 bg-white p-6 md:p-8 shadow-[6px_6px_0_0_#18181b] scroll-mt-6">
             <LessonAssignmentsList
               curriculumAssignments={curriculum.assignments}
               allClassAssignments={assignments}

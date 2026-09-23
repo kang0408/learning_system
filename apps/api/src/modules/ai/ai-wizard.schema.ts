@@ -43,6 +43,7 @@ export const wizardLessonSchema = z.object({
   topics_count: z.number().int().nonnegative().default(0),
   questions_count: z.number().int().nonnegative().default(0),
   error_message: z.string().optional(),
+  content_html: z.string().optional().default(''),
   
   // Custom lesson & assignment settings
   assignment_mode: z.enum(['standard', 'adaptive', 'exam']).optional(),
@@ -79,6 +80,7 @@ export const updateLessonDetailSchema = z.object({
   lesson_temp_id: z.string().min(1),
   topics: z.array(wizardTopicSchema),
   questions: z.array(wizardQuestionSchema),
+  content_html: z.string().optional(),
   assignment_mode: z.enum(['standard', 'adaptive', 'exam']).optional(),
   max_attempts: z.number().int().nonnegative().optional(),
   time_limit_minutes: z.number().int().positive().nullable().optional(),

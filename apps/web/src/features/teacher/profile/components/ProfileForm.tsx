@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Label } from '@/components/ui/Label';
 import { Button } from '@/components/ui/Button';
+import { getInitials, getAvatarUrl } from '@/components/ui/Avatar';
 
 interface ProfileFormProps {
   onSuccess: (message: string) => void;
@@ -20,6 +21,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
   const { mutateAsync: updateProfile, isPending } = useUpdateTeacherProfile();
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     full_name: user?.full_name || '',
@@ -32,7 +34,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
 
   useEffect(() => {
     if (user?.avatar_url) {
-      setAvatarPreview(`${import.meta.env.VITE_API_URL}${user.avatar_url}`);
+      setAvatarPreview(getAvatarUrl(user.avatar_url) || null);
+      setImageError(false);
+    } else {
+      setAvatarPreview(null);
+      setImageError(false);
     }
   }, [user]);
 
@@ -44,6 +50,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
         return;
       }
       setAvatarFile(file);
+      setImageError(false);
       setAvatarPreview(URL.createObjectURL(file));
     }
   };
@@ -73,21 +80,38 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ onSuccess, onError }) 
       <div className="lg:col-span-1 space-y-6">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center text-center">
           <div 
-            className="relative w-40 h-40 rounded-full border border-gray-200 bg-slate-50 cursor-pointer overflow-hidden shadow-sm group mb-5 hover:shadow-md transition-all"
+            className="relative mb-5 group cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            {avatarPreview ? (
-              <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors">
-                <Camera className="w-10 h-10 mb-2" />
-                <span className="font-bold text-xs tracking-wider uppercase">{t('teacher.profile.selectAvatar')}</span>
-              </div>
-            )}
+            <div className="w-36 h-36 sm:w-40 sm:h-40 rounded-full border-4 border-white ring-2 ring-slate-200/80 overflow-hidden shadow-md group-hover:ring-indigo-400 transition-all relative">
+              {avatarPreview && !imageError ? (
+                <img 
+                  src={avatarPreview} 
+                  alt={formData.full_name || 'Avatar'} 
+                  onError={() => setImageError(true)}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 text-white select-none">
+                  <span className="font-black text-4xl sm:text-5xl tracking-wider uppercase drop-shadow-sm">
+                    {getInitials(formData.full_name || user?.full_name || user?.email)}
+                  </span>
+                </div>
+              )}
 
-            <div className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Upload className="w-8 h-8 text-white mb-1.5" />
-              <span className="font-semibold text-white text-xs">{t('teacher.profile.changeAvatar')}</span>
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Upload className="w-7 h-7 text-white mb-1.5" />
+                <span className="font-semibold text-white text-xs">{t('teacher.profile.changeAvatar')}</span>
+              </div>
+            </div>
+
+            {/* Floating Camera Badge */}
+            <div 
+              className="absolute bottom-1 right-1 w-9 h-9 rounded-full bg-indigo-600 border-2 border-white shadow-md flex items-center justify-center text-white group-hover:bg-indigo-700 group-hover:scale-110 transition-all"
+              title={t('teacher.profile.changeAvatar')}
+            >
+              <Camera className="w-4 h-4" />
             </div>
           </div>
 

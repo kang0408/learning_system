@@ -79,13 +79,21 @@ export const AiLessonCard: React.FC<AiLessonCardProps> = ({
         );
       case 'ready':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            {t('teacher.aiWizard.lessonCard.readyBadge', {
-              questions: lesson.questions_count,
-              topics: lesson.topics_count,
-            })}
-          </span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {t('teacher.aiWizard.lessonCard.readyBadge', {
+                questions: lesson.questions_count,
+                topics: lesson.topics_count,
+              })}
+            </span>
+            {lesson.content_html && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70">
+                <BookOpen className="w-3 h-3" />
+                {t('teacher.aiWizard.lessonCard.hasLecture', 'Đã có bài giảng')}
+              </span>
+            )}
+          </div>
         );
       case 'error':
         return (

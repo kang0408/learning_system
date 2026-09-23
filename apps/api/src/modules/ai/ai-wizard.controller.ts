@@ -244,6 +244,7 @@ export class AiWizardController extends BaseController {
               if (l.temp_id === unitId) {
                 return {
                   ...l,
+                  content_html: progressEvent.content_html ?? l.content_html,
                   status: 'ready' as const,
                   topics_count: progressEvent.topics?.length ?? l.topics_count,
                   questions_count: progressEvent.questions?.length ?? l.questions_count,
@@ -282,6 +283,7 @@ export class AiWizardController extends BaseController {
       return {
         ...generated,
         ...l,
+        content_html: generated.content_html || l.content_html,
         status: generated.status,
         topics_count: generated.topics_count,
         questions_count: generated.questions_count,
@@ -330,6 +332,7 @@ export class AiWizardController extends BaseController {
       lesson_temp_id,
       topics,
       questions,
+      content_html,
       assignment_mode,
       max_attempts,
       time_limit_minutes,
@@ -350,6 +353,7 @@ export class AiWizardController extends BaseController {
       if (l.temp_id === lesson_temp_id) {
         return {
           ...l,
+          content_html: content_html !== undefined ? content_html : l.content_html,
           status: 'ready' as const,
           topics_count: topics.length,
           questions_count: questions.length,
@@ -379,7 +383,7 @@ export class AiWizardController extends BaseController {
       updatedPayload
     );
 
-    return this.handleSuccess(res, { success: true, lesson_temp_id, topics, questions });
+    return this.handleSuccess(res, { success: true, lesson_temp_id, topics, questions, content_html });
   }
 
   /**

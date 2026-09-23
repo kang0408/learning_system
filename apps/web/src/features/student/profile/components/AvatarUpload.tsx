@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Camera, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getInitials, getAvatarUrl } from '@/components/ui/Avatar';
 
 interface AvatarUploadProps {
   user: any;
@@ -19,14 +20,20 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (avatarFile) {
       const url = URL.createObjectURL(avatarFile);
       setAvatarPreview(url);
+      setImageError(false);
       return () => URL.revokeObjectURL(url);
     } else if (user?.avatar_url) {
-      setAvatarPreview(`${import.meta.env.VITE_API_URL}${user.avatar_url}`);
+      setAvatarPreview(getAvatarUrl(user.avatar_url) || null);
+      setImageError(false);
+    } else {
+      setAvatarPreview(null);
+      setImageError(false);
     }
   }, [user, avatarFile]);
 
@@ -37,6 +44,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
         onError(t('student.profile.fileSizeError'));
         return;
       }
+      setImageError(false);
       onFileChange(file);
     }
   };
@@ -56,13 +64,17 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
         {/* The Avatar Image itself */}
         <div className="relative z-10 w-48 h-48 border-4 border-zinc-900 rounded-full overflow-hidden bg-white shadow-[8px_8px_0px_0px_rgba(24,24,27,1)] transition-transform duration-300 group-hover:-translate-y-2 group-hover:-translate-x-2">
-          {avatarPreview ? (
-            <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+          {avatarPreview && !imageError ? (
+            <img 
+              src={avatarPreview} 
+              alt={user?.full_name || 'Avatar'} 
+              onError={() => setImageError(true)}
+              className="w-full h-full object-cover" 
+            />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 text-zinc-400">
-              <Camera className="w-12 h-12 mb-2" />
-              <span className="font-bold text-sm uppercase tracking-wider">
-                {t('student.profile.noPhoto')}
+            <div className="w-full h-full flex items-center justify-center bg-indigo-600 text-white font-mono select-none">
+              <span className="font-black text-5xl tracking-widest uppercase">
+                {getInitials(user?.full_name || user?.email)}
               </span>
             </div>
           )}

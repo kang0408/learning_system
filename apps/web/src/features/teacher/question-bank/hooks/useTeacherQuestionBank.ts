@@ -35,10 +35,18 @@ export const useCreateQuestion = () => {
   });
 };
 
-export const useImportCsv = () => {
+export const useGenerateTopicFromDocument = () => {
+  return useMutation({
+    mutationFn: ({ file, options }: { file: File; options?: { question_type?: string; quantity?: number; difficulty?: number } }) =>
+      teacherQuestionBankApi.generateTopicFromDocument(file, options),
+  });
+};
+
+export const useBulkCreateQuestions = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: teacherQuestionBankApi.importCsv,
+    mutationFn: ({ topicId, questions }: { topicId: string; questions: any[] }) =>
+      teacherQuestionBankApi.bulkCreateQuestions(topicId, questions),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teacher', 'topics'] });
     },

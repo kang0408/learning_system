@@ -6,7 +6,7 @@ import { useClassMutations } from '../hooks/useClassDetailData';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/utils/toast';
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from '@/components/ui/Table';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
+import { Avatar, AvatarImage, AvatarFallback, getAvatarUrl } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -241,10 +241,7 @@ export function StudentsTab({ analytics, members, classId }: StudentsTabProps) {
                 {filteredStudents.map((student: any, index: number) => {
                   const isTop3 = index < 3 && sortBy === 'rank';
                   const member = members?.find((m: any) => m.student_id === student.student_id);
-                  let avatarUrl = member?.student?.avatar_url;
-                  if (avatarUrl && !avatarUrl.startsWith('http')) {
-                    avatarUrl = `${import.meta.env.VITE_API_URL}${avatarUrl}`;
-                  }
+                  const avatarUrl = getAvatarUrl(member?.student?.avatar_url);
 
                   return (
                     <TableRow key={student.student_id}>

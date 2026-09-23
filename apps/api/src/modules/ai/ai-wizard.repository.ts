@@ -98,7 +98,10 @@ export class AiWizardRepository {
           data: {
             class_id: classId,
             title: lesson.title,
-            content_html: `<p>${lesson.summary || lesson.title}</p>`,
+            content_html:
+              lesson.content_html && lesson.content_html.trim().length > 0
+                ? lesson.content_html
+                : `<p>${lesson.summary || lesson.title}</p>`,
             order_index: lesson.order_index,
             is_published: lesson.is_curriculum_published ?? true,
           },

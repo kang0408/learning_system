@@ -2,7 +2,7 @@ export interface UserItem {
   id: string;
   email: string;
   full_name: string;
-  role: 'student' | 'teacher' | 'parent' | 'admin';
+  role: 'student' | 'teacher' | 'admin';
   avatar_url?: string;
   phone?: string;
   address?: string;
@@ -18,8 +18,7 @@ export interface UserDetail extends UserItem {
     class_members: number;
     questions: number;
     quiz_sessions: number;
-    parent_links: number;
-    student_links: number;
+    assignments?: number;
   };
 }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Eye, Edit3, Key, Trash2, RotateCcw, Skull } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { UserItem, UserPagination } from '../types';
-import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/Avatar';
+import { Avatar, AvatarImage, AvatarFallback, getAvatarUrl } from '../../../../components/ui/Avatar';
 import { Button } from '../../../../components/ui/Button';
 
 interface Props {
@@ -89,7 +89,7 @@ export const UserTable: React.FC<Props> = ({
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {users.map((user) => {
-              const avatarUrl = user.avatar_url ? `${import.meta.env.VITE_API_URL}${user.avatar_url}` : undefined;
+              const avatarUrl = getAvatarUrl(user.avatar_url);
               const isSoftDeleted = !!user.deleted_at;
 
               return (
