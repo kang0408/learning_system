@@ -10,7 +10,7 @@ import { UserDetailModal } from '../../features/admin/users/components/UserDetai
 import { ConfirmDialog } from '../../components/ui/Dialog';
 import { Button } from '../../components/ui/Button';
 import { toast } from '../../utils/toast';
-import { Users, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import type { UserItem } from '../../features/admin/users/types';
 
 export default function AdminUserManagement() {

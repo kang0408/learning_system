@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { Users, FileText, LogOut, Menu, X, User as UserIcon, ChevronLeft, ChevronRight, Globe, HardDrive } from 'lucide-react';
+import { Users, FileText, LogOut, Menu, X, User as UserIcon, ChevronLeft, ChevronRight, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../store/authStore';
 import api from '../api/axios';

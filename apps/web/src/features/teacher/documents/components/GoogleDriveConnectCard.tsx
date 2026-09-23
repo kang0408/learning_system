@@ -1,5 +1,5 @@
 import React from 'react';
-import { HardDrive, RefreshCw, Unplug, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { HardDrive, RefreshCw, Unplug } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatStorageUsage } from '../utils/driveFormatters';

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { HardDrive, Plus, Upload, FolderPlus, RefreshCw, Unplug, CheckCircle2 } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { HardDrive, Upload, FolderPlus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { GoogleDriveConnectCard } from './components/GoogleDriveConnectCard';
 import { DriveFileList } from './components/DriveFileList';

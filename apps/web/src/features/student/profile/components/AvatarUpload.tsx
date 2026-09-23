@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Camera, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getInitials, getAvatarUrl } from '@/components/ui/Avatar';
 

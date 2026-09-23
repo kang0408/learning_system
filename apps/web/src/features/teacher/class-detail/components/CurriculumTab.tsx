@@ -9,7 +9,6 @@ import {
   X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
@@ -148,9 +147,9 @@ export const CurriculumTab: React.FC<CurriculumTabProps> = ({ classId, assignmen
           draft={
             aiWizard.activeDraft || {
               id: 'active_draft',
-              user_id: '',
+              teacher_id: '',
               class_id: classId,
-              status: aiWizard.isGenerating ? 'processing' : 'ready_for_review',
+              step: aiWizard.isGenerating ? 'generating' : 'ready_for_review',
               document_name: null,
               payload: {
                 curriculum_title: aiWizard.curriculumTitle,

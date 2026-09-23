@@ -2,11 +2,7 @@ import React from 'react';
 import {
   ExternalLink,
   Eye,
-  FileText,
-  FileSpreadsheet,
-  Presentation,
   Image as ImageIcon,
-  File,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CurriculumMaterial } from '../types/curriculum.types';

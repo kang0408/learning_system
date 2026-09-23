@@ -1,5 +1,4 @@
 import React from 'react';
-import { Award } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export const ProfileHeader: React.FC = () => {

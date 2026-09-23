@@ -93,7 +93,6 @@ export function useGoogleDrive() {
     const params = new URLSearchParams(window.location.search);
     const connected = params.get('connected');
     const email = params.get('email');
-    const name = params.get('name');
     const error = params.get('error');
 
     if (error) {

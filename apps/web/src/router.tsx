@@ -32,7 +32,6 @@ import TeacherClassEditAssignment from './pages/teacher/TeacherClassEditAssignme
 import QuestionBank from './pages/teacher/QuestionBank';
 import TeacherTopicDetail from './pages/teacher/TeacherTopicDetail';
 import TeacherProfile from './pages/teacher/TeacherProfile';
-import TeacherDocuments from './pages/teacher/TeacherDocuments';
 
 const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role?: string }) => {
   const { token, user } = useAuthStore();

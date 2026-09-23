@@ -5,7 +5,6 @@ import {
   Maximize2,
   Minimize2,
   Loader2,
-  FileText,
   Image as ImageIcon,
   AlertCircle,
 } from 'lucide-react';

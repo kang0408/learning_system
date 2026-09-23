@@ -3,15 +3,13 @@ import {
   X,
   Plus,
   Trash2,
-  Check,
-  HardDrive
+  Check
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Select, type SelectOption } from '@/components/ui/Select';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
-import { GoogleDrivePickerModal } from '@/features/teacher/documents/components/GoogleDrivePickerModal';
 import type {
   ClassCurriculum,
   CreateCurriculumPayload,
@@ -64,7 +62,6 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
     initialData?.assignments?.map(a => a.assignment_id) || []
   );
 
-  const [isDrivePickerOpen, setIsDrivePickerOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Auto-detect video type from URL
@@ -119,23 +116,6 @@ export const CurriculumFormModal: React.FC<CurriculumFormModalProps> = ({
     });
   };
 
-  const handleSelectFromDrive = (driveFile: {
-    title: string;
-    file_url: string;
-    file_type: string;
-    file_size: number;
-    drive_id: string;
-  }) => {
-    setMaterials(prev => [
-      ...prev,
-      {
-        title: driveFile.title,
-        file_url: driveFile.file_url,
-        file_type: driveFile.file_type || 'pdf',
-        file_size: driveFile.file_size || 0
-      }
-    ]);
-  };
 
   // Assignment checkbox toggle
   const handleToggleAssignment = (assignmentId: string) => {
