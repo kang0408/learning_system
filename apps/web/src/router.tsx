@@ -83,23 +83,27 @@ export const router = createBrowserRouter([
 
   // Student Routes
   {
-    path: '/student',
     element: <ProtectedRoute role="student"><StudentLayout /></ProtectedRoute>,
     children: [
-      { index: true, element: <StudentDashboard /> },
-      { path: 'profile', element: <StudentProfile /> },
-      { path: 'classes', element: <StudentClasses /> },
-      { path: 'classes/:id', element: <StudentClassDetail /> },
-      { path: 'classes/:classId/curriculums/:curriculumId', element: <StudentCurriculumDetail /> }
+      {
+        path: '/student',
+        children: [
+          { index: true, element: <StudentDashboard /> },
+          { path: 'profile', element: <StudentProfile /> },
+          { path: 'classes', element: <StudentClasses /> },
+          { path: 'classes/:id', element: <StudentClassDetail /> },
+          { path: 'classes/:classId/curriculums/:curriculumId', element: <StudentCurriculumDetail /> }
+        ]
+      },
+      {
+        path: '/quiz',
+        element: <QuizPage />
+      },
+      {
+        path: '/session-result',
+        element: <SessionResult />
+      }
     ]
-  },
-  {
-    path: '/quiz',
-    element: <ProtectedRoute role="student"><QuizPage /></ProtectedRoute>
-  },
-  {
-    path: '/session-result',
-    element: <ProtectedRoute role="student"><SessionResult /></ProtectedRoute>
   },
 
   // Teacher Routes

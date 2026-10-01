@@ -12,6 +12,9 @@ interface QuizQuestionProps {
   feedback: 'correct' | 'incorrect' | null;
   submitting: boolean;
   onSelect: (payload: any) => void;
+  isExam?: boolean;
+  initialFillText?: string;
+  initialMatchingPairs?: any[];
 }
 
 interface NormalizedPair {
@@ -30,7 +33,10 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
   correctAnswerIds = [],
   feedback,
   submitting,
-  onSelect
+  onSelect,
+  isExam = false,
+  initialFillText = '',
+  initialMatchingPairs = []
 }) => {
   const { t } = useTranslation();
   const [fillValue, setFillValue] = useState('');
@@ -72,15 +78,22 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
   }, [normalizedPairs]);
 
   useEffect(() => {
-    setFillValue('');
-    setLocalSelectedId(null);
-    setLocalSelectedIds([]);
-    setPlacedRights({});
+    setFillValue(initialFillText || '');
+    setLocalSelectedId(selectedOptionId || null);
+    setLocalSelectedIds(selectedOptionIds || []);
+
+    const placed: Record<string, string> = {};
+    if (initialMatchingPairs && Array.isArray(initialMatchingPairs)) {
+      initialMatchingPairs.forEach((p: any) => {
+        if (p.leftId && p.rightId) placed[p.leftId] = p.rightId;
+      });
+    }
+    setPlacedRights(placed);
     setSelectedBankRightId(null);
     setDragOverLeftId(null);
     setDragOverBank(false);
     setDraggedRightId(null);
-  }, [question?.id, question?.question_type]);
+  }, [question?.id]);
 
   const shuffledOptions = useMemo(() => {
     if (!question?.answer_options) return [];
@@ -88,7 +101,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
       return [...question.answer_options].sort(() => Math.random() - 0.5);
     }
     return question.answer_options;
-  }, [question?.id, question?.answer_options, question?.question_type]);
+  }, [question?.id]);
 
   const unplacedRights = useMemo(() => {
     const placedRightIds = Object.values(placedRights);
@@ -97,34 +110,40 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
   // Helper to place a right item into a left slot
   const placeRightItem = (leftId: string, rightId: string) => {
-    if (feedback || submitting) return;
-    setPlacedRights(prev => {
-      const next = { ...prev };
-      // If rightId was already placed in another left slot, remove it from there
-      Object.keys(next).forEach(k => {
-        if (next[k] === rightId) delete next[k];
-      });
-      next[leftId] = rightId;
-      return next;
+    if (feedback || (submitting && !isExam)) return;
+    const next = { ...placedRights };
+    Object.keys(next).forEach(k => {
+      if (next[k] === rightId) delete next[k];
     });
+    next[leftId] = rightId;
+    setPlacedRights(next);
     setSelectedBankRightId(null);
     setDragOverLeftId(null);
+
+    if (isExam) {
+      const pairs = Object.entries(next).map(([l, r]) => ({ leftId: l, rightId: r }));
+      onSelect({ matchingPairs: pairs });
+    }
   };
 
   // Helper to unplace a right item from any slot
   const unplaceRightItem = (rightId: string) => {
-    if (feedback || submitting) return;
-    setPlacedRights(prev => {
-      const next = { ...prev };
-      Object.keys(next).forEach(k => {
-        if (next[k] === rightId) delete next[k];
-      });
-      return next;
+    if (feedback || (submitting && !isExam)) return;
+    const next = { ...placedRights };
+    Object.keys(next).forEach(k => {
+      if (next[k] === rightId) delete next[k];
     });
+    setPlacedRights(next);
     setDragOverBank(false);
+
+    if (isExam) {
+      const pairs = Object.entries(next).map(([l, r]) => ({ leftId: l, rightId: r }));
+      onSelect({ matchingPairs: pairs });
+    }
   };
 
   const renderFeedback = () => {
+    if (isExam) return null;
     if (feedback === 'incorrect') {
       return (
         <div className="p-2 md:p-3 mt-1 md:mt-2 bg-red-50 border-4 border-red-600 text-red-700 font-bold text-base md:text-lg uppercase tracking-tight">
@@ -162,22 +181,29 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           <input 
             type="text" 
             value={fillValue}
-            onChange={(e) => setFillValue(e.target.value)}
-            disabled={!!feedback || submitting}
+            onChange={(e) => {
+              setFillValue(e.target.value);
+            }}
+            onBlur={() => {
+              if (isExam && fillValue.trim()) {
+                onSelect({ fillText: fillValue.trim() });
+              }
+            }}
+            disabled={!isExam && (!!feedback || submitting)}
             className="w-full text-lg md:text-xl font-black tracking-tight p-3 md:p-4 border-4 border-zinc-900 focus:outline-none focus:border-indigo-600 transition-colors bg-white"
             placeholder={t('student.quiz.typeAnswer')}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && fillValue.trim() && !feedback && !submitting) {
-                onSelect({ fillText: fillValue });
+              if (e.key === 'Enter' && fillValue.trim() && !feedback && (!submitting || isExam)) {
+                onSelect({ fillText: fillValue.trim() });
               }
             }}
           />
           <button
-            disabled={!!feedback || submitting || !fillValue.trim()}
-            onClick={() => onSelect({ fillText: fillValue })}
+            disabled={!isExam && (!!feedback || submitting || !fillValue.trim())}
+            onClick={() => onSelect({ fillText: fillValue.trim() })}
             className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
-            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+            {isExam ? t('student.quiz.saveAnswer', 'LƯU CÂU TRẢ LỜI') : (submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm'))}
           </button>
           {renderFeedback()}
         </div>
@@ -189,20 +215,22 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           <div className="grid grid-cols-1 gap-2 md:gap-3">
             {shuffledOptions.map((opt, idx) => {
               const optionKey = opt.id || `opt_${idx}`;
-              const isSelected = feedback || submitting ? selectedOptionIds.includes(opt.id) : localSelectedIds.includes(opt.id);
-              const isCorrect = correctAnswerIds.includes(opt.id);
+              const isSelected = isExam 
+                ? (localSelectedIds.includes(opt.id) || selectedOptionIds.includes(opt.id))
+                : (feedback || submitting ? (selectedOptionIds.includes(opt.id) || localSelectedIds.includes(opt.id)) : localSelectedIds.includes(opt.id));
+              const isCorrect = !isExam && feedback ? correctAnswerIds.includes(opt.id) : false;
 
-              let btnClass = 'border-4 border-zinc-900 bg-white text-zinc-900 hover:bg-indigo-600 hover:border-indigo-600 hover:text-white';
+              let btnClass = 'border-4 border-zinc-900 bg-white text-zinc-900 hover:bg-zinc-100';
 
-              if (isSelected && !feedback && !submitting) {
-                btnClass = 'border-4 border-indigo-600 bg-indigo-50 text-indigo-900';
+              if (isSelected && !feedback && (!submitting || isExam)) {
+                btnClass = 'border-4 border-indigo-600 bg-indigo-50 text-indigo-900 font-black shadow-[2px_2px_0_0_#4f46e5]';
               }
 
-              if (submitting && !feedback && isSelected) {
+              if (submitting && !feedback && isSelected && !isExam) {
                 btnClass = 'border-4 border-indigo-600 bg-indigo-600 text-white';
               }
 
-              if (feedback) {
+              if (!isExam && feedback) {
                 if (isCorrect) {
                   btnClass = 'border-4 border-green-600 bg-green-600 text-white';
                 } else if (isSelected) {
@@ -215,12 +243,15 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
               return (
                 <button
                   key={optionKey}
-                  disabled={!!feedback || submitting}
+                  disabled={!isExam && (!!feedback || submitting)}
                   onClick={() => {
-                    if (localSelectedIds.includes(opt.id)) {
-                      setLocalSelectedIds(prev => prev.filter(id => id !== opt.id));
-                    } else {
-                      setLocalSelectedIds(prev => [...prev, opt.id]);
+                    const currentList = isExam && localSelectedIds.length === 0 ? selectedOptionIds : localSelectedIds;
+                    const next = currentList.includes(opt.id)
+                      ? currentList.filter(id => id !== opt.id)
+                      : [...currentList, opt.id];
+                    setLocalSelectedIds(next);
+                    if (isExam) {
+                      onSelect({ optIds: next });
                     }
                   }}
                   className={`flex items-center p-2 md:p-3 text-left font-bold text-sm md:text-base transition-colors ${btnClass}`}
@@ -237,13 +268,15 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
               );
             })}
           </div>
-          <button
-            disabled={!!feedback || submitting || localSelectedIds.length === 0}
-            onClick={() => onSelect({ optIds: localSelectedIds })}
-            className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-          >
-            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
-          </button>
+          {!isExam && (
+            <button
+              disabled={!!feedback || submitting || localSelectedIds.length === 0}
+              onClick={() => onSelect({ optIds: localSelectedIds })}
+              className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            >
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+            </button>
+          )}
           {renderFeedback()}
         </div>
       )}
@@ -254,20 +287,22 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           <div className="grid grid-cols-1 gap-2 md:gap-3 w-full">
             {shuffledOptions.map((opt, idx) => {
               const optionKey = opt.id || `opt_${idx}`;
-              const isSelected = feedback || submitting ? opt.id === selectedOptionId : opt.id === localSelectedId;
-              const isCorrect = feedback ? opt.id === correctAnswerId : false;
+              const isSelected = isExam 
+                ? (localSelectedId === opt.id || (!localSelectedId && selectedOptionId === opt.id))
+                : (feedback || submitting ? (opt.id === selectedOptionId || opt.id === localSelectedId) : opt.id === localSelectedId);
+              const isCorrect = !isExam && feedback ? opt.id === correctAnswerId : false;
 
-              let btnClass = 'border-4 border-zinc-900 bg-white text-zinc-900 hover:bg-indigo-600 hover:border-indigo-600 hover:text-white';
+              let btnClass = 'border-4 border-zinc-900 bg-white text-zinc-900 hover:bg-zinc-100';
 
-              if (isSelected && !feedback && !submitting) {
-                btnClass = 'border-4 border-indigo-600 bg-indigo-50 text-indigo-900';
+              if (isSelected && !feedback && (!submitting || isExam)) {
+                btnClass = 'border-4 border-indigo-600 bg-indigo-50 text-indigo-900 font-black shadow-[2px_2px_0_0_#4f46e5]';
               }
 
-              if (submitting && !feedback && isSelected) {
+              if (submitting && !feedback && isSelected && !isExam) {
                 btnClass = 'border-4 border-indigo-600 bg-indigo-600 text-white';
               }
 
-              if (feedback) {
+              if (!isExam && feedback) {
                 if (isCorrect) {
                   btnClass = 'border-4 border-green-600 bg-green-600 text-white';
                 } else if (isSelected) {
@@ -280,8 +315,13 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
               return (
                 <button
                   key={optionKey}
-                  disabled={!!feedback || submitting}
-                  onClick={() => setLocalSelectedId(opt.id)}
+                  disabled={!isExam && (!!feedback || submitting)}
+                  onClick={() => {
+                    setLocalSelectedId(opt.id);
+                    if (isExam) {
+                      onSelect({ optId: opt.id });
+                    }
+                  }}
                   className={`flex items-center justify-between p-2 md:p-3 text-left font-bold text-sm md:text-base transition-colors ${btnClass}`}
                 >
                   <span>{opt.content}</span>
@@ -289,13 +329,15 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
               );
             })}
           </div>
-          <button
-            disabled={!!feedback || submitting || !localSelectedId}
-            onClick={() => onSelect({ optId: localSelectedId })}
-            className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-          >
-            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
-          </button>
+          {!isExam && (
+            <button
+              disabled={!!feedback || submitting || !localSelectedId}
+              onClick={() => onSelect({ optId: localSelectedId })}
+              className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+            >
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+            </button>
+          )}
           {renderFeedback()}
         </div>
       )}
@@ -312,12 +354,12 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
               let containerClass = "flex items-stretch border-2 border-zinc-900 bg-zinc-50 rounded-lg overflow-hidden transition-all shadow-[2px_2px_0_0_rgba(24,24,27,1)]";
               let rightDropClass = "w-[50%] p-2 flex flex-col items-center justify-center border-l-2 border-zinc-900 min-h-[56px] bg-zinc-100 transition-all relative";
               
-              if (dragOverLeftId === left.leftId || (selectedBankRightId && !placedRight && !feedback && !submitting)) {
+              if (dragOverLeftId === left.leftId || (selectedBankRightId && !placedRight && !feedback && (!submitting || isExam))) {
                 rightDropClass += " bg-indigo-50 border-indigo-600";
                 containerClass += " border-indigo-600 ring-2 ring-indigo-300";
               }
               
-              if (feedback) {
+              if (feedback && !isExam) {
                 const isCorrectPair = normalizedPairs.some(
                   p => p.leftId === left.leftId && p.rightId === placedRightId
                 );
@@ -340,14 +382,14 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                     onDragOver={(e) => { 
                       e.preventDefault(); 
                       e.dataTransfer.dropEffect = 'move';
-                      if (!feedback && !submitting) setDragOverLeftId(left.leftId); 
+                      if (!feedback && (!submitting || isExam)) setDragOverLeftId(left.leftId); 
                     }}
                     onDragLeave={() => { 
                       if (dragOverLeftId === left.leftId) setDragOverLeftId(null); 
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      if (feedback || submitting) return;
+                      if (feedback || (submitting && !isExam)) return;
                       const rightId = e.dataTransfer.getData('text/plain') || draggedRightId;
                       if (rightId) {
                         placeRightItem(left.leftId, rightId);
@@ -356,7 +398,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                       setDragOverLeftId(null);
                     }}
                     onClick={() => {
-                      if (feedback || submitting) return;
+                      if (feedback || (submitting && !isExam)) return;
                       if (selectedBankRightId) {
                         placeRightItem(left.leftId, selectedBankRightId);
                       }
@@ -364,7 +406,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                   >
                     {placedRight ? (
                       <div 
-                        draggable={!feedback && !submitting}
+                        draggable={!feedback && (!submitting || isExam)}
                         onDragStart={(e) => {
                           e.dataTransfer.setData('text/plain', placedRight.rightId);
                           e.dataTransfer.effectAllowed = 'move';
@@ -375,13 +417,13 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!feedback && !submitting) {
+                          if (!feedback && (!submitting || isExam)) {
                             unplaceRightItem(placedRight.rightId);
                           }
                         }}
-                        title={!feedback && !submitting ? t('student.quiz.clickToUnplace', 'Nhấp để gỡ thẻ') : undefined}
+                        title={!feedback && (!submitting || isExam) ? t('student.quiz.clickToUnplace', 'Nhấp để gỡ thẻ') : undefined}
                         className={`bg-white border-2 border-zinc-900 rounded-md p-1.5 md:p-2 w-full text-center text-xs md:text-sm font-bold shadow-sm transition-all ${
-                          !feedback && !submitting 
+                          !feedback && (!submitting || isExam) 
                             ? 'cursor-grab active:cursor-grabbing hover:border-indigo-600 hover:bg-indigo-50 hover:text-indigo-900 hover:scale-[1.02]' 
                             : 'cursor-default'
                         }`}
@@ -402,7 +444,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           </div>
 
           {/* Choice Bank */}
-          {!feedback && (
+          {(!feedback || isExam) && (
             <div className="mt-1 md:mt-2">
               <div className="flex items-center justify-between mb-1.5">
                 <h3 className="text-xs font-bold text-zinc-600 uppercase tracking-wider">
@@ -473,7 +515,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
           )}
 
           <button
-            disabled={!!feedback || submitting || Object.keys(placedRights).length !== matchingLefts.length}
+            disabled={!isExam && (!!feedback || submitting || Object.keys(placedRights).length !== matchingLefts.length)}
             onClick={() => {
               const pairs = Object.entries(placedRights).map(([leftId, rightId]) => {
                 const leftItem = normalizedPairs.find(p => p.leftId === leftId);
@@ -489,7 +531,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
             }}
             className="w-full p-3 md:p-4 font-black text-base md:text-lg uppercase tracking-tight transition-colors border-4 border-zinc-900 bg-zinc-900 text-white hover:bg-indigo-600 hover:border-indigo-600 disabled:opacity-50 flex items-center justify-center mt-1 md:mt-2 shadow-[4px_4px_0_0_rgba(24,24,27,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
-            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm')}
+            {isExam ? t('student.quiz.saveMatchingAnswer', 'LƯU ĐÁP ÁN GHÉP NỐI') : (submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : t('student.quiz.confirm'))}
           </button>
           {renderFeedback()}
         </div>

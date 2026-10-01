@@ -122,6 +122,7 @@ export default function TeacherTopicDetailFeature() {
         isOpen={showEditTopicModal} 
         onClose={() => setShowEditTopicModal(false)} 
         topic={topic} 
+        topics={allTopics || []}
       />
 
       <SaveQuestionModal 

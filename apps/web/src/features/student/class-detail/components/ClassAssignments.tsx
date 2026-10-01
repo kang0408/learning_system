@@ -257,8 +257,8 @@ export const ClassAssignments: React.FC<ClassAssignmentsProps> = ({ assignments 
                   </div>
 
                   {isLocked ? (
-                    <span className="font-bold border-2 border-zinc-900 px-6 py-4 uppercase tracking-widest text-center">
-                      {t('student.classDetail.completed')}
+                    <span className="font-bold border-2 border-zinc-900 bg-zinc-200 text-zinc-600 px-6 py-4 uppercase tracking-widest text-center cursor-not-allowed">
+                      {t('student.dashboard.submitted', 'ĐÃ NỘP')}
                     </span>
                   ) : (
                     <Link 

@@ -16,7 +16,12 @@ export class SessionsController extends BaseController {
   async start(req: any, res: Response) {
     const parseResult = startSessionSchema.safeParse(req.body);
     if (!parseResult.success) return res.status(400).json({ success: false, error: parseResult.error });
-    const sessionData = await this.sessionsService.startSession(req.user.userId, parseResult.data.assignment_id);
+    const sessionData = await this.sessionsService.startSession(
+      req.user.userId, 
+      parseResult.data.assignment_id,
+      parseResult.data.mode,
+      parseResult.data.topic_id
+    );
     this.handleSuccess(res, sessionData, 201);
   }
 

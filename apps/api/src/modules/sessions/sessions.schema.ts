@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 export const startSessionSchema = z.object({
-  assignment_id: z.string().uuid()
+  assignment_id: z.string().uuid(),
+  mode: z.enum(['standard', 'review']).optional(),
+  topic_id: z.string().uuid().optional()
 });
 
 export const submitAnswerSchema = z.object({

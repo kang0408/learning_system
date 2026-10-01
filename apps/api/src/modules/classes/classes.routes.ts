@@ -32,12 +32,18 @@ const classesController = new ClassesController(
   classesService,
   classReportService,
   pdfGeneratorService,
-  studentReportService
+  studentReportService,
+  aiService
 );
 
 // Teacher routes
 router.post('/', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.createClass));
 router.get('/', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.getTeacherClasses));
+
+// Teacher feedback routes
+router.patch('/:classId/members/:studentId/feedback', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.updateMemberFeedback));
+router.post('/:classId/members/:studentId/feedback/ai-suggest', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.generateAiFeedbackDraft));
+router.get('/:classId/members/:studentId/feedback', requireAuth, requireRole(['teacher', 'student']), asyncWrapper(classesController.getMemberFeedback));
 
 // Student Diagnostic Report routes (Before generic /:id)
 router.get('/:classId/students/:studentId/report/pdf', requireAuth, requireRole(['teacher']), asyncWrapper(classesController.exportStudentReportPdf));

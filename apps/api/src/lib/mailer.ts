@@ -180,3 +180,38 @@ export const sendDeadlineReminderEmail = async (email: string, studentName: stri
     html,
   });
 };
+
+export const sendSM2DueReminderEmail = async (email: string, studentName: string, dueCount: number) => {
+  const subject = `[Hệ thống học tập] Ôn tập trí nhớ hôm nay: Bạn có ${dueCount} câu hỏi đến hạn!`;
+  const appUrl = process.env.APP_URL || 'http://localhost:5173';
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #18181b;">
+      <div style="background-color: #4f46e5; color: white; padding: 20px; text-align: center;">
+        <h2 style="margin: 0; text-transform: uppercase; letter-spacing: 1px;">Phiên Ôn Tập Hằng Ngày</h2>
+      </div>
+      <div style="padding: 24px; border: 2px solid #18181b; border-top: none; background-color: #fafafa;">
+        <p style="font-size: 16px;">Xin chào <strong>${studentName}</strong>,</p>
+        <p style="font-size: 15px; line-height: 1.6;">
+          Thuật toán lặp lại ngắt quãng (Spaced Repetition) thông báo bạn có <strong style="color: #4f46e5; font-size: 18px;">${dueCount}</strong> câu hỏi đến hạn cần ôn tập hôm nay để củng cố vào trí nhớ dài hạn.
+        </p>
+        <p style="font-size: 14px; color: #52525b;">
+          Chỉ mất khoảng <strong>~${Math.max(1, Math.ceil(dueCount * 0.75))} phút</strong> để hoàn thành và tiếp tục duy trì chuỗi học tập (streak)!
+        </p>
+        <div style="margin: 28px 0; text-align: center;">
+          <a href="${appUrl}/quiz" style="background-color: #18181b; color: #ffffff; padding: 14px 28px; text-decoration: none; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; display: inline-block; border: 2px solid #18181b;">
+            Bắt đầu ôn tập ngay &rarr;
+          </a>
+        </div>
+        <p style="font-size: 12px; color: #71717a; border-top: 1px solid #e4e4e7; padding-top: 16px; margin-top: 24px;">
+          Đây là email tự động từ Hệ thống học tập thông minh. Chúc bạn một ngày học tập hứng khởi!
+        </p>
+      </div>
+    </div>
+  `;
+
+  return dispatchMail({
+    to: email,
+    subject,
+    html,
+  });
+};

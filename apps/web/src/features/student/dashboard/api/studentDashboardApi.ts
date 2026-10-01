@@ -46,7 +46,7 @@ export const studentDashboardApi = {
   },
   
   getPendingAssignments: async (): Promise<Assignment[]> => {
-    const res = await api.get('/api/assignments/my?status=pending&limit=50');
+    const res = await api.get('/api/assignments/my?status=all&limit=100');
     const data = res.data?.data || res.data;
     return data.assignments || data || [];
   },

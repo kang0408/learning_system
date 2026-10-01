@@ -15,3 +15,7 @@ export const updateClassSchema = z.object({
 export const joinClassSchema = z.object({
   join_code: z.string().min(1, 'Mã lớp là bắt buộc')
 });
+
+export const updateMemberFeedbackSchema = z.object({
+  feedback: z.string().max(2000, 'Nhận xét không được vượt quá 2000 ký tự')
+});

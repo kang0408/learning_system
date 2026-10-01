@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { registerApi } from '../api/registerApi';
+import { toast } from '@/utils/toast';
 
 export const useRegister = () => {
   const { t } = useTranslation();
@@ -28,6 +29,7 @@ export const useRegister = () => {
     setError('');
     try {
       await registerApi.register(data);
+      toast.success(t('auth.register.successRegister', 'Đăng ký tài khoản thành công! Vui lòng đăng nhập.'));
       navigate('/login?registered=true');
     } catch (err: any) {
       setError(err.response?.data?.error || err.response?.data?.message || t('auth.register.errorRegisterFailed'));

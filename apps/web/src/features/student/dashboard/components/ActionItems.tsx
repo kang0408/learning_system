@@ -12,7 +12,7 @@ interface ActionItemsProps {
   onClearTopicFilter?: () => void;
 }
 
-type TabType = 'all' | 'by_class' | 'by_topic' | 'overdue' | 'completed';
+type TabType = 'pending' | 'all' | 'by_class' | 'by_topic' | 'overdue' | 'completed';
 
 export const ActionItems: React.FC<ActionItemsProps> = ({ 
   assignments, 
@@ -22,7 +22,7 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
   onClearTopicFilter
 }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [activeTab, setActiveTab] = useState<TabType>('pending');
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
@@ -111,7 +111,14 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
       );
     }
 
-    if (activeTab === 'overdue') {
+    if (activeTab === 'pending') {
+      const now = new Date();
+      list = list.filter(a => {
+        const isOverdue = a.deadline ? new Date(a.deadline) < now : false;
+        const isCompleted = (a.quiz_sessions?.filter(s => s.status === 'completed') || []).length > 0;
+        return !isCompleted && !isOverdue;
+      });
+    } else if (activeTab === 'overdue') {
       const now = new Date();
       list = list.filter(a => {
         const isOverdue = a.deadline ? new Date(a.deadline) < now : false;
@@ -243,14 +250,15 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
       {/* Tabs & Search Controls */}
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          {(['all', 'by_class', 'by_topic', 'overdue', 'completed'] as TabType[]).map((tab) => {
+          {(['pending', 'all', 'by_class', 'by_topic', 'overdue', 'completed'] as TabType[]).map((tab) => {
             const isActive = activeTab === tab;
             const labels: Record<TabType, string> = {
-              all: t('student.dashboard.tabAll', 'ALL'),
-              by_class: t('student.dashboard.tabByClass', 'BY CLASS'),
-              by_topic: t('student.dashboard.tabByTopic', 'BY TOPIC'),
-              overdue: t('student.dashboard.tabOverdue', 'OVERDUE'),
-              completed: t('student.dashboard.tabCompleted', 'COMPLETED')
+              pending: t('student.dashboard.tabPending', 'CẦN LÀM'),
+              all: t('student.dashboard.tabAll', 'TẤT CẢ'),
+              by_class: t('student.dashboard.tabByClass', 'THEO LỚP'),
+              by_topic: t('student.dashboard.tabByTopic', 'THEO CHỦ ĐỀ'),
+              overdue: t('student.dashboard.tabOverdue', 'QUÁ HẠN'),
+              completed: t('student.dashboard.tabCompleted', 'ĐÃ NỘP')
             };
 
             return (
@@ -312,30 +320,37 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
       {/* Main List Rendering */}
       <div className="space-y-6">
         {/* Daily Schedule (SM-2 Spaced Repetition) */}
-        {activeTab === 'all' && filteredDailySchedule.length > 0 && (
-          <div className="space-y-4">
-            <div className="border-b-2 border-zinc-900 pb-1">
+        {(activeTab === 'pending' || activeTab === 'all') && filteredDailySchedule.length > 0 && (
+          <div id="sm2-schedule" className="space-y-4 scroll-mt-24">
+            <div className="border-b-2 border-zinc-900 pb-1 flex items-center justify-between">
               <span className="font-black text-sm uppercase tracking-widest text-indigo-600">
-                {t('student.dashboard.sm2Section', 'HÀNG ĐỢI ÔN TẬP TRÍ NHỚ')}
+                {t('student.dashboard.sm2Section', 'HÀNG ĐỢI ÔN TẬP TRÍ NHỚ (SM-2)')}
+              </span>
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                {t('student.dashboard.sm2ReviewOnly', 'ÔN TẬP CÂU ĐẾN HẠN')}
               </span>
             </div>
             {filteredDailySchedule.map((cls, idx) => (
               <div key={`sm2-${idx}`} className="border-2 border-zinc-900 p-5 bg-indigo-50 hover:border-indigo-600 transition-colors">
-                <div className="flex justify-between items-start mb-4">
-                  <h4 className="text-xl font-black tracking-tighter uppercase">{cls.class_name}</h4>
-                  <span className="font-bold text-xs uppercase tracking-widest border-2 border-zinc-900 bg-white px-2 py-1">
-                    {cls.total_due} {t('student.dashboard.dueLabel')}
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h4 className="text-lg sm:text-xl font-black tracking-tight uppercase truncate flex-1 min-w-0" title={cls.class_name}>
+                    {cls.class_name}
+                  </h4>
+                  <span className="font-bold text-xs uppercase tracking-widest border-2 border-zinc-900 bg-white px-2.5 py-1 shrink-0 whitespace-nowrap">
+                    {cls.total_due} {t('student.dashboard.dueLabel', 'CÂU CẦN ÔN')}
                   </span>
                 </div>
                 <div className="space-y-3">
                   {cls.assignments.map((ass) => (
                     <Link
                       key={ass.assignment_id}
-                      to={ass.assignment_id !== 'general' ? `/quiz?assignment=${ass.assignment_id}` : '#'}
-                      className="flex justify-between items-center bg-white border-2 border-zinc-900 p-3 font-bold text-sm hover:bg-zinc-900 hover:text-white transition-colors"
+                      to={ass.assignment_id !== 'general' ? `/quiz?assignment=${ass.assignment_id}&mode=review` : '#'}
+                      className="flex justify-between items-center bg-white border-2 border-zinc-900 p-3 font-bold text-sm hover:bg-zinc-900 hover:text-white transition-colors gap-3"
                     >
-                      <span className="uppercase tracking-tight">{ass.title}</span>
-                      <ArrowUpRight className="w-4 h-4" />
+                      <span className="uppercase tracking-tight truncate flex-1" title={ass.title}>
+                        {ass.title}
+                      </span>
+                      <ArrowUpRight className="w-4 h-4 shrink-0" />
                     </Link>
                   ))}
                 </div>
@@ -344,8 +359,17 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
           </div>
         )}
 
+        {/* Section Header for Course Assignments */}
+        {(activeTab === 'pending' || activeTab === 'all') && filteredDailySchedule.length > 0 && filteredAssignments.length > 0 && (
+          <div className="border-b-2 border-zinc-900 pb-1 pt-2">
+            <span className="font-black text-sm uppercase tracking-widest text-zinc-900">
+              {t('student.dashboard.assignmentsSection', 'DANH SÁCH BÀI TẬP LỚP HỌC')}
+            </span>
+          </div>
+        )}
+
         {/* Content by Tab */}
-        {filteredAssignments.length === 0 && (activeTab !== 'all' || filteredDailySchedule.length === 0) ? (
+        {filteredAssignments.length === 0 && ((activeTab !== 'all' && activeTab !== 'pending') || filteredDailySchedule.length === 0) ? (
           <div className="p-10 border-2 border-dashed border-zinc-300 text-center space-y-4 bg-zinc-50">
             <p className="font-bold text-zinc-500 uppercase tracking-widest text-sm">
               {selectedTopicFilter 

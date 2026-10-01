@@ -50,4 +50,6 @@ export interface TeacherStudentDetailData {
   stats: StudentStats;
   assignments: StudentAssignment[];
   studentInfo: StudentInfo | null;
+  teacherFeedback?: string | null;
+  feedbackUpdatedAt?: string | null;
 }

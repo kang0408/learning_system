@@ -520,7 +520,7 @@ export const CreateTopicFromDocumentModal: React.FC<CreateTopicFromDocumentModal
                       {q.explanation && (
                         <div className="pl-10 sm:pl-12 mt-2">
                           <div className="p-3 bg-indigo-50/70 text-indigo-900 text-xs rounded-xl border border-indigo-100 leading-relaxed font-medium">
-                            <span className="font-bold mr-1">💡 {t('teacher.questionBank.aiCreateTopic.explanationLabel')}</span>
+                            <span className="font-bold mr-1">{t('teacher.questionBank.aiCreateTopic.explanationLabel', 'Giải thích:')}</span>
                             {q.explanation}
                           </div>
                         </div>

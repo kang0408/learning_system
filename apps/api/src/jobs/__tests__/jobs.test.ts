@@ -14,6 +14,9 @@ jest.mock('../../lib/prisma', () => ({
     sm2Progress: {
       groupBy: jest.fn(),
     },
+    user: {
+      findMany: jest.fn(),
+    },
     assignment: {
       findMany: jest.fn(),
     },
@@ -40,9 +43,52 @@ describe('Cron Jobs & Scheduled Tasks Test Suite (Section 4.2.6)', () => {
         },
       ]);
 
+      (prisma.user.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'student-uuid-1',
+          email: 'student1@test.com',
+          full_name: 'Nguyen Van A',
+        },
+        {
+          id: 'student-uuid-2',
+          email: 'student2@test.com',
+          full_name: 'Tran Van B',
+        },
+      ]);
+
       await remindDueQuestions();
 
       expect(prisma.sm2Progress.groupBy).toHaveBeenCalled();
+      expect(prisma.user.findMany).toHaveBeenCalledWith({
+        where: {
+          id: { in: ['student-uuid-1', 'student-uuid-2'] },
+          is_active: true,
+        },
+        select: {
+          id: true,
+          email: true,
+          full_name: true,
+        },
+      });
+
+      expect(emailQueue.add).toHaveBeenCalledTimes(2);
+      expect(emailQueue.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SM2_DUE_REMINDER',
+          email: 'student1@test.com',
+          studentName: 'Nguyen Van A',
+          dueCount: 5,
+        })
+      );
+      expect(emailQueue.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SM2_DUE_REMINDER',
+          email: 'student2@test.com',
+          studentName: 'Tran Van B',
+          dueCount: 3,
+        })
+      );
+
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Bạn có 5 câu cần ôn hôm nay')
       );

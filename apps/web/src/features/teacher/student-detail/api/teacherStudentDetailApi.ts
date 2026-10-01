@@ -15,8 +15,25 @@ export const teacherStudentDetailApi = {
     return {
       stats: statsRes.data.data as StudentStats,
       assignments: (assignRes.data.data || []) as StudentAssignment[],
-      studentInfo: currentStudent ? currentStudent.student : null
+      studentInfo: currentStudent ? currentStudent.student : null,
+      teacherFeedback: currentStudent?.teacher_feedback || null,
+      feedbackUpdatedAt: currentStudent?.feedback_updated_at || null
     };
+  },
+
+  updateFeedback: async (classId: string, studentId: string, feedback: string): Promise<any> => {
+    const response = await api.patch(`/api/classes/${classId}/members/${studentId}/feedback`, { feedback });
+    return response.data?.data;
+  },
+
+  getAiFeedbackDraft: async (classId: string, studentId: string): Promise<string> => {
+    const response = await api.post(`/api/classes/${classId}/members/${studentId}/feedback/ai-suggest`);
+    return response.data?.data?.draft || response.data?.data?.suggested_feedback || '';
+  },
+
+  getMemberFeedback: async (classId: string, studentId: string): Promise<{ teacher_feedback: string | null; feedback_updated_at: string | null }> => {
+    const response = await api.get(`/api/classes/${classId}/members/${studentId}/feedback`);
+    return response.data?.data;
   },
 
   downloadStudentReportPdf: async (classId: string, studentId: string, studentName: string): Promise<void> => {

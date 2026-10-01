@@ -5,13 +5,16 @@ import type { Topic } from '../types';
 import { toast } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
 
+import { TreeSelect, type TreeSelectOption } from '@/components/ui/TreeSelect';
+
 interface EditTopicModalProps {
   isOpen: boolean;
   onClose: () => void;
   topic: Topic;
+  topics?: Topic[];
 }
 
-export const EditTopicModal: React.FC<EditTopicModalProps> = ({ isOpen, onClose, topic }) => {
+export const EditTopicModal: React.FC<EditTopicModalProps> = ({ isOpen, onClose, topic, topics = [] }) => {
   const { t } = useTranslation();
   const { mutateAsync: updateTopic, isPending } = useUpdateTopic();
   
@@ -19,12 +22,14 @@ export const EditTopicModal: React.FC<EditTopicModalProps> = ({ isOpen, onClose,
   const [editTopicDescription, setEditTopicDescription] = useState('');
   const [editTopicCode, setEditTopicCode] = useState('');
   const [enableEditCustomCode, setEnableEditCustomCode] = useState(false);
+  const [parentId, setParentId] = useState<string>('');
 
   useEffect(() => {
     if (isOpen && topic) {
       setEditTopicName(topic.name || '');
       setEditTopicDescription(topic.description || '');
       setEditTopicCode(topic.code || '');
+      setParentId(topic.parent_id || '');
       setEnableEditCustomCode(false);
     }
   }, [isOpen, topic]);
@@ -43,7 +48,8 @@ export const EditTopicModal: React.FC<EditTopicModalProps> = ({ isOpen, onClose,
     try {
       const payload: any = {
         name: editTopicName,
-        description: editTopicDescription
+        description: editTopicDescription,
+        parent_id: parentId || null
       };
       if (enableEditCustomCode) {
         payload.code = editTopicCode.trim().toUpperCase();
@@ -80,6 +86,25 @@ export const EditTopicModal: React.FC<EditTopicModalProps> = ({ isOpen, onClose,
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
               placeholder={t('teacher.topicDetail.editModalNamePlaceholder')}
               required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-sm font-semibold text-gray-700">Topic Cha</label>
+            <TreeSelect
+              value={parentId}
+              onChange={setParentId}
+              options={[
+                { label: 'Không có Topic Cha (Root)', value: '' },
+                ...topics.map(function mapTopic(t: Topic): TreeSelectOption {
+                  return {
+                    label: `${t.name} ${t.code ? `(${t.code})` : ''}`.trim(),
+                    value: t.id,
+                    children: t.children?.map(mapTopic)
+                  };
+                })
+              ]}
+              placeholder="Chọn Topic Cha..."
             />
           </div>
           

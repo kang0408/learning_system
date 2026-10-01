@@ -8,6 +8,8 @@ export interface ClassDetailData {
   name: string;
   description?: string;
   teacher?: Teacher;
+  teacher_feedback?: string | null;
+  feedback_updated_at?: string | null;
 }
 
 export interface QuizSession {

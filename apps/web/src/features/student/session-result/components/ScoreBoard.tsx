@@ -9,7 +9,7 @@ interface ScoreBoardProps {
   hideContinueButton?: boolean;
 }
 
-export const ScoreBoard: React.FC<ScoreBoardProps> = ({ result, sessionId, hideContinueButton }) => {
+export const ScoreBoard: React.FC<ScoreBoardProps> = ({ result, sessionId: _sessionId, hideContinueButton }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
@@ -27,24 +27,29 @@ export const ScoreBoard: React.FC<ScoreBoardProps> = ({ result, sessionId, hideC
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 sm:gap-8 mb-8 sm:mb-16">
-        <div className="text-center md:text-left">
-          <p className="text-sm sm:text-base font-bold uppercase tracking-widest text-zinc-500 mb-2">
-            {t('student.result.nextReview')}
-          </p>
-          <p className="text-xl sm:text-3xl font-black uppercase tracking-tighter">
-            {result.next_review_date 
-              ? new Date(result.next_review_date).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' }) 
-              : t('student.result.tomorrow')}
-          </p>
-        </div>
+        {result.next_review_date ? (
+          <div className="text-center md:text-left">
+            <p className="text-sm sm:text-base font-bold uppercase tracking-widest text-zinc-500 mb-2">
+              {t('student.result.nextReview')}
+            </p>
+            <p className="text-xl sm:text-3xl font-black uppercase tracking-tighter">
+              {new Date(result.next_review_date).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+        ) : (
+          <div className="text-center md:text-left">
+            <p className="text-sm sm:text-base font-bold uppercase tracking-widest text-zinc-500 mb-2">
+              {t('student.result.totalAnsweredCount', 'SỐ CÂU ĐÃ LÀM')}
+            </p>
+            <p className="text-xl sm:text-3xl font-black uppercase tracking-tighter">
+              {result.correct_questions !== undefined ? `${result.correct_questions} / ${result.total_questions || result.answered_questions}` : (result.session_answers ? `${result.session_answers.filter(a => a.is_correct).length} / ${result.session_answers.length}` : '')}
+            </p>
+          </div>
+        )}
         {!hideContinueButton && (
           <button
             onClick={() => {
-              if (sessionId) {
-                navigate(-1);
-              } else {
-                navigate('/student');
-              }
+              navigate('/student');
             }}
             className="font-bold bg-indigo-600 text-white border-2 border-indigo-600 px-8 sm:px-12 py-4 sm:py-6 text-lg sm:text-xl hover:bg-zinc-900 hover:border-zinc-900 transition-colors uppercase tracking-widest w-full md:w-auto text-center"
           >

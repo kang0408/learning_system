@@ -89,13 +89,29 @@ export class SessionsRepository {
   async findQuizSessionWithAnswers(id: string) {
     return this.prisma.quizSession.findUnique({
       where: { id },
-      include: { session_answers: { include: { question: { include: { topic: true, answer_options: true } } } } }
+      include: {
+        assignment: true,
+        session_answers: { include: { question: { include: { topic: true, answer_options: true } } } }
+      }
     });
   }
 
   async findSM2Progress(studentId: string, questionId: string) {
     return this.prisma.sm2Progress.findUnique({
       where: { student_id_question_id: { student_id: studentId, question_id: questionId } }
+    });
+  }
+
+  async findSessionAnswer(sessionId: string, questionId: string) {
+    return this.prisma.sessionAnswer.findFirst({
+      where: { session_id: sessionId, question_id: questionId }
+    });
+  }
+
+  async updateSessionAnswer(id: string, data: Prisma.SessionAnswerUncheckedUpdateInput) {
+    return this.prisma.sessionAnswer.update({
+      where: { id },
+      data
     });
   }
 

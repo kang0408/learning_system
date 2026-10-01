@@ -76,4 +76,15 @@ export class ClassesService {
   async getMyClasses(studentId: string) {
     return this.classesRepository.findStudentClasses(studentId);
   }
+
+  async updateMemberFeedback(classId: string, teacherId: string, studentId: string, feedback: string) {
+    const classData = await this.getClassById(classId);
+    if (classData.teacher_id !== teacherId) throw new ApiError(403, 'Forbidden');
+
+    return this.classesRepository.updateMemberFeedback(classId, studentId, feedback);
+  }
+
+  async getMemberFeedback(classId: string, studentId: string) {
+    return this.classesRepository.getMemberFeedback(classId, studentId);
+  }
 }

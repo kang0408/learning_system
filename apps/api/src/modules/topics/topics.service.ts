@@ -103,7 +103,28 @@ export class TopicsService {
       }
     }
 
-    return { topics: roots, meta: { page: 1, limit: roots.length, total: roots.length } };
+    // Tính toán số lượng câu hỏi tích lũy (bao gồm cả các chủ đề con)
+    const computeCumulativeQuestions = (node: any): number => {
+      const direct = node._count?.questions || 0;
+      let total = direct;
+      if (node.children && node.children.length > 0) {
+        for (const child of node.children) {
+          total += computeCumulativeQuestions(child);
+        }
+      }
+      node._count = {
+        ...node._count,
+        questions: total,
+        direct_questions: direct,
+      };
+      return total;
+    };
+
+    for (const root of roots) {
+      computeCumulativeQuestions(root);
+    }
+
+    return { topics: roots, meta: { page: 1, limit: roots.length, total: allTopics.length } };
   }
 
   async getTopicById(topicId: string, teacherId: string) {

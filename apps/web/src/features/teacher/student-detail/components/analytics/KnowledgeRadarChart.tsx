@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -27,6 +27,37 @@ interface KnowledgeRadarChartProps {
 
 export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicPerformance }) => {
   const { t } = useTranslation();
+  const [viewMode, setViewMode] = useState<'detailed' | 'grouped'>('detailed');
+
+  // Specific topics map (each leaf topic practiced by the student - matches other cards)
+  const leafTopicsMap = useMemo(() => {
+    const map = new Map<string, { totalAccuracy: number; count: number }>();
+    if (!topicPerformance) return map;
+    topicPerformance.forEach(tp => {
+      const parts = tp.topic_path ? tp.topic_path.split(' ➔ ') : [tp.topic];
+      const name = parts[parts.length - 1] || tp.topic;
+      const current = map.get(name) || { totalAccuracy: 0, count: 0 };
+      current.totalAccuracy += tp.accuracy_pct;
+      current.count += 1;
+      map.set(name, current);
+    });
+    return map;
+  }, [topicPerformance]);
+
+  // Grouped topics map (category branch topics)
+  const branchTopicsMap = useMemo(() => {
+    const map = new Map<string, { totalAccuracy: number; count: number }>();
+    if (!topicPerformance) return map;
+    topicPerformance.forEach(tp => {
+      const parts = tp.topic_path ? tp.topic_path.split(' ➔ ') : [tp.topic];
+      const name = parts.length > 1 ? parts[1] : parts[0];
+      const current = map.get(name) || { totalAccuracy: 0, count: 0 };
+      current.totalAccuracy += tp.accuracy_pct;
+      current.count += 1;
+      map.set(name, current);
+    });
+    return map;
+  }, [topicPerformance]);
 
   if (!topicPerformance || topicPerformance.length === 0) {
     return (
@@ -37,22 +68,20 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
     );
   }
 
-  // Group by root topic
-  const rootTopicsMap = new Map<string, { totalAccuracy: number; count: number }>();
+  const activeMap = viewMode === 'detailed' ? leafTopicsMap : branchTopicsMap;
 
-  topicPerformance.forEach(tp => {
-    const rootName = tp.topic_path.split(' ➔ ')[0];
-    const current = rootTopicsMap.get(rootName) || { totalAccuracy: 0, count: 0 };
-    current.totalAccuracy += tp.accuracy_pct;
-    current.count += 1;
-    rootTopicsMap.set(rootName, current);
-  });
+  const formatShortLabel = (name: string): string => {
+    let clean = name.includes('(') ? name.split('(')[0].trim() : name;
+    return clean.length > 18 ? `${clean.slice(0, 17)}…` : clean;
+  };
 
+  const fullLabels: string[] = [];
   const labels: string[] = [];
   const dataPoints: number[] = [];
 
-  rootTopicsMap.forEach((val, key) => {
-    labels.push(key);
+  Array.from(activeMap.entries()).forEach(([key, val]) => {
+    fullLabels.push(key);
+    labels.push(formatShortLabel(key));
     dataPoints.push(Math.round(val.totalAccuracy / val.count));
   });
 
@@ -62,8 +91,8 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
       {
         label: t('teacher.studentDetail.analytics.accuracyPct'),
         data: dataPoints,
-        backgroundColor: 'rgba(79, 70, 229, 0.25)', // indigo-600 with opacity
-        borderColor: 'rgba(79, 70, 229, 0.8)',
+        backgroundColor: 'rgba(99, 102, 241, 0.22)', // indigo-500 with opacity
+        borderColor: 'rgba(79, 70, 229, 0.85)',
         borderWidth: 2,
         pointBackgroundColor: 'rgba(79, 70, 229, 1)',
         pointBorderColor: '#fff',
@@ -86,16 +115,16 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
         },
         grid: {
           color: 'rgba(0, 0, 0, 0.08)',
-          circular: true, // cleaner look
+          circular: true,
         },
         pointLabels: {
           font: {
             family: "'Inter', sans-serif",
-            size: 13,
+            size: viewMode === 'detailed' ? 11 : 12,
             weight: 600,
           },
-          color: '#374151', // gray-700
-          padding: 24,
+          color: '#374151',
+          padding: 14,
         },
         ticks: {
           stepSize: 20,
@@ -108,13 +137,17 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
         display: false,
       },
       tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.95)', // slate-900
-        padding: 16,
-        titleFont: { family: "'Inter', sans-serif", size: 14, weight: 600 as const },
-        bodyFont: { family: "'Inter', sans-serif", size: 14 },
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        padding: 14,
+        titleFont: { family: "'Inter', sans-serif", size: 13, weight: 600 as const },
+        bodyFont: { family: "'Inter', sans-serif", size: 13 },
         displayColors: false,
         cornerRadius: 12,
         callbacks: {
+          title: function(tooltipItems: any) {
+            const item = tooltipItems[0];
+            return fullLabels[item.dataIndex] || item.label;
+          },
           label: function(context: any) {
             return t('teacher.studentDetail.analytics.accuracyLabel', { val: context.raw });
           }
@@ -126,10 +159,43 @@ export const KnowledgeRadarChart: React.FC<KnowledgeRadarChartProps> = ({ topicP
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-      <div className="mb-6">
-        <h3 className="text-lg font-bold text-gray-900">{t('teacher.studentDetail.analytics.knowledgeGraphTitle')}</h3>
-        <p className="text-sm text-gray-500 mt-1">{t('teacher.studentDetail.analytics.knowledgeGraphDesc')}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">{t('teacher.studentDetail.analytics.knowledgeGraphTitle')}</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            {viewMode === 'detailed'
+              ? t('teacher.studentDetail.analytics.knowledgeGraphDescDetailed')
+              : t('teacher.studentDetail.analytics.knowledgeGraphDescBranch')}
+          </p>
+        </div>
+        {branchTopicsMap.size >= 3 && leafTopicsMap.size > branchTopicsMap.size && (
+          <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setViewMode('detailed')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                viewMode === 'detailed'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t('teacher.studentDetail.analytics.viewDetailed')} ({leafTopicsMap.size})
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grouped')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                viewMode === 'grouped'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t('teacher.studentDetail.analytics.viewGrouped')} ({branchTopicsMap.size})
+            </button>
+          </div>
+        )}
       </div>
+
       <div className="relative w-full h-[450px] mt-4">
         {labels.length >= 3 ? (
           <div className="absolute inset-0">

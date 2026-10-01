@@ -269,6 +269,33 @@ Báo cáo gồm 3 phần chẩn đoán và trả về ĐÚNG định dạng JSON
   }
 
   /**
+   * Generates a pedagogical feedback suggestion for a teacher to advise a student.
+   */
+  async generateTeacherFeedbackSuggestion(studentName: string, stats: any): Promise<string> {
+    try {
+      const prompt = `Bạn là một gia sư/giáo viên tận tâm đang nhận xét cho học sinh "${studentName}".
+Dưới đây là tóm tắt số liệu học tập của học sinh:
+${JSON.stringify(stats)}
+
+YÊU CẦU:
+1. Viết 2-3 câu nhận xét ngắn gọn, chân thành, mang tính động viên và hướng dẫn cụ thể.
+2. Xưng hô tự nhiên (Thầy/Cô và Em).
+3. Đề cập đúng ưu điểm nổi bật và nhắc nhở em chú ý ôn lại dạng bài/chủ đề em còn hay sai nhất.
+4. Trả về văn bản thuần túy (không json, không markdown, không emoji).`;
+
+      const { response } = await generateContentWithFallback(this.ai, {
+        contents: prompt,
+      });
+
+      const text = response.text?.trim();
+      return text || `Thầy/Cô ghi nhận tinh thần học tập tích cực của ${studentName}. Em cần chú ý dành thêm thời gian ôn tập kỹ các câu hỏi còn làm sai để củng cố kiến thức tốt hơn nhé.`;
+    } catch (error) {
+      Sentry.captureException(error);
+      return `Thầy/Cô ghi nhận tinh thần học tập tích cực của ${studentName}. Em cần chú ý dành thêm thời gian ôn tập kỹ các câu hỏi còn làm sai để củng cố kiến thức tốt hơn nhé.`;
+    }
+  }
+
+  /**
    * Generates quiz questions based on topic, type, quantity, difficulty, and optional document text
    */
   async generateQuizQuestions(params: {

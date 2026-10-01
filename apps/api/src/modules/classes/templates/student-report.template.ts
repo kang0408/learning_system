@@ -210,6 +210,13 @@ export function generateStudentReportHtml(data: CompleteStudentReportData): stri
         <h3>1.3. Đánh giá mức độ ghi nhớ kiến thức dài hạn</h3>
         <p>${ai_insights.sm2_learning_analysis}</p>
       </div>
+
+      ${data.teacher_feedback ? `
+      <div class="assessment-box" style="border-left-color: #2563eb; background-color: #eff6ff; margin-top: 10px;">
+        <h3 style="color: #1e40af;">1.4. Nhận xét & Dặn dò trực tiếp từ Gia sư phụ trách ${data.feedback_updated_at ? `<span style="font-size: 8.5pt; font-weight: normal; color: #64748b; margin-left: 8px;">(Cập nhật: ${new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(data.feedback_updated_at))})</span>` : ''}</h3>
+        <p style="color: #1e293b; font-style: italic; white-space: pre-wrap; line-height: 1.5;">"${data.teacher_feedback}"</p>
+      </div>
+      ` : ''}
     </div>
 
     <!-- ==================== TRANG 2: BIỂU ĐỒ & LỖ HỔNG ==================== -->

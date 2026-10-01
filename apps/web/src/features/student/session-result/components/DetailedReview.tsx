@@ -129,6 +129,18 @@ export const DetailedReview: React.FC<DetailedReviewProps> = ({ answers }) => {
                     )}
                   </div>
                 )}
+
+                {/* Explanation */}
+                {answer.question.explanation && (
+                  <div className="mt-4 p-4 border-2 border-zinc-900 bg-amber-50/60">
+                    <span className="font-bold text-xs uppercase tracking-widest text-amber-900 block mb-1">
+                      {t('student.result.explanation', 'GIẢI THÍCH CHI TIẾT')}
+                    </span>
+                    <p className="text-sm font-medium text-zinc-800 whitespace-pre-line leading-relaxed">
+                      {answer.question.explanation}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           );

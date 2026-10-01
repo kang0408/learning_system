@@ -2,10 +2,10 @@ import { useSuspenseQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { studentQuizApi } from '../api/studentQuizApi';
 import type { AnswerPayload } from '../types';
 
-export const useQuizSession = (assignmentId: string) => {
+export const useQuizSession = (assignmentId: string, mode?: string, topicId?: string) => {
   return useSuspenseQuery({
-    queryKey: ['quizSession', assignmentId],
-    queryFn: () => studentQuizApi.initSession(assignmentId),
+    queryKey: ['quizSession', assignmentId, mode, topicId],
+    queryFn: () => studentQuizApi.initSession(assignmentId, mode, topicId),
     // Prevent refetching to avoid creating multiple sessions unintentionally
     staleTime: Infinity,
     refetchOnWindowFocus: false,
@@ -28,6 +28,11 @@ export const useFinishQuiz = () => {
     onSuccess: () => {
       // Xoá cache session cũ để khi Retry ứng dụng sẽ xin session mới
       queryClient.invalidateQueries({ queryKey: ['quizSession'] });
+      queryClient.invalidateQueries({ queryKey: ['studentDailySchedule'] });
+      queryClient.invalidateQueries({ queryKey: ['studentDashboardSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['studentAnalytics'] });
+      queryClient.invalidateQueries({ queryKey: ['studentWeakTopics'] });
+      queryClient.invalidateQueries({ queryKey: ['studentAssignments'] });
     }
   });
 };

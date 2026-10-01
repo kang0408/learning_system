@@ -81,6 +81,8 @@ export interface CompleteStudentReportData {
     strengths_and_weaknesses: string;
     sm2_learning_analysis: string;
   };
+  teacher_feedback?: string | null;
+  feedback_updated_at?: Date | null;
 }
 
 function formatStudentAnswer(ans: any): string {
@@ -499,7 +501,9 @@ export class StudentReportService {
         executive_summary: 'Học sinh đang duy trì tiến độ học tập và hoàn thành các bài tập theo phân phối chương trình của lớp.',
         strengths_and_weaknesses: 'Học sinh nắm vững các kỹ năng cơ bản, cần tăng cường thêm thời lượng luyện tập các dạng bài nâng cao.',
         sm2_learning_analysis: 'Đa số kiến thức đang trong chu kỳ lặp lại ngắt quãng SM2 và duy trì mức độ ghi nhớ tích cực.'
-      }
+      },
+      teacher_feedback: (membership as any).teacher_feedback || null,
+      feedback_updated_at: (membership as any).feedback_updated_at || null
     };
   }
 }

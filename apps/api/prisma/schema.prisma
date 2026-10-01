@@ -65,8 +65,10 @@ model ClassMember {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   class_id   String   @db.Uuid
   student_id String   @db.Uuid
-  joined_at  DateTime @default(now()) @db.Timestamptz
-  is_active  Boolean  @default(true)
+  joined_at           DateTime  @default(now()) @db.Timestamptz
+  is_active           Boolean   @default(true)
+  teacher_feedback    String?   @db.Text
+  feedback_updated_at DateTime? @db.Timestamptz
 
   class   Class @relation(fields: [class_id], references: [id], onDelete: Cascade)
   student User  @relation(fields: [student_id], references: [id], onDelete: Cascade)

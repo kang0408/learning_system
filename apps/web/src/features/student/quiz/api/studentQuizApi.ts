@@ -2,13 +2,16 @@ import api from '@/api/axios';
 import type { Session, AnswerPayload, AnswerResponse } from '../types';
 
 export const studentQuizApi = {
-  initSession: async (assignmentId: string): Promise<Session> => {
-    const res = await api.post('/api/sessions', { assignment_id: assignmentId });
+  initSession: async (assignmentId: string, mode?: string, topicId?: string): Promise<Session> => {
+    const res = await api.post('/api/sessions', { assignment_id: assignmentId, mode, topic_id: topicId });
     const data = res.data?.data || res.data;
     return {
       id: data.session_id,
       status: 'in_progress',
       assignment_id: assignmentId,
+      assignment_title: data.assignment_title,
+      assignment_mode: data.assignment_mode || data.mode || mode,
+      mode: data.assignment_mode || data.mode || mode,
       time_limit_seconds: data.time_limit_seconds,
       questions: data.questions || []
     };

@@ -19,10 +19,15 @@ export default function TeacherQuestionBankFeature() {
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showAiDocModal, setShowAiDocModal] = useState(false);
 
+  const countAllTopics = (list: typeof topics): number => {
+    return list.reduce((acc, t) => acc + 1 + (t.children ? countAllTopics(t.children) : 0), 0);
+  };
+  const totalTopicsCount = countAllTopics(topics);
+
   return (
     <div className="space-y-6 sm:space-y-8 w-full">
       <QuestionBankHeader
-        totalTopics={topics.length}
+        totalTopics={totalTopicsCount}
         onOpenCreateTopic={() => setShowTopicModal(true)}
         onOpenCreateQuestion={() => setShowQuestionModal(true)}
         onOpenAiCreateTopic={() => setShowAiDocModal(true)}

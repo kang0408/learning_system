@@ -2,20 +2,34 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowUpRight } from 'lucide-react';
-import type { DashboardSummary } from '../types';
+import type { DashboardSummary, DailyScheduleClass } from '../types';
 
 interface SmartFocusProps {
   summary?: DashboardSummary;
+  dailySchedule?: DailyScheduleClass[];
 }
 
-export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
+export const SmartFocus: React.FC<SmartFocusProps> = ({ summary, dailySchedule = [] }) => {
   const { t } = useTranslation();
 
   if (!summary) return null;
 
-  const { urgent_count, due_today_count, priority_assignments, top_weak_topics } = summary;
+  const { urgent_count, due_today_count, priority_assignments } = summary;
   const topAssignment = priority_assignments && priority_assignments.length > 0 ? priority_assignments[0] : null;
-  const topWeak = top_weak_topics && top_weak_topics.length > 0 ? top_weak_topics[0] : null;
+
+  const firstDueAssignmentId = dailySchedule
+    ?.flatMap(c => c.assignments)
+    ?.find(a => a.assignment_id && a.assignment_id !== 'general')?.assignment_id;
+
+  const handleReviewClick = (e: React.MouseEvent) => {
+    if (!firstDueAssignmentId) {
+      e.preventDefault();
+      const el = document.getElementById('sm2-schedule');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
 
   const hasUrgentActions = due_today_count > 0 || urgent_count > 0 || topAssignment !== null;
 
@@ -49,7 +63,7 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
           {t('student.dashboard.allCaughtUp', 'ALL CAUGHT UP - NO PENDING URGENT TASKS')}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 1: Spaced Repetition Daily Review */}
           <div className={`border-2 border-zinc-900 p-6 flex flex-col justify-between transition-transform ${
             due_today_count > 0 
@@ -83,7 +97,8 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
             <div className="mt-6 pt-4 border-t border-current">
               {due_today_count > 0 ? (
                 <Link
-                  to="/quiz"
+                  to={firstDueAssignmentId ? `/quiz?assignment=${firstDueAssignmentId}&mode=review` : '#sm2-schedule'}
+                  onClick={handleReviewClick}
                   className="flex items-center justify-between font-bold uppercase tracking-widest text-sm bg-white text-indigo-900 border-2 border-zinc-900 px-4 py-2 hover:bg-zinc-900 hover:text-white transition-colors"
                 >
                   <span>{t('student.dashboard.startReviewNow', 'BẮT ĐẦU ÔN TẬP')}</span>
@@ -134,67 +149,26 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary }) => {
 
             <div className="mt-6 pt-4 border-t-2 border-zinc-900">
               {topAssignment ? (
-                <Link
-                  to={`/quiz?assignment=${topAssignment.id}`}
-                  className="flex items-center justify-between font-bold uppercase tracking-widest text-sm bg-zinc-900 text-white px-4 py-2 hover:bg-indigo-600 hover:border-indigo-600 transition-colors"
-                >
-                  <span>
-                    {(topAssignment.attempts_count || 0) > 0 
-                      ? t('student.dashboard.retry') 
-                      : t('student.dashboard.start')}
+                (topAssignment.is_locked || (topAssignment.max_attempts && (topAssignment.attempts_count || 0) >= topAssignment.max_attempts)) ? (
+                  <span className="flex items-center justify-between font-bold uppercase tracking-widest text-sm bg-zinc-200 text-zinc-600 px-4 py-2 border-2 border-zinc-900 cursor-not-allowed">
+                    <span>{t('student.dashboard.submitted', 'ĐÃ NỘP')}</span>
                   </span>
-                  <ArrowUpRight className="w-4 h-4 ml-1" />
-                </Link>
+                ) : (
+                  <Link
+                    to={`/quiz?assignment=${topAssignment.id}`}
+                    className="flex items-center justify-between font-bold uppercase tracking-widest text-sm bg-zinc-900 text-white px-4 py-2 hover:bg-indigo-600 hover:border-indigo-600 transition-colors"
+                  >
+                    <span>
+                      {(topAssignment.attempts_count || 0) > 0 
+                        ? t('student.dashboard.retry') 
+                        : t('student.dashboard.start')}
+                    </span>
+                    <ArrowUpRight className="w-4 h-4 ml-1" />
+                  </Link>
+                )
               ) : (
                 <span className="font-bold text-xs uppercase tracking-widest text-zinc-400">
                   {t('student.dashboard.noPending', 'ĐÃ HOÀN TẤT')}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Card 3: Weak Topic Recovery */}
-          <div className="border-2 border-zinc-900 p-6 flex flex-col justify-between bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#d97706] transition-transform">
-            <div>
-              <div className="flex justify-between items-start mb-4">
-                <span className="font-bold text-xs uppercase tracking-widest px-2 py-0.5 bg-amber-500 text-white border-2 border-zinc-900">
-                  {t('student.dashboard.weakSpotTag', 'ĐIỂM YẾU')}
-                </span>
-                {topWeak && (
-                  <span className="font-bold text-xs uppercase tracking-widest text-red-600">
-                    {topWeak.weak_questions} {t('student.dashboard.hardQs', 'CÂU HAY SAI')}
-                  </span>
-                )}
-              </div>
-
-              <h4 className="text-xl font-black tracking-tighter uppercase line-clamp-2 mb-2">
-                {topWeak?.topic || t('student.dashboard.allTopicsSolid', 'CHỦ ĐỀ ĐỒNG ĐỀU')}
-              </h4>
-
-              <p className="text-xs font-medium text-zinc-500">
-                {topWeak 
-                  ? t('student.dashboard.weakTopicRecoveryDesc', 'Luyện tập các câu hỏi thuộc chủ đề này để củng cố kiến thức.')
-                  : t('student.dashboard.noWeakTopicsDesc', 'Không phát hiện chủ đề yếu nghiêm trọng. Rất tốt!')}
-              </p>
-              {topWeak && (
-                <div className="mt-3 inline-block bg-zinc-100 text-zinc-800 border border-zinc-900 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider">
-                  {t('student.dashboard.estimatedTime', { minutes: Math.max(1, Math.ceil(topWeak.weak_questions * 0.75)), defaultValue: `~${Math.max(1, Math.ceil(topWeak.weak_questions * 0.75))} phút` })} ({topWeak.weak_questions} câu)
-                </div>
-              )}
-            </div>
-
-            <div className="mt-6 pt-4 border-t-2 border-zinc-900">
-              {topWeak ? (
-                <Link
-                  to="/quiz"
-                  className="flex items-center justify-between font-bold uppercase tracking-widest text-sm border-2 border-zinc-900 text-zinc-900 px-4 py-2 hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-colors"
-                >
-                  <span>{t('student.dashboard.practiceTopic', 'LUYỆN TẬP')}</span>
-                  <ArrowUpRight className="w-4 h-4 ml-1" />
-                </Link>
-              ) : (
-                <span className="font-bold text-xs uppercase tracking-widest text-zinc-400">
-                  {t('student.dashboard.stableTag', 'VỮNG VÀNG')}
                 </span>
               )}
             </div>

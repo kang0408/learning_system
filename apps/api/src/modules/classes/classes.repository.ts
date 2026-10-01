@@ -93,4 +93,31 @@ export class ClassesRepository {
       }
     });
   }
+
+  async updateMemberFeedback(classId: string, studentId: string, feedback: string) {
+    return this.prisma.classMember.update({
+      where: { class_id_student_id: { class_id: classId, student_id: studentId } },
+      data: {
+        teacher_feedback: feedback,
+        feedback_updated_at: new Date()
+      }
+    });
+  }
+
+  async getMemberFeedback(classId: string, studentId: string) {
+    return this.prisma.classMember.findUnique({
+      where: { class_id_student_id: { class_id: classId, student_id: studentId } },
+      select: {
+        teacher_feedback: true,
+        feedback_updated_at: true,
+        class: {
+          select: {
+            id: true,
+            name: true,
+            teacher: { select: { full_name: true } }
+          }
+        }
+      }
+    });
+  }
 }

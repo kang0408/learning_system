@@ -10,6 +10,7 @@ export interface Question {
   question_type: string;
   answer_options?: AnswerOption[];
   metadata?: any;
+  explanation?: string | null;
 }
 
 export interface SessionAnswer {

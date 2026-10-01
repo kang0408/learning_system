@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { BarChart2, CheckCircle, BookOpen, Target } from 'lucide-react';
+import { BarChart2, CheckCircle, BookOpen } from 'lucide-react';
 import type { StudentStats } from '../types';
 
 interface StudentSm2StatusProps {
@@ -28,7 +28,7 @@ export const StudentSm2Status: React.FC<StudentSm2StatusProps> = ({ sm2Summary }
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
         {/* Mastered */}
         <div className="p-5 rounded-2xl bg-emerald-50/50 border border-emerald-100">
           <div className="text-emerald-700 text-sm font-bold uppercase tracking-wider flex items-center gap-2 mb-2">
@@ -55,26 +55,12 @@ export const StudentSm2Status: React.FC<StudentSm2StatusProps> = ({ sm2Summary }
             <span className="text-red-500 font-bold" title={t('teacher.studentDetail.sm2.learningRiskTooltip')}>{t('teacher.studentDetail.sm2.learningRisk', { count: sm2Summary.learning.at_risk })}</span>
           </div>
         </div>
-
-        {/* New */}
-        <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
-          <div className="text-slate-700 text-sm font-bold uppercase tracking-wider flex items-center gap-2 mb-2">
-            <Target className="w-4 h-4" /> {t('teacher.studentDetail.sm2.new')}
-          </div>
-          <div className="text-4xl font-extrabold text-slate-700 mb-1">
-            {Math.round(sm2Summary.new.pct)}%
-          </div>
-          <div className="text-sm text-slate-500 font-medium">
-            {sm2Summary.new.count} {t('teacher.studentDetail.sm2.newUnit')}
-          </div>
-        </div>
       </div>
 
       {/* Progress Bar */}
       <div className="mt-8 w-full h-3 bg-slate-100 rounded-full overflow-hidden flex">
         <div className="h-full bg-emerald-500 hover:brightness-110 transition-all" style={{ width: `${sm2Summary.mastered.pct}%` }} title={t('teacher.studentDetail.sm2.masteredTooltip', { pct: Math.round(sm2Summary.mastered.pct) })}></div>
         <div className="h-full bg-blue-500 hover:brightness-110 transition-all" style={{ width: `${sm2Summary.learning.pct}%` }} title={t('teacher.studentDetail.sm2.learningTooltip', { pct: Math.round(sm2Summary.learning.pct) })}></div>
-        <div className="h-full bg-slate-300 hover:brightness-95 transition-all" style={{ width: `${sm2Summary.new.pct}%` }} title={t('teacher.studentDetail.sm2.newTooltip', { pct: Math.round(sm2Summary.new.pct) })}></div>
       </div>
     </div>
   );

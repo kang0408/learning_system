@@ -7,7 +7,7 @@ import { FocusAreas } from './components/FocusAreas';
 import { useDashboardData } from './hooks/useDashboardData';
 
 export const StudentDashboardFeature: React.FC = () => {
-  const { analytics, assignments, weakTopics, dailySchedule, summary, topicsTree } = useDashboardData();
+  const { analytics, assignments, weakTopics, dailySchedule, summary, topicsTree, calendar } = useDashboardData();
   const [selectedTopicFilter, setSelectedTopicFilter] = useState<string | null>(null);
 
   return (
@@ -15,7 +15,7 @@ export const StudentDashboardFeature: React.FC = () => {
       <HeroSection analytics={analytics} />
 
       {/* Smart Focus: Top 3 Urgent Actions & Daily Batch */}
-      <SmartFocus summary={summary} />
+      <SmartFocus summary={summary} dailySchedule={dailySchedule} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <ActionItems 
@@ -27,7 +27,7 @@ export const StudentDashboardFeature: React.FC = () => {
         />
         
         <section className="lg:col-span-5 space-y-12">
-          <DashboardStats analytics={analytics} />
+          <DashboardStats analytics={analytics} calendar={calendar} />
           <FocusAreas 
             weakTopics={weakTopics} 
             topicsTree={topicsTree}

@@ -39,7 +39,8 @@ export default function StudentLayout() {
     { to: '/student/profile', icon: User, label: t('student.menu.profile') },
   ];
 
-  const isImmersiveMode = location.pathname.includes('/quiz') || location.pathname.includes('/session-result');
+  const searchParams = new URLSearchParams(location.search);
+  const isImmersiveMode = (location.pathname.includes('/quiz') && Boolean(searchParams.get('assignment'))) || location.pathname.includes('/session-result');
 
   if (isImmersiveMode) {
     return (

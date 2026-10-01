@@ -1,8 +1,9 @@
-import { sendNewAssignmentEmail, sendDeadlineReminderEmail } from '../lib/mailer';
+import { sendNewAssignmentEmail, sendDeadlineReminderEmail, sendSM2DueReminderEmail } from '../lib/mailer';
 
 type EmailJobData = 
   | { type: 'NEW_ASSIGNMENT'; email: string; studentName: string; assignmentTitle: string; deadline: Date | null }
-  | { type: 'DEADLINE_REMINDER'; email: string; studentName: string; assignmentTitle: string; deadline: Date };
+  | { type: 'DEADLINE_REMINDER'; email: string; studentName: string; assignmentTitle: string; deadline: Date }
+  | { type: 'SM2_DUE_REMINDER'; email: string; studentName: string; dueCount: number };
 
 class JobQueue<T> {
   private queue: T[] = [];
@@ -47,6 +48,12 @@ class JobQueue<T> {
         emailJob.studentName, 
         emailJob.assignmentTitle, 
         emailJob.deadline
+      );
+    } else if (emailJob.type === 'SM2_DUE_REMINDER') {
+      await sendSM2DueReminderEmail(
+        emailJob.email,
+        emailJob.studentName,
+        emailJob.dueCount
       );
     }
   }

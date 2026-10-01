@@ -28,7 +28,9 @@ export const QuestionBankHeader: React.FC<QuestionBankHeaderProps> = ({
             {t('teacher.questionBank.header.topicCount', { count: totalTopics })}
           </Badge>
         </div>
-        <p className="text-sm text-slate-500 font-medium mt-1">{t('teacher.questionBank.header.description')}</p>
+        <p className="text-sm text-slate-500 font-medium mt-1">
+          {t('teacher.questionBank.header.description', 'Quản lý hệ thống chủ đề, phân loại kiến thức và ngân hàng câu hỏi phục vụ giảng dạy.')}
+        </p>
       </div>
       <div className="flex flex-wrap gap-3 mt-2 md:mt-0">
         <Button

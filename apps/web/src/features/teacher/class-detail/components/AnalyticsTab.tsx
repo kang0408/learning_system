@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trophy, Users, Percent, Award, BarChart2, CheckCircle2, BookOpen, Plus } from 'lucide-react';
+import { Trophy, Users, Percent, Award, BarChart2, CheckCircle2, BookOpen } from 'lucide-react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend
 } from 'chart.js';
@@ -132,7 +132,7 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <SM2Card 
               title={t('teacher.classDetail.mastered')} 
               pct={classStats.sm2_summary.mastered.pct} 
@@ -150,20 +150,11 @@ export function AnalyticsTab({ classStats, analytics, classId }: AnalyticsTabPro
               theme="blue" 
               t={t}
             />
-            <SM2Card 
-              title={t('teacher.classDetail.newKnowledge')} 
-              pct={classStats.sm2_summary.new.pct} 
-              count={classStats.sm2_summary.new.count} 
-              icon={<Plus className="w-4 h-4" />} 
-              theme="slate" 
-              t={t}
-            />
           </div>
 
           <div className="mt-6 w-full h-3 bg-slate-100 rounded-full overflow-hidden flex" aria-hidden="true">
             <div className="h-full bg-emerald-500" style={{ width: `${classStats.sm2_summary.mastered.pct}%` }}></div>
             <div className="h-full bg-blue-500" style={{ width: `${classStats.sm2_summary.learning.pct}%` }}></div>
-            <div className="h-full bg-slate-300" style={{ width: `${classStats.sm2_summary.new.pct}%` }}></div>
           </div>
         </div>
       )}

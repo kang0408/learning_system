@@ -36,6 +36,18 @@ interface TopicListProps {
 type FilterQuestionStatus = 'all' | 'has_questions' | 'empty';
 type SortOption = 'created_desc' | 'name_asc' | 'name_desc' | 'questions_desc';
 
+export const getTopicQuestionCount = (topic: Topic): number => {
+  if ((topic._count as any)?.direct_questions !== undefined) {
+    return topic._count?.questions || 0;
+  }
+  const direct = topic._count?.questions || 0;
+  if (!topic.children || topic.children.length === 0) {
+    return direct;
+  }
+  const childrenSum = topic.children.reduce((acc, c) => acc + getTopicQuestionCount(c), 0);
+  return direct + childrenSum;
+};
+
 export const TopicList: React.FC<TopicListProps> = ({
   topics,
   searchTerm,
@@ -122,6 +134,7 @@ export const TopicList: React.FC<TopicListProps> = ({
     [t]
   );
 
+
   // Recursive filter & sort tree
   const processedTopics = useMemo(() => {
     const processList = (list: Topic[]): Topic[] => {
@@ -131,20 +144,19 @@ export const TopicList: React.FC<TopicListProps> = ({
           return { ...t, children };
         })
         .filter((t) => {
+          const count = getTopicQuestionCount(t);
           if (filterStatus === 'has_questions') {
-            const hasDirect = (t._count?.questions || 0) > 0;
-            const hasChild = t.children && t.children.length > 0;
-            return hasDirect || hasChild;
+            return count > 0;
           }
           if (filterStatus === 'empty') {
-            return (t._count?.questions || 0) === 0 && (!t.children || t.children.length === 0);
+            return count === 0;
           }
           return true;
         })
         .sort((a, b) => {
           if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
           if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
-          if (sortBy === 'questions_desc') return (b._count?.questions || 0) - (a._count?.questions || 0);
+          if (sortBy === 'questions_desc') return getTopicQuestionCount(b) - getTopicQuestionCount(a);
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
     };
@@ -211,9 +223,10 @@ export const TopicList: React.FC<TopicListProps> = ({
 
   const renderRow = (topic: Topic, depth: number, parentPath?: string) => {
     const hasChildren = topic.children && topic.children.length > 0;
-    const isExpanded = searchTerm ? true : expandedNodes[topic.id] ?? (depth < 1);
+    const isExpanded = searchTerm ? true : expandedNodes[topic.id] ?? (depth < 2);
     const isSelected = selectedTopicIds.includes(topic.id);
     const currentPath = parentPath ? `${parentPath} › ${topic.name}` : topic.name;
+    const qCount = getTopicQuestionCount(topic);
 
     return (
       <React.Fragment key={topic.id}>
@@ -282,12 +295,12 @@ export const TopicList: React.FC<TopicListProps> = ({
           {/* Question Count Badge */}
           <TableCell className="p-3.5 align-middle text-center w-36">
             <Badge
-              variant={(topic._count?.questions || 0) > 0 ? 'indigo' : 'default'}
+              variant={qCount > 0 ? 'indigo' : 'default'}
               size="sm"
               className="gap-1.5 font-semibold"
             >
               <FileQuestion className="w-3.5 h-3.5" />
-              {t('teacher.questionBank.topicList.questionCount', { count: topic._count?.questions || 0 })}
+              {t('teacher.questionBank.topicList.questionCount', { count: qCount })}
             </Badge>
           </TableCell>
 

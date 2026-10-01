@@ -287,6 +287,7 @@ export class AnalyticsRepository {
   async getWeakTopicsBySM2(studentId: string): Promise<any[]> {
     return this.prisma.$queryRaw<any[]>`
       SELECT 
+        t.id as topic_id,
         COALESCE(t.name, 'General') as topic,
         COUNT(p.id)::int as total_questions,
         SUM(CASE WHEN p.easiness_factor < 2.0 THEN 1 ELSE 0 END)::int as weak_questions,
@@ -299,8 +300,12 @@ export class AnalyticsRepository {
       WHERE p.student_id = ${studentId}::uuid
       GROUP BY t.id, t.name
       HAVING SUM(p.total_attempts) >= 3
-         AND (AVG(p.easiness_factor) < 2.5 OR SUM(CASE WHEN p.next_review_date < NOW() - INTERVAL '3 days' THEN 1 ELSE 0 END) > 0)
-      ORDER BY overdue_questions DESC, avg_ef ASC, weak_questions DESC;
+         AND (
+           (SUM(p.correct_attempts)::float / NULLIF(SUM(p.total_attempts), 0) * 100) < 80
+           OR SUM(CASE WHEN p.easiness_factor < 2.0 THEN 1 ELSE 0 END) > 0
+           OR (SUM(CASE WHEN p.next_review_date < NOW() - INTERVAL '3 days' THEN 1 ELSE 0 END) > 0 AND (SUM(p.correct_attempts)::float / NULLIF(SUM(p.total_attempts), 0) * 100) < 85)
+         )
+      ORDER BY weak_questions DESC, overdue_questions DESC, accuracy_pct ASC;
     `;
   }
 
@@ -376,8 +381,8 @@ export class AnalyticsRepository {
       FROM quiz_sessions qs
       JOIN class_members cm ON qs.student_id = cm.student_id
       WHERE cm.class_id = ${classId}::uuid 
-        AND qs.started_at >= NOW() - INTERVAL '${daysAgoStart} days'
-        AND qs.started_at < NOW() - INTERVAL '${daysAgoEnd} days';
+        AND qs.started_at >= NOW() - (${daysAgoStart} || ' days')::interval
+        AND qs.started_at < NOW() - (${daysAgoEnd} || ' days')::interval;
     `;
   }
 
@@ -387,8 +392,8 @@ export class AnalyticsRepository {
       FROM quiz_sessions qs
       JOIN assignments a ON a.id = qs.assignment_id
       WHERE a.class_id = ${classId}::uuid AND qs.status = 'completed' 
-        AND qs.started_at >= NOW() - INTERVAL '${daysAgoStart} days'
-        AND qs.started_at < NOW() - INTERVAL '${daysAgoEnd} days';
+        AND qs.started_at >= NOW() - (${daysAgoStart} || ' days')::interval
+        AND qs.started_at < NOW() - (${daysAgoEnd} || ' days')::interval;
     `;
   }
 
@@ -610,16 +615,46 @@ export class AnalyticsRepository {
   }
 
   async getStudentSm2DueTodayCount(studentId: string): Promise<number> {
+    try {
+      await this.prisma.$executeRaw`
+        UPDATE sm2_progress sp
+        SET last_reviewed_at = qs.finished_at,
+            next_review_date = CURRENT_DATE + INTERVAL '1 day'
+        FROM session_answers sa
+        JOIN quiz_sessions qs ON qs.id = sa.session_id
+        WHERE sp.question_id = sa.question_id
+          AND sp.student_id = qs.student_id
+          AND qs.student_id = ${studentId}::uuid
+          AND qs.status = 'completed'
+          AND DATE(qs.finished_at) = CURRENT_DATE
+          AND (sp.last_reviewed_at IS NULL OR DATE(sp.last_reviewed_at) < CURRENT_DATE)
+      `;
+    } catch (e) {
+      // ignore sync errors
+    }
+
     const result = await this.prisma.$queryRaw<{ count: bigint }[]>`
-      SELECT COUNT(p.id) as count
+      SELECT COUNT(DISTINCT p.question_id) as count
       FROM sm2_progress p
       JOIN questions q ON p.question_id = q.id
+      JOIN assignment_questions aq ON aq.question_id = q.id
+      JOIN assignments a ON a.id = aq.assignment_id AND a.deleted_at IS NULL AND a.mode != 'exam'
       WHERE p.student_id = ${studentId}::uuid
         AND p.next_review_date <= CURRENT_DATE
+        AND (p.last_reviewed_at IS NULL OR DATE(p.last_reviewed_at) < CURRENT_DATE)
         AND q.deleted_at IS NULL
+        AND p.question_id NOT IN (
+          SELECT sa.question_id
+          FROM session_answers sa
+          JOIN quiz_sessions qs ON qs.id = sa.session_id
+          WHERE qs.student_id = ${studentId}::uuid
+            AND qs.status = 'completed'
+            AND DATE(qs.finished_at) = CURRENT_DATE
+        )
     `;
     return Number(result[0]?.count || 0);
   }
+
 
   async getPriorityAssignments(studentId: string, limit: number = 3) {
     const activeClasses = await this.prisma.classMember.findMany({

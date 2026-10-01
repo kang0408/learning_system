@@ -346,7 +346,10 @@ export class AssignmentsService {
     }
 
     if (status === 'overdue') {
-      baseWhere.deadline = { lt: new Date() };
+      baseWhere.AND = [
+        { deadline: { lt: new Date() } },
+        { quiz_sessions: { none: { student_id: studentId, status: 'completed' } } }
+      ];
     } else if (status === 'pending') {
       baseWhere.AND = [
         {
@@ -354,8 +357,16 @@ export class AssignmentsService {
             { deadline: null },
             { deadline: { gte: new Date() } }
           ]
-        }
+        },
+        { quiz_sessions: { none: { student_id: studentId, status: 'completed' } } }
       ];
+    } else if (status === 'completed') {
+      baseWhere.quiz_sessions = {
+        some: {
+          student_id: studentId,
+          status: 'completed'
+        }
+      };
     }
 
     let orderBy: any = { created_at: 'desc' };

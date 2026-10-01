@@ -12,7 +12,12 @@ export const studentClassDetailApi = {
       throw new Error('Class not found');
     }
     
-    return currentMembership.class || currentMembership;
+    const classData = currentMembership.class || currentMembership;
+    return {
+      ...classData,
+      teacher_feedback: currentMembership.teacher_feedback || null,
+      feedback_updated_at: currentMembership.feedback_updated_at || null,
+    };
   },
 
   getClassAssignments: async (id: string): Promise<AssignmentItem[]> => {

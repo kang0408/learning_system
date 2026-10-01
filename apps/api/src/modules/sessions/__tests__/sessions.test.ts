@@ -15,6 +15,7 @@ jest.mock('../../../lib/prisma', () => ({
       create: jest.fn(),
       findUnique: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn().mockResolvedValue({ count: 0 }),
       findMany: jest.fn(),
       count: jest.fn(),
     },
@@ -264,6 +265,58 @@ describe('Quiz Sessions & Anti-cheat Test Suite (Section 4.2.5)', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.data.is_correct).toBe(true);
+      expect(prisma.sm2Progress.upsert).toHaveBeenCalled();
+    });
+  });
+
+  describe('TC_SES_06: Khởi tạo phiên ôn tập theo chủ đề (Review Mode with Topic)', () => {
+    it('should start a review session with topic_id and skip max attempts check', async () => {
+      (prisma.quizSession.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.assignment.findUnique as jest.Mock).mockResolvedValue({
+        id: assignmentId,
+        title: 'Bài tập tiêu chuẩn',
+        mode: 'standard',
+        is_published: true,
+        max_attempts: 1,
+        time_limit: 15,
+      });
+
+      // 1 attempt already completed (would normally block standard session)
+      (prisma.quizSession.count as jest.Mock).mockResolvedValue(1);
+
+      (prisma.$queryRawUnsafe as jest.Mock).mockResolvedValue([
+        {
+          id: questionId,
+          content: 'Review question for topic',
+          question_type: 'multiple_choice',
+          topic_id: 't-123',
+          difficulty: 2,
+        },
+      ]);
+
+      (prisma.answerOption.findMany as jest.Mock).mockResolvedValue([
+        { id: 'opt-1', content: 'Option 1', order_index: 0 },
+      ]);
+
+      (prisma.quizSession.create as jest.Mock).mockResolvedValue({
+        id: sessionId,
+        student_id: studentId,
+        assignment_id: assignmentId,
+        status: 'in_progress',
+        started_at: new Date(),
+      });
+
+      const res = await request(app)
+        .post('/api/sessions')
+        .set('Authorization', `Bearer ${studentToken}`)
+        .send({
+          assignment_id: assignmentId,
+          mode: 'review',
+          topic_id: '11111111-2222-4333-a444-555555555555',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.session_id).toBe(sessionId);
     });
   });
 });

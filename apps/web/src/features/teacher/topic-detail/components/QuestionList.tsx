@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Star, Edit, Trash2, CheckCircle2, ArrowRight, School, X } from 'lucide-react';
+import { Search, Plus, Star, Edit, Trash2, CheckCircle2, ArrowRight, X } from 'lucide-react';
 import type { Question } from '../types';
 import { useTranslation } from 'react-i18next';
 import { Select } from '@/components/ui/Select';
@@ -169,20 +169,6 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                           <Star key={star} className={`w-3.5 h-3.5 ${q.difficulty >= star ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
                         ))}
                       </div>
-
-                      {q.assignment_questions && q.assignment_questions.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {q.assignment_questions.map((aq, aqIdx) => (
-                            <span
-                              key={aqIdx}
-                              className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 bg-slate-100 border border-slate-200 rounded-md"
-                            >
-                              <School className="w-3 h-3 text-indigo-500" />
-                              <span>{aq.assignment.class?.name || 'Lớp học'}: {aq.assignment.title}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
                     </div>
                     
                     <p className="font-semibold text-gray-900 text-base leading-relaxed">{q.content}</p>

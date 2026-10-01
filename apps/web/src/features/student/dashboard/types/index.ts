@@ -80,6 +80,7 @@ export interface DailyScheduleClass {
 }
 
 export interface WeakTopic {
+  topic_id?: string;
   topic: string;
   trend: 'improving' | 'declining' | 'stable';
   weak_questions: number;
@@ -90,6 +91,10 @@ export interface WeakTopic {
 
 export interface CalendarEvent {
   date: string;
-  sessions: number;
+  day?: number;
+  sessions?: number;
+  sessions_count?: number;
+  questions_count?: number;
+  accuracy?: number;
 }
 

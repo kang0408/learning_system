@@ -5,6 +5,13 @@ import { ApiError } from '../../lib/ApiError';
 import { SessionsRepository } from './sessions.repository';
 
 export class SessionsService {
+  private sessionStateMap = new Map<string, {
+    questions: any[];
+    currentIndex: number;
+    total: number;
+    session_mode: string;
+  }>();
+
   constructor(
     private readonly sessionsRepository: SessionsRepository, 
     private readonly sm2Repository: SM2Repository
@@ -46,7 +53,7 @@ export class SessionsService {
     return { performance_by_topic, weakestTopic };
   }
 
-  async startSession(studentId: string, assignmentId: string) {
+  async startSession(studentId: string, assignmentId: string, mode?: 'standard' | 'review', topicId?: string) {
     // Automatically abandon any stale/unfinished in_progress sessions for this student & assignment
     const staleIds = await this.sessionsRepository.abandonStaleSessions(studentId, assignmentId);
     if (redisClient.isOpen && staleIds.length > 0) {
@@ -58,15 +65,39 @@ export class SessionsService {
     const assignment = await this.sessionsRepository.findAssignmentById(assignmentId);
     if (!assignment || !assignment.is_published) throw new ApiError(404, 'Assignment not found or not published');
 
-    // Check attempts
-    if (assignment.max_attempts > 0 && assignment.mode !== 'adaptive') {
+    // Check attempts (skip attempt check for SM-2 review mode)
+    if (assignment.max_attempts > 0 && assignment.mode !== 'adaptive' && mode !== 'review') {
       const attempts = await this.sessionsRepository.countCompletedSessions(studentId, assignmentId);
       if (attempts >= assignment.max_attempts) throw new ApiError(403, 'Max attempts reached');
     }
 
     let questionsList: any[] = [];
 
-    if (assignment.mode === 'adaptive') {
+    if (topicId) {
+      // Khi học sinh chủ động bấm luyện tập / củng cố theo chủ đề (Weak topic drill)
+      questionsList = await this.sm2Repository.getTopicPracticeQuestions(studentId, topicId, assignmentId, 20);
+
+      // Dự phòng nếu không tìm thấy câu hỏi từ lớp học qua CTE
+      if (questionsList.length === 0) {
+        const aqs = await this.sessionsRepository.findAssignmentQuestions(assignmentId);
+        questionsList = aqs.map(aq => aq.question).filter(q => !q.deleted_at && q.topic_id === topicId);
+      }
+    } else if (mode === 'review') {
+      // In SM2 review mode: specifically fetch questions due for review in this assignment
+      const dueQuestions = await this.sm2Repository.getDueQuestions(studentId, assignmentId, 20);
+      if (dueQuestions.length > 0) {
+        questionsList = dueQuestions;
+      } else {
+        // Fallback: If no questions due right now, fetch early review questions
+        questionsList = await this.sm2Repository.getEarlyReviewQuestions(studentId, assignmentId);
+      }
+
+      // Fallback: If still empty, use all questions of assignment
+      if (questionsList.length === 0) {
+        const aqs = await this.sessionsRepository.findAssignmentQuestions(assignmentId);
+        questionsList = aqs.map(aq => aq.question).filter(q => !q.deleted_at);
+      }
+    } else if (assignment.mode === 'adaptive') {
       try {
         const dueQuestions = await this.sm2Repository.getDueQuestions(studentId, assignmentId, 20);
         const newQuestions = await this.sm2Repository.getNewQuestions(studentId, assignmentId, 20 - dueQuestions.length);
@@ -111,18 +142,27 @@ export class SessionsService {
       status: 'in_progress'
     });
 
+    const effectiveSessionMode = mode === 'review' ? 'review' : assignment.mode;
+
+    const sessionState = {
+      questions: questionsList,
+      currentIndex: 0,
+      total: questionsList.length,
+      session_mode: effectiveSessionMode
+    };
+
+    this.sessionStateMap.set(session.id, sessionState);
+
     if (redisClient.isOpen) {
       const ttl = assignment.time_limit ? (assignment.time_limit * 60) + 600 : 86400; // time limit + 10 mins, or 24 hours
-      await redisClient.setEx(`session:${session.id}`, ttl, JSON.stringify({
-        questions: questionsList,
-        currentIndex: 0,
-        total: questionsList.length
-      })).catch(() => {});
+      await redisClient.setEx(`session:${session.id}`, ttl, JSON.stringify(sessionState)).catch(() => {});
     }
 
     return {
       session_id: session.id,
       assignment_title: assignment.title,
+      assignment_mode: assignment.mode,
+      mode: effectiveSessionMode,
       total_questions: questionsList.length,
       time_limit_seconds: assignment.time_limit ? assignment.time_limit * 60 : null,
       started_at: session.started_at,
@@ -140,6 +180,9 @@ export class SessionsService {
       if (cacheStr) {
         try { cacheState = JSON.parse(cacheStr); } catch (_) {}
       }
+    }
+    if (!cacheState) {
+      cacheState = this.sessionStateMap.get(sessionId) || null;
     }
 
     const session = await this.sessionsRepository.findQuizSessionById(sessionId, true) as any;
@@ -211,27 +254,31 @@ export class SessionsService {
       }
     }
     
-    const correctOpt = options.find(o => o.is_correct); // Keep for backwards compatibility for ai explanation
+    const effectiveMode = cacheState?.session_mode || (session?.assignment?.mode);
+    const isSM2Eligible = effectiveMode === 'adaptive' || effectiveMode === 'review';
 
     // Fetch existing progress
     const progress = await this.sessionsRepository.findSM2Progress(studentId, question_id);
 
-    // Run SM2 Algorithm
+    // Run SM2 Algorithm - CHỈ áp dụng cho Luyện tập thích ứng (adaptive) và Phiên ôn tập (review)
+    // Loại trừ hoàn toàn bài tập thông thường (standard) và bài thi (exam)
     let sm2Result = null;
-    try {
-      sm2Result = updateSM2({
-        progress: progress ? {
-          easiness_factor: Number(progress.easiness_factor),
-          interval_days: progress.interval_days,
-          repetition_count: progress.repetition_count
-        } : null,
-        is_correct: isCorrect,
-        response_time_ms: response_time_ms,
-        difficulty: difficulty,
-        question_type: currentQuestion?.question_type || currentQuestion?.type
-      });
-    } catch (e) {
-      console.error('🚨 [CRITICAL SM2 FALLBACK] Lỗi tính toán SM-2:', e);
+    if (isSM2Eligible) {
+      try {
+        sm2Result = updateSM2({
+          progress: progress ? {
+            easiness_factor: Number(progress.easiness_factor),
+            interval_days: progress.interval_days,
+            repetition_count: progress.repetition_count
+          } : null,
+          is_correct: isCorrect,
+          response_time_ms: response_time_ms,
+          difficulty: difficulty,
+          question_type: currentQuestion?.question_type || currentQuestion?.type
+        });
+      } catch (e) {
+        console.error('[CRITICAL SM2 FALLBACK] Lỗi tính toán SM-2:', e);
+      }
     }
 
     let textAnswerToSave = data.fill_text || null;
@@ -241,19 +288,46 @@ export class SessionsService {
       textAnswerToSave = JSON.stringify(data.matching_pairs);
     }
 
-    // Save Answer (Luôn luôn lưu lịch sử làm bài để tính điểm)
-    await this.sessionsRepository.createSessionAnswer({
-      session_id: sessionId,
-      question_id,
-      selected_option: selected_option_id || null,
-      text_answer: textAnswerToSave,
-      is_correct: isCorrect,
-      response_time_ms,
-      sm2_quality: sm2Result ? sm2Result.q : -1 
-    });
+    // Check if student has already answered this question in this session (allows changing answers during exams/free navigation)
+    const existingAnswer = await this.sessionsRepository.findSessionAnswer(sessionId, question_id);
 
-    // [Best Practice Data Integrity]: CHỈ cập nhật SM-2 nếu thuật toán chạy thành công VÀ bài tập có kiểu là adaptive
-    if (sm2Result && session?.assignment?.mode === 'adaptive') {
+    if (existingAnswer) {
+      await this.sessionsRepository.updateSessionAnswer(existingAnswer.id, {
+        selected_option: selected_option_id || null,
+        text_answer: textAnswerToSave,
+        is_correct: isCorrect,
+        response_time_ms,
+        sm2_quality: sm2Result ? sm2Result.q : -1 
+      });
+
+      if (existingAnswer.is_correct !== isCorrect) {
+        await this.sessionsRepository.updateQuizSession(sessionId, {
+          correct_q: isCorrect ? { increment: 1 } : { decrement: 1 }
+        });
+      }
+    } else {
+      // Save Answer
+      await this.sessionsRepository.createSessionAnswer({
+        session_id: sessionId,
+        question_id,
+        selected_option: selected_option_id || null,
+        text_answer: textAnswerToSave,
+        is_correct: isCorrect,
+        response_time_ms,
+        sm2_quality: sm2Result ? sm2Result.q : -1 
+      });
+
+      // Update Session Counters
+      await this.sessionsRepository.updateQuizSession(sessionId, {
+        answered_q: { increment: 1 },
+        correct_q: isCorrect ? { increment: 1 } : undefined
+      });
+    }
+
+    // Cập nhật SM-2 nếu thuật toán tính toán thành công và phiên làm bài thuộc chế độ hợp lệ
+    // CHỈ áp dụng cho Luyện tập thích ứng (adaptive) và Phiên ôn tập (review)
+    // Loại trừ hoàn toàn bài tập thông thường (standard) và bài thi (exam)
+    if (sm2Result && isSM2Eligible) {
       await this.sessionsRepository.upsertSM2Progress(
         { student_id_question_id: { student_id: studentId, question_id } },
         {
@@ -278,18 +352,13 @@ export class SessionsService {
       );
     }
 
-    // Update Session Counters
-    await this.sessionsRepository.updateQuizSession(sessionId, {
-      answered_q: { increment: 1 },
-      correct_q: isCorrect ? { increment: 1 } : undefined
-    });
-
     let nextQuestion = null;
     if (cacheState) {
       cacheState.currentIndex++;
       if (cacheState.currentIndex < cacheState.total) {
         nextQuestion = { ...cacheState.questions[cacheState.currentIndex], question_index: cacheState.currentIndex + 1 };
       }
+      this.sessionStateMap.set(sessionId, cacheState);
     }
 
     // Update cache if open
@@ -300,14 +369,25 @@ export class SessionsService {
       }
     }
 
+    // [Security & Exam Integrity]: In exam mode, never reveal answers, correctness, or explanations to student
+    if (session?.assignment?.mode === 'exam') {
+      return {
+        submitted: true,
+        next_question: nextQuestion
+      };
+    }
+
     const explanation = currentQuestion?.explanation || null;
+
+    const correctOpt = options.find(o => o.is_correct);
+    const correct_option_ids = options.filter(o => o.is_correct).map(o => o.id);
 
     const fill_blank_correct_text = qType === 'fill_blank' && !isCorrect
       ? options.filter(o => o.is_correct).map(o => o.content).join(' hoặc ')
       : undefined;
 
     const matching_correct_pairs = qType === 'matching' && !isCorrect && currentQuestion?.metadata?.pairs
-      ? currentQuestion.metadata.pairs.map((p: any) => `${p.leftText} ➔ ${p.rightText}`)
+      ? currentQuestion.metadata.pairs.map((p: any) => `${p.leftText} -> ${p.rightText}`)
       : undefined;
 
     const choice_correct_texts = (qType === 'multiple_choice' || qType === 'multi_select' || qType === 'true_false') && !isCorrect
@@ -317,6 +397,7 @@ export class SessionsService {
     return {
       is_correct: isCorrect,
       correct_option_id: correctOpt?.id,
+      correct_option_ids,
       fill_blank_correct_text,
       matching_correct_pairs,
       choice_correct_texts,
@@ -336,18 +417,81 @@ export class SessionsService {
     const session = await this.sessionsRepository.findQuizSessionWithAnswers(sessionId);
     if (!session || session.student_id !== studentId) throw new ApiError(404, 'Session not found');
 
-    const score = session.answered_q > 0 ? (session.correct_q / session.answered_q) * 100 : 0;
+    const cacheState = this.sessionStateMap.get(sessionId);
+    const effectiveMode = cacheState?.session_mode || (session.assignment?.mode);
+    const isSM2Eligible = effectiveMode === 'adaptive' || effectiveMode === 'review';
+
+    const totalQuestions = session.total_q > 0 ? session.total_q : (session.session_answers.length || 1);
+    const correctCount = session.session_answers.filter(a => a.is_correct).length;
+    const answeredCount = session.session_answers.length;
+
+    // Exam scoring: unattempted questions earn 0 points, denominator is total_questions
+    const denominator = session.assignment?.mode === 'exam' ? totalQuestions : (answeredCount || 1);
+    const score = denominator > 0 ? Math.round(((correctCount / denominator) * 100) * 10) / 10 : 0;
     const finishedAt = new Date();
     const durationSeconds = Math.floor((finishedAt.getTime() - session.started_at.getTime()) / 1000);
 
     await this.sessionsRepository.updateQuizSession(sessionId, {
       status: 'completed',
       finished_at: finishedAt,
+      answered_q: answeredCount,
+      correct_q: correctCount,
       score
     });
 
+    // Ensure SM-2 progress is guaranteed for all answered questions in adaptive/review sessions
+    if (isSM2Eligible) {
+      for (const ans of session.session_answers) {
+        try {
+          const progress = await this.sessionsRepository.findSM2Progress(studentId, ans.question_id);
+          const sm2Result = updateSM2({
+            progress: progress ? {
+              easiness_factor: Number(progress.easiness_factor),
+              interval_days: progress.interval_days,
+              repetition_count: progress.repetition_count
+            } : null,
+            is_correct: ans.is_correct,
+            response_time_ms: ans.response_time_ms || 5000,
+            difficulty: (ans.question as any)?.difficulty || 3,
+            question_type: (ans.question as any)?.question_type as any
+          });
+
+          await this.sessionsRepository.upsertSM2Progress(
+            { student_id_question_id: { student_id: studentId, question_id: ans.question_id } },
+            {
+              student_id: studentId,
+              question_id: ans.question_id,
+              easiness_factor: sm2Result.new_ef,
+              interval_days: sm2Result.new_interval,
+              repetition_count: sm2Result.new_repetition_count,
+              next_review_date: new Date(sm2Result.next_review_date),
+              total_attempts: 1,
+              correct_attempts: ans.is_correct ? 1 : 0,
+              last_reviewed_at: finishedAt
+            },
+            {
+              easiness_factor: sm2Result.new_ef,
+              interval_days: sm2Result.new_interval,
+              repetition_count: sm2Result.new_repetition_count,
+              next_review_date: new Date(sm2Result.next_review_date),
+              total_attempts: { increment: 1 },
+              correct_attempts: ans.is_correct ? { increment: 1 } : undefined,
+              last_reviewed_at: finishedAt
+            }
+          );
+        } catch (err) {
+          console.error('[SM2 Sync on Finish Error]:', err);
+        }
+      }
+    }
+
+    this.sessionStateMap.delete(sessionId);
+
     if (redisClient.isOpen) {
       await redisClient.del(`session:${sessionId}`).catch(() => {});
+      await redisClient.del(`student:summary:${studentId}`).catch(() => {});
+      await redisClient.del(`student:dashboard_summary:${studentId}`).catch(() => {});
+      await redisClient.del(`analytics:student:${studentId}`).catch(() => {});
     }
 
     // Topic performance logic
@@ -356,13 +500,14 @@ export class SessionsService {
     return {
       session_id: sessionId,
       score,
-      total_questions: session.total_q,
-      answered_questions: session.answered_q,
-      correct_questions: session.correct_q,
+      total_questions: totalQuestions,
+      answered_questions: answeredCount,
+      correct_questions: correctCount,
       duration_seconds: durationSeconds,
       finished_at: finishedAt,
       performance_by_topic,
-      weakest_topic: weakestTopic
+      weakest_topic: weakestTopic,
+      session_answers: session.session_answers
     };
   }
 
@@ -370,8 +515,11 @@ export class SessionsService {
     const session = await this.sessionsRepository.findQuizSessionById(sessionId);
     if (!session || session.student_id !== studentId) throw new ApiError(404, 'Session not found');
 
+    this.sessionStateMap.delete(sessionId);
+
     if (redisClient.isOpen) {
       await redisClient.del(`session:${sessionId}`).catch(() => {});
+      await redisClient.del(`student:dashboard_summary:${studentId}`).catch(() => {});
     }
 
     await this.sessionsRepository.updateQuizSession(sessionId, {

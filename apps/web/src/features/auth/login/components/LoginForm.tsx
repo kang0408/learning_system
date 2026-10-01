@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Mail, Lock, Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLogin } from '../hooks/useLogin';
 
 export const LoginForm: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const isRegistered = searchParams.get('registered') === 'true';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { handleLogin, loading, error, setError } = useLogin();
@@ -24,6 +27,13 @@ export const LoginForm: React.FC = () => {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
+      {isRegistered && !error && (
+        <div className="p-4 rounded-xl bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-100 flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-600" />
+          <span>{t('auth.register.successRegister', 'Đăng ký tài khoản thành công! Vui lòng đăng nhập.')}</span>
+        </div>
+      )}
+
       {error && (
         <div className="p-4 rounded-xl bg-red-50 text-red-600 text-sm font-medium border border-red-100 animate-in fade-in slide-in-from-top-2">
           {error}

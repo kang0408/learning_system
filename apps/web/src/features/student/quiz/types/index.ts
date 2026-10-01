@@ -19,6 +19,9 @@ export interface Session {
   id: string;
   status: string;
   assignment_id?: string;
+  assignment_title?: string;
+  assignment_mode?: string;
+  mode?: string;
   time_limit_seconds?: number;
   questions?: Question[];
   started_at?: string;
@@ -28,7 +31,9 @@ export interface AnswerPayload {
   question_id: string;
   response_time_ms: number;
   selected_option_id?: string;
+  selected_option_ids?: string[];
   fill_text?: string;
+  matching_pairs?: any[];
 }
 
 export interface AnswerResponse {

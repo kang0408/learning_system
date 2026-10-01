@@ -82,8 +82,9 @@ export class QuestionsRepository {
 
   async deleteQuestion(id: string, tx?: Prisma.TransactionClient) {
     const client = tx || this.prisma;
-    return client.question.delete({
-      where: { id }
+    return client.question.update({
+      where: { id },
+      data: { deleted_at: new Date() }
     });
   }
 

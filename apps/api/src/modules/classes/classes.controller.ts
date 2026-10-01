@@ -3,15 +3,17 @@ import { ClassesService } from './classes.service';
 import { ClassReportService } from './class-report.service';
 import { StudentReportService } from './student-report.service';
 import { PdfGeneratorService } from './pdf-generator.service';
+import { AiService } from '../ai/ai.service';
 import { BaseController } from '../../controllers/BaseController';
-import { createClassSchema, updateClassSchema, joinClassSchema } from './classes.schema';
+import { createClassSchema, updateClassSchema, joinClassSchema, updateMemberFeedbackSchema } from './classes.schema';
 
 export class ClassesController extends BaseController {
   constructor(
     private readonly classesService: ClassesService,
     private readonly classReportService?: ClassReportService,
     private readonly pdfGeneratorService?: PdfGeneratorService,
-    private readonly studentReportService?: StudentReportService
+    private readonly studentReportService?: StudentReportService,
+    private readonly aiService?: AiService
   ) {
     super();
     this.createClass = this.createClass.bind(this);
@@ -27,6 +29,9 @@ export class ClassesController extends BaseController {
     this.getClassReportData = this.getClassReportData.bind(this);
     this.exportStudentReportPdf = this.exportStudentReportPdf.bind(this);
     this.getStudentReportData = this.getStudentReportData.bind(this);
+    this.updateMemberFeedback = this.updateMemberFeedback.bind(this);
+    this.getMemberFeedback = this.getMemberFeedback.bind(this);
+    this.generateAiFeedbackDraft = this.generateAiFeedbackDraft.bind(this);
   }
 
   async createClass(req: any, res: Response) {
@@ -166,6 +171,55 @@ export class ClassesController extends BaseController {
     }
 
     this.handleSuccess(res, reportData);
+  }
+
+  async updateMemberFeedback(req: any, res: Response) {
+    const { classId, studentId } = req.params;
+    const teacherId = req.user.userId;
+    const parseResult = updateMemberFeedbackSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ success: false, error: parseResult.error });
+    }
+
+    const updated = await this.classesService.updateMemberFeedback(
+      classId,
+      teacherId,
+      studentId,
+      parseResult.data.feedback
+    );
+    this.handleSuccess(res, updated);
+  }
+
+  async getMemberFeedback(req: any, res: Response) {
+    const { classId, studentId } = req.params;
+    const feedbackData = await this.classesService.getMemberFeedback(classId, studentId);
+    this.handleSuccess(res, feedbackData);
+  }
+
+  async generateAiFeedbackDraft(req: any, res: Response) {
+    const { classId, studentId } = req.params;
+    const teacherId = req.user.userId;
+
+    if (!this.studentReportService || !this.aiService) {
+      return res.status(500).json({ success: false, message: 'AI or report service not configured' });
+    }
+
+    const reportData = await this.studentReportService.getStudentReportData(classId, studentId, teacherId);
+    if (!reportData) {
+      return res.status(404).json({ success: false, message: 'Student data not found' });
+    }
+
+    const draft = await this.aiService.generateTeacherFeedbackSuggestion(
+      reportData.student_info.name,
+      {
+        accuracy_pct: reportData.summary.accuracy_pct,
+        cumulative_score: reportData.summary.cumulative_score,
+        weak_topics: reportData.weak_topics.map(w => w.topic),
+        sm2_due_count: reportData.sm2_summary.due_today
+      }
+    );
+
+    this.handleSuccess(res, { draft, suggested_feedback: draft });
   }
 }
 
