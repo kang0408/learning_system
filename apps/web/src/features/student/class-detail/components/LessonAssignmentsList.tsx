@@ -34,13 +34,15 @@ export const LessonAssignmentsList: React.FC<LessonAssignmentsListProps> = ({
 
           const detailedAssign = assignmentMap.get(rawAssign.id);
           const sessions = detailedAssign?.quiz_sessions || [];
-          const completedSessions = sessions.filter(s => s.status === 'completed');
+          const activeSession = sessions.find((s: any) => s.status === 'in_progress');
+          const completedSessions = sessions.filter((s: any) => s.status === 'completed');
+          const validSessions = sessions.filter((s: any) => ['in_progress', 'completed', 'abandoned'].includes(s.status));
           const bestScore = completedSessions.length > 0
-            ? Math.max(...completedSessions.map(s => s.score))
+            ? Math.max(...completedSessions.map((s: any) => s.score))
             : null;
-          const attemptsCount = completedSessions.length;
+          const attemptsCount = validSessions.length;
           const maxAttempts = rawAssign.max_attempts || detailedAssign?.max_attempts || 0;
-          const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
+          const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
           const isOverdue = rawAssign.deadline ? new Date(rawAssign.deadline) < new Date() : false;
 
           const getModeLabel = (mode: string) => {
@@ -123,6 +125,13 @@ export const LessonAssignmentsList: React.FC<LessonAssignmentsListProps> = ({
                   <span className="font-bold border-2 border-zinc-900 px-4 py-2.5 text-xs uppercase tracking-widest bg-zinc-200 text-zinc-600 cursor-not-allowed">
                     {t('student.dashboard.submitted', 'ĐÃ NỘP')}
                   </span>
+                ) : activeSession ? (
+                  <Link
+                    to={`/quiz?assignment=${rawAssign.id}`}
+                    className="font-bold bg-amber-500 text-white border-2 border-zinc-900 px-5 py-2.5 text-xs text-center hover:bg-zinc-900 transition-colors uppercase tracking-widest shadow-[2px_2px_0_0_#18181b] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+                  >
+                    {t('student.classDetail.continue', 'TIẾP TỤC')}
+                  </Link>
                 ) : (
                   <Link
                     to={`/quiz?assignment=${rawAssign.id}`}

@@ -677,7 +677,7 @@ export class AnalyticsRepository {
       include: {
         class: { select: { id: true, name: true, subject: true } },
         quiz_sessions: {
-          where: { student_id: studentId, status: 'completed' },
+          where: { student_id: studentId, status: { in: ['in_progress', 'completed', 'abandoned'] } },
           select: { id: true, score: true, status: true, finished_at: true }
         }
       },
@@ -690,11 +690,13 @@ export class AnalyticsRepository {
 
     const now = new Date();
     const scored = assignments.map(a => {
-      const completedSessions = a.quiz_sessions || [];
-      const attemptsCount = completedSessions.length;
+      const allSessions = a.quiz_sessions || [];
+      const completedSessions = allSessions.filter(s => s.status === 'completed');
+      const activeSession = allSessions.find(s => s.status === 'in_progress');
+      const attemptsCount = allSessions.length;
       const maxAttempts = a.max_attempts || 0;
-      const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
-      const isCompleted = attemptsCount > 0;
+      const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
+      const isCompleted = completedSessions.length > 0;
       const isOverdue = a.deadline ? new Date(a.deadline) < now : false;
       const isDueSoon = a.deadline ? (new Date(a.deadline).getTime() - now.getTime() < 24 * 3600 * 1000 && !isOverdue) : false;
 

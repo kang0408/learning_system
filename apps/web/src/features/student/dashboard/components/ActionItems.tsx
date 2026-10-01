@@ -164,10 +164,13 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
 
   const renderAssignmentCard = (assignment: Assignment) => {
     const isOverdue = assignment.deadline ? new Date(assignment.deadline) < new Date() : false;
-    const completedSessions = assignment.quiz_sessions?.filter(s => s.status === 'completed') || [];
-    const attemptsCount = completedSessions.length;
+    const sessions = assignment.quiz_sessions || [];
+    const activeSession = sessions.find(s => s.status === 'in_progress');
+    const completedSessions = sessions.filter(s => s.status === 'completed');
+    const validSessions = sessions.filter(s => ['in_progress', 'completed', 'abandoned'].includes(s.status));
+    const attemptsCount = validSessions.length;
     const maxAttempts = assignment.max_attempts || 0;
-    const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
+    const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
     const bestScore = completedSessions.reduce((max, s) => Math.max(max, Number(s.score || 0)), 0);
 
     return (
@@ -212,6 +215,14 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
             <span className="font-bold border-2 border-zinc-900 px-4 py-2 w-full md:w-auto text-center text-xs uppercase tracking-widest bg-zinc-200">
               {t('student.dashboard.submitted', 'SUBMITTED')}
             </span>
+          ) : activeSession ? (
+            <Link
+              to={`/quiz?assignment=${assignment.id}`}
+              className="font-bold bg-amber-500 text-white border-2 border-zinc-900 px-5 py-2 w-full md:w-auto text-center hover:bg-zinc-900 transition-colors uppercase tracking-widest text-xs flex items-center justify-center gap-1 shadow-[2px_2px_0_0_#18181b]"
+            >
+              <span>{t('student.classDetail.continue', 'TIẾP TỤC')}</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           ) : (
             <Link
               to={`/quiz?assignment=${assignment.id}`}

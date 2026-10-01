@@ -13,7 +13,11 @@ export const studentQuizApi = {
       assignment_mode: data.assignment_mode || data.mode || mode,
       mode: data.assignment_mode || data.mode || mode,
       time_limit_seconds: data.time_limit_seconds,
-      questions: data.questions || []
+      remaining_seconds: data.remaining_seconds,
+      started_at: data.started_at,
+      questions: data.questions || [],
+      existing_answers: data.answers || [],
+      is_resumed: Boolean(data.is_resumed)
     };
   },
 

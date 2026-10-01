@@ -54,7 +54,43 @@ export class SessionsService {
   }
 
   async startSession(studentId: string, assignmentId: string, mode?: 'standard' | 'review', topicId?: string) {
-    // Automatically abandon any stale/unfinished in_progress sessions for this student & assignment
+    const assignment = await this.sessionsRepository.findAssignmentById(assignmentId);
+    if (!assignment || !assignment.is_published) throw new ApiError(404, 'Assignment not found or not published');
+
+    // 1. Kiem tra xem hoc sinh da co phien lam bai dang in_progress hay khong
+    const activeSession = await this.sessionsRepository.findActiveSession(studentId, assignmentId);
+    if (activeSession) {
+      if (assignment.time_limit) {
+        const elapsedMs = Date.now() - new Date(activeSession.started_at).getTime();
+        const limitMs = assignment.time_limit * 60 * 1000;
+        if (elapsedMs >= limitMs) {
+          // Het gio lam bai -> Tu dong nop bai va hoan tat phien
+          await this.finishSession(studentId, activeSession.id);
+
+          // Kiem tra so lan lam bai sau khi phien cu da hoan tat
+          const isExamMode = assignment.mode === 'exam' || mode === 'exam';
+          const effectiveMaxAttempts = isExamMode
+            ? (assignment.max_attempts > 0 ? assignment.max_attempts : 1)
+            : assignment.max_attempts;
+
+          if (effectiveMaxAttempts > 0 && assignment.mode !== 'adaptive' && mode !== 'review') {
+            const attempts = await this.sessionsRepository.countAllSessions(studentId, assignmentId);
+            if (attempts >= effectiveMaxAttempts) {
+              throw new ApiError(403, 'Đã hết thời gian làm bài và bạn đã đạt giới hạn số lần làm bài.');
+            }
+          }
+          // Neu con luot lam bai, tiep tuc phia duoi de tao phien moi
+        } else {
+          // Van con thoi gian lam bai -> Khoi phuc lai phien dang lam (giu nguyen dong ho va tien do)
+          return this.resumeSession(studentId, activeSession, assignment);
+        }
+      } else {
+        // Khong gioi han thoi gian -> Khoi phuc phien dang lam
+        return this.resumeSession(studentId, activeSession, assignment);
+      }
+    }
+
+    // 2. Tu dong don dep cac phien treo qua 2 tieng
     const staleIds = await this.sessionsRepository.abandonStaleSessions(studentId, assignmentId);
     if (redisClient.isOpen && staleIds.length > 0) {
       for (const sId of staleIds) {
@@ -62,13 +98,17 @@ export class SessionsService {
       }
     }
 
-    const assignment = await this.sessionsRepository.findAssignmentById(assignmentId);
-    if (!assignment || !assignment.is_published) throw new ApiError(404, 'Assignment not found or not published');
+    // 3. Check attempts (skip attempt check for SM-2 review mode)
+    const isExamMode = assignment.mode === 'exam' || mode === 'exam';
+    const effectiveMaxAttempts = isExamMode
+      ? (assignment.max_attempts > 0 ? assignment.max_attempts : 1)
+      : assignment.max_attempts;
 
-    // Check attempts (skip attempt check for SM-2 review mode)
-    if (assignment.max_attempts > 0 && assignment.mode !== 'adaptive' && mode !== 'review') {
-      const attempts = await this.sessionsRepository.countCompletedSessions(studentId, assignmentId);
-      if (attempts >= assignment.max_attempts) throw new ApiError(403, 'Max attempts reached');
+    if (effectiveMaxAttempts > 0 && assignment.mode !== 'adaptive' && mode !== 'review') {
+      const attempts = await this.sessionsRepository.countAllSessions(studentId, assignmentId);
+      if (attempts >= effectiveMaxAttempts) {
+        throw new ApiError(403, 'Bạn đã hết số lượt làm bài cho phép.');
+      }
     }
 
     let questionsList: any[] = [];
@@ -158,16 +198,91 @@ export class SessionsService {
       await redisClient.setEx(`session:${session.id}`, ttl, JSON.stringify(sessionState)).catch(() => {});
     }
 
+    const timeLimitSeconds = assignment.time_limit ? assignment.time_limit * 60 : null;
+
     return {
       session_id: session.id,
       assignment_title: assignment.title,
       assignment_mode: assignment.mode,
       mode: effectiveSessionMode,
       total_questions: questionsList.length,
-      time_limit_seconds: assignment.time_limit ? assignment.time_limit * 60 : null,
+      time_limit_seconds: timeLimitSeconds,
+      remaining_seconds: timeLimitSeconds,
       started_at: session.started_at,
       questions: questionsList,
-      first_question: { ...questionsList[0], question_index: 1 }
+      first_question: questionsList.length > 0 ? { ...questionsList[0], question_index: 1 } : null,
+      answers: [],
+      is_resumed: false
+    };
+  }
+
+  private async resumeSession(studentId: string, activeSession: any, assignment: any) {
+    let cacheState: any = null;
+    if (redisClient.isOpen) {
+      const cacheStr = await redisClient.get(`session:${activeSession.id}`).catch(() => null);
+      if (cacheStr) {
+        try { cacheState = JSON.parse(cacheStr); } catch (_) {}
+      }
+    }
+    if (!cacheState) {
+      cacheState = this.sessionStateMap.get(activeSession.id) || null;
+    }
+
+    let questionsList: any[] = cacheState?.questions || [];
+
+    // Fallback: Neu cache bi mat (vd server restart), khoi phuc danh sach cau hoi
+    if (!questionsList || questionsList.length === 0) {
+      const aqs = await this.sessionsRepository.findAssignmentQuestions(assignment.id);
+      questionsList = aqs.map(aq => aq.question).filter(q => !q.deleted_at);
+      for (const q of questionsList) {
+        if (q.question_type === 'fill_blank') {
+          q.answer_options = [];
+        } else {
+          const opts = await this.sessionsRepository.findAnswerOptionsByQuestionId(q.id);
+          q.answer_options = opts.map(opt => ({ id: opt.id, content: opt.content, order_index: opt.order_index }));
+        }
+      }
+
+      const sessionState = {
+        questions: questionsList,
+        currentIndex: activeSession.session_answers?.length || 0,
+        total: questionsList.length,
+        session_mode: activeSession.assignment?.mode || assignment.mode
+      };
+      this.sessionStateMap.set(activeSession.id, sessionState);
+      if (redisClient.isOpen) {
+        const ttl = assignment.time_limit ? (assignment.time_limit * 60) + 600 : 86400;
+        await redisClient.setEx(`session:${activeSession.id}`, ttl, JSON.stringify(sessionState)).catch(() => {});
+      }
+    }
+
+    let remainingSeconds: number | null = null;
+    if (assignment.time_limit) {
+      const elapsedSeconds = Math.floor((Date.now() - new Date(activeSession.started_at).getTime()) / 1000);
+      remainingSeconds = Math.max(0, (assignment.time_limit * 60) - elapsedSeconds);
+    }
+
+    const existingAnswers = (activeSession.session_answers || []).map((ans: any) => ({
+      question_id: ans.question_id,
+      selected_option: ans.selected_option,
+      text_answer: ans.text_answer
+    }));
+
+    const effectiveSessionMode = cacheState?.session_mode || assignment.mode;
+
+    return {
+      session_id: activeSession.id,
+      assignment_title: assignment.title,
+      assignment_mode: assignment.mode,
+      mode: effectiveSessionMode,
+      total_questions: questionsList.length,
+      time_limit_seconds: assignment.time_limit ? assignment.time_limit * 60 : null,
+      remaining_seconds: remainingSeconds,
+      started_at: activeSession.started_at,
+      questions: questionsList,
+      first_question: questionsList.length > 0 ? { ...questionsList[0], question_index: 1 } : null,
+      answers: existingAnswers,
+      is_resumed: true
     };
   }
 
@@ -512,8 +627,13 @@ export class SessionsService {
   }
 
   async abandonSession(studentId: string, sessionId: string) {
-    const session = await this.sessionsRepository.findQuizSessionById(sessionId);
+    const session = await this.sessionsRepository.findQuizSessionById(sessionId, true);
     if (!session || session.student_id !== studentId) throw new ApiError(404, 'Session not found');
+
+    // Auto-submit on Exit cho mode exam: tu dong cham diem va hoan tat phien
+    if (session.assignment?.mode === 'exam') {
+      return this.finishSession(studentId, sessionId);
+    }
 
     this.sessionStateMap.delete(sessionId);
 

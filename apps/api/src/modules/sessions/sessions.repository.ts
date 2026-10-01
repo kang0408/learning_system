@@ -20,17 +20,42 @@ export class SessionsRepository {
     });
   }
 
+  async countAllSessions(studentId: string, assignmentId: string) {
+    return this.prisma.quizSession.count({
+      where: {
+        student_id: studentId,
+        assignment_id: assignmentId,
+        status: { in: ['in_progress', 'completed', 'abandoned'] }
+      }
+    });
+  }
+
+  async findActiveSession(studentId: string, assignmentId: string) {
+    return this.prisma.quizSession.findFirst({
+      where: {
+        student_id: studentId,
+        assignment_id: assignmentId,
+        status: 'in_progress',
+      },
+      include: {
+        assignment: true,
+        session_answers: true,
+      },
+      orderBy: {
+        started_at: 'desc',
+      },
+    });
+  }
+
   async abandonStaleSessions(studentId?: string, assignmentId?: string) {
     const whereClause: Prisma.QuizSessionWhereInput = {
       status: 'in_progress',
+      started_at: { lte: new Date(Date.now() - 2 * 60 * 60 * 1000) },
     };
 
     if (studentId && assignmentId) {
       whereClause.student_id = studentId;
       whereClause.assignment_id = assignmentId;
-    } else {
-      // System-wide stale sessions older than 2 hours
-      whereClause.started_at = { lte: new Date(Date.now() - 2 * 60 * 60 * 1000) };
     }
 
     const staleSessions = await this.prisma.quizSession.findMany({

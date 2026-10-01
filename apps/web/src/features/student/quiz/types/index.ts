@@ -15,6 +15,12 @@ export interface Question {
   metadata?: any;
 }
 
+export interface SessionAnswerItem {
+  question_id: string;
+  selected_option?: string | null;
+  text_answer?: string | null;
+}
+
 export interface Session {
   id: string;
   status: string;
@@ -22,9 +28,13 @@ export interface Session {
   assignment_title?: string;
   assignment_mode?: string;
   mode?: string;
-  time_limit_seconds?: number;
+  time_limit_seconds?: number | null;
+  remaining_seconds?: number | null;
   questions?: Question[];
   started_at?: string;
+  existing_answers?: SessionAnswerItem[];
+  answers?: SessionAnswerItem[];
+  is_resumed?: boolean;
 }
 
 export interface AnswerPayload {

@@ -34,12 +34,14 @@ export const ClassAssignments: React.FC<ClassAssignmentsProps> = ({ assignments 
       list = list.filter((a) => {
         const sessions = a.quiz_sessions || [];
         const completedSessions = sessions.filter(s => s.status === 'completed');
-        const isCompleted = completedSessions.length > 0;
-        const isOverdue = a.deadline ? new Date(a.deadline) < new Date() && !isCompleted : false;
+        const attemptsCount = sessions.filter(s => ['in_progress', 'completed', 'abandoned'].includes(s.status)).length;
+        const isLocked = (a.max_attempts || 0) > 0 && attemptsCount >= (a.max_attempts || 0) && !sessions.some(s => s.status === 'in_progress');
+        const isDone = completedSessions.length > 0 || isLocked;
+        const isOverdue = a.deadline ? new Date(a.deadline) < new Date() && !isDone : false;
 
-        if (statusFilter === 'completed') return isCompleted;
+        if (statusFilter === 'completed') return isDone;
         if (statusFilter === 'overdue') return isOverdue;
-        if (statusFilter === 'pending') return !isCompleted && !isOverdue;
+        if (statusFilter === 'pending') return !isDone && !isOverdue;
         return true;
       });
     }
@@ -185,13 +187,15 @@ export const ClassAssignments: React.FC<ClassAssignmentsProps> = ({ assignments 
           {filteredAssignments.map(assignment => {
             const isOverdue = assignment.deadline ? new Date(assignment.deadline) < new Date() : false;
             const sessions = assignment.quiz_sessions || [];
+            const activeSession = sessions.find(s => s.status === 'in_progress');
             const completedSessions = sessions.filter(s => s.status === 'completed');
+            const validSessions = sessions.filter(s => ['in_progress', 'completed', 'abandoned'].includes(s.status));
             const bestScore = completedSessions.length > 0 
               ? Math.max(...completedSessions.map(s => s.score)) 
               : null;
-            const attemptsCount = completedSessions.length;
+            const attemptsCount = validSessions.length;
             const maxAttempts = assignment.max_attempts || 0;
-            const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
+            const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
             const curriculumInfo = assignment.curriculum_assignments?.[0]?.curriculum;
             
             return (
@@ -260,6 +264,13 @@ export const ClassAssignments: React.FC<ClassAssignmentsProps> = ({ assignments 
                     <span className="font-bold border-2 border-zinc-900 bg-zinc-200 text-zinc-600 px-6 py-4 uppercase tracking-widest text-center cursor-not-allowed">
                       {t('student.dashboard.submitted', 'ĐÃ NỘP')}
                     </span>
+                  ) : activeSession ? (
+                    <Link 
+                      to={`/quiz?assignment=${assignment.id}`} 
+                      className="font-bold bg-amber-500 text-white border-2 border-amber-500 px-8 py-4 text-center hover:bg-zinc-900 hover:border-zinc-900 transition-colors uppercase tracking-widest shadow-[4px_4px_0_0_rgba(24,24,27,1)] hover:translate-y-1 hover:shadow-none"
+                    >
+                      {t('student.classDetail.continue', 'TIẾP TỤC')}
+                    </Link>
                   ) : (
                     <Link 
                       to={`/quiz?assignment=${assignment.id}`} 

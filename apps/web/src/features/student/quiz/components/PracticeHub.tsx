@@ -275,15 +275,18 @@ export const PracticeHub: React.FC = () => {
         {filteredAssignments.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredAssignments.map((assignment: any) => {
-              const completedSessions = assignment.quiz_sessions?.filter((s: any) => s.status === 'completed') || [];
-              const attemptsCount = completedSessions.length;
+              const sessions = assignment.quiz_sessions || [];
+              const activeSession = sessions.find((s: any) => s.status === 'in_progress');
+              const completedSessions = sessions.filter((s: any) => s.status === 'completed');
+              const validSessions = sessions.filter((s: any) => ['in_progress', 'completed', 'abandoned'].includes(s.status));
+              const attemptsCount = validSessions.length;
               const maxAttempts = assignment.max_attempts || 0;
-              const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts;
+              const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
               const bestScore = completedSessions.reduce((max: number, s: any) => Math.max(max, Number(s.score || 0)), 0);
 
               return (
                 <div 
-                  key={assignment.id}
+                  key={assignment.id} 
                   className={`border-2 border-zinc-900 p-5 flex flex-col justify-between gap-4 transition-all bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0_0_#18181b] ${
                     isLocked ? 'opacity-70 bg-zinc-50' : ''
                   }`}
@@ -339,7 +342,7 @@ export const PracticeHub: React.FC = () => {
                         to={`/quiz?assignment=${assignment.id}`}
                         className="font-bold text-xs uppercase tracking-widest bg-zinc-900 text-white border-2 border-zinc-900 px-4 py-2 hover:bg-indigo-600 hover:border-indigo-600 transition-colors flex items-center gap-1 shadow-[2px_2px_0_0_#18181b]"
                       >
-                        <span>{attemptsCount > 0 ? t('student.dashboard.retry', 'LÀM LẠI') : t('student.dashboard.start', 'BẮT ĐẦU')}</span>
+                        <span>{activeSession ? t('student.classDetail.continue', 'TIẾP TỤC') : attemptsCount > 0 ? t('student.dashboard.retry', 'LÀM LẠI') : t('student.dashboard.start', 'BẮT ĐẦU')}</span>
                         <ArrowUpRight className="w-3.5 h-3.5" />
                       </Link>
                     )}

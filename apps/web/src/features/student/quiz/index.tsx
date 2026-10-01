@@ -37,6 +37,9 @@ export const StudentQuizFeature: React.FC = () => {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState<number | null>(() => {
+    if (session.remaining_seconds !== undefined && session.remaining_seconds !== null) {
+      return session.remaining_seconds;
+    }
     if (!session.time_limit_seconds) return null;
     if (session.started_at) {
       const elapsed = Math.floor((Date.now() - new Date(session.started_at).getTime()) / 1000);
@@ -56,16 +59,55 @@ export const StudentQuizFeature: React.FC = () => {
   const [submitMatchingPairs, setSubmitMatchingPairs] = useState<string[] | null>(null);
   const [submitChoiceTexts, setSubmitChoiceTexts] = useState<string[] | null>(null);
 
-  // Exam mode states
+  // Exam mode states - Phục hồi câu trả lời cũ nếu phiên thi được tiếp tục (resume)
   const [examAnswers, setExamAnswers] = useState<Record<string, {
     optId?: string;
     optIds?: string[];
     fillText?: string;
     matchingPairs?: any[];
-  }>>({});
+  }>>(() => {
+    const initial: Record<string, any> = {};
+    const existingList = session.existing_answers || session.answers || [];
+    if (Array.isArray(existingList)) {
+      existingList.forEach((ans: any) => {
+        let optIds: string[] | undefined = undefined;
+        let matchingPairs: any[] | undefined = undefined;
+        let fillText: string | undefined = undefined;
+
+        if (ans.text_answer) {
+          try {
+            const parsed = JSON.parse(ans.text_answer);
+            if (Array.isArray(parsed)) {
+              if (parsed.length > 0 && typeof parsed[0] === 'object') {
+                matchingPairs = parsed;
+              } else {
+                optIds = parsed;
+              }
+            } else {
+              fillText = ans.text_answer;
+            }
+          } catch {
+            fillText = ans.text_answer;
+          }
+        }
+
+        initial[ans.question_id] = {
+          optId: ans.selected_option || undefined,
+          optIds,
+          fillText,
+          matchingPairs
+        };
+      });
+    }
+    return initial;
+  });
   const [flaggedIndices, setFlaggedIndices] = useState<Set<number>>(new Set());
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
   const [showMobilePalette, setShowMobilePalette] = useState<boolean>(false);
+
+  // Multi-tab exam lock states
+  const tabId = useRef(Math.random().toString(36).substring(2)).current;
+  const [isDuplicateTab, setIsDuplicateTab] = useState(false);
 
   // Common states
   const [submitting, setSubmitting] = useState(false);
@@ -96,29 +138,146 @@ export const StudentQuizFeature: React.FC = () => {
     onWarning: (count, max) => {
       setWarningData({ count, max });
     },
-    enabled: questions.length > 0 && !isTimeUp
+    enabled: questions.length > 0 && !isTimeUp && !isDuplicateTab
   });
 
+  // Multi-tab lock heartbeat and broadcast for Exam mode
   useEffect(() => {
-    if (timeLeft === null || timeLeft <= 0) return;
+    if (!isExam || !assignmentId) return;
+
+    const lockKey = `exam_tab_lock_${assignmentId}`;
+    const channelName = `exam_tab_channel_${assignmentId}`;
+    let channel: BroadcastChannel | null = null;
+
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        channel = new BroadcastChannel(channelName);
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'CLAIM_LOCK' && event.data?.tabId !== tabId) {
+            setIsDuplicateTab(true);
+          }
+        };
+      } catch (_) {}
+    }
+
+    const checkAndAcquireLock = () => {
+      const rawLock = localStorage.getItem(lockKey);
+      const now = Date.now();
+      if (rawLock) {
+        try {
+          const parsed = JSON.parse(rawLock);
+          if (parsed.tabId !== tabId && (now - parsed.timestamp) < 4000) {
+            setIsDuplicateTab(true);
+            return false;
+          }
+        } catch (_) {}
+      }
+
+      localStorage.setItem(lockKey, JSON.stringify({ tabId, timestamp: now }));
+      setIsDuplicateTab(false);
+      try {
+        channel?.postMessage({ type: 'CLAIM_LOCK', tabId });
+      } catch (_) {}
+      return true;
+    };
+
+    checkAndAcquireLock();
+
+    const heartbeat = setInterval(() => {
+      const rawLock = localStorage.getItem(lockKey);
+      const now = Date.now();
+      if (rawLock) {
+        try {
+          const parsed = JSON.parse(rawLock);
+          if (parsed.tabId === tabId) {
+            localStorage.setItem(lockKey, JSON.stringify({ tabId, timestamp: now }));
+          } else if (now - parsed.timestamp < 4000) {
+            setIsDuplicateTab(true);
+          }
+        } catch (_) {}
+      } else {
+        localStorage.setItem(lockKey, JSON.stringify({ tabId, timestamp: now }));
+      }
+    }, 1500);
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === lockKey && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed.tabId !== tabId && (Date.now() - parsed.timestamp) < 4000) {
+            setIsDuplicateTab(true);
+          }
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    const handleUnload = () => {
+      const rawLock = localStorage.getItem(lockKey);
+      if (rawLock) {
+        try {
+          const parsed = JSON.parse(rawLock);
+          if (parsed.tabId === tabId) {
+            localStorage.removeItem(lockKey);
+          }
+        } catch (_) {}
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      clearInterval(heartbeat);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('beforeunload', handleUnload);
+      try {
+        channel?.close();
+      } catch (_) {}
+      handleUnload();
+    };
+  }, [isExam, assignmentId, tabId]);
+
+  useEffect(() => {
+    if (timeLeft === null) return;
+    if (timeLeft <= 0) {
+      setIsTimeUp(true);
+      const timer = setTimeout(() => {
+        handleFinishQuiz();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
     if (!isExam && (submitting || feedback)) return;
 
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev === null || prev <= 1) {
+      if (session.started_at && session.time_limit_seconds) {
+        const elapsed = Math.floor((Date.now() - new Date(session.started_at).getTime()) / 1000);
+        const remaining = Math.max(0, session.time_limit_seconds - elapsed);
+        if (remaining <= 0) {
           clearInterval(timer);
+          setTimeLeft(0);
           setIsTimeUp(true);
           setTimeout(() => {
             handleFinishQuiz();
-          }, 3000);
-          return 0;
+          }, 2000);
+        } else {
+          setTimeLeft(remaining);
         }
-        return prev - 1;
-      });
+      } else {
+        setTimeLeft(prev => {
+          if (prev === null || prev <= 1) {
+            clearInterval(timer);
+            setIsTimeUp(true);
+            setTimeout(() => {
+              handleFinishQuiz();
+            }, 3000);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, submitting, feedback, isExam, handleFinishQuiz]);
+  }, [timeLeft, submitting, feedback, isExam, handleFinishQuiz, session.started_at, session.time_limit_seconds]);
 
   const answeredIndices = useMemo(() => {
     const set = new Set<number>();
@@ -276,6 +435,47 @@ export const StudentQuizFeature: React.FC = () => {
     await handleFinishQuiz();
   };
 
+  if (isDuplicateTab) {
+    return (
+      <div className="h-screen w-full bg-zinc-900 text-white flex items-center justify-center p-6 select-none">
+        <div className="max-w-md w-full bg-white text-zinc-900 border-4 border-zinc-900 p-8 shadow-[12px_12px_0_0_#dc2626]">
+          <div className="inline-block px-3 py-1 bg-red-600 text-white font-mono text-xs font-black uppercase mb-4">
+            {t('student.quiz.antiCheatAlert', 'BẢO MẬT BÀI THI')}
+          </div>
+          <h2 className="text-2xl font-black uppercase tracking-tight mb-3">
+            {t('student.quiz.duplicateTabTitle', 'BÀI THI ĐANG MỞ Ở TAB KHÁC')}
+          </h2>
+          <p className="text-zinc-600 font-medium mb-6 leading-relaxed text-sm">
+            {t('student.quiz.duplicateTabDesc', 'Hệ thống phát hiện bài thi này đang được mở trên một tab hoặc cửa sổ khác. Để chống gian lận và bảo toàn thời gian làm bài, bạn chỉ có thể thao tác trên một tab duy nhất.')}
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                const lockKey = `exam_tab_lock_${assignmentId}`;
+                localStorage.setItem(lockKey, JSON.stringify({ tabId, timestamp: Date.now() }));
+                setIsDuplicateTab(false);
+                try {
+                  const ch = new BroadcastChannel(`exam_tab_channel_${assignmentId}`);
+                  ch.postMessage({ type: 'CLAIM_LOCK', tabId });
+                  ch.close();
+                } catch (_) {}
+              }}
+              className="w-full bg-zinc-900 text-white py-3 px-4 font-black uppercase tracking-wider text-sm hover:bg-zinc-800 transition-colors border-2 border-zinc-900 shadow-[4px_4px_0_0_rgba(24,24,27,1)] hover:translate-y-0.5 hover:shadow-none"
+            >
+              {t('student.quiz.takeoverTab', 'Chuyển làm bài sang tab này')}
+            </button>
+            <button
+              onClick={() => navigate('/student')}
+              className="w-full bg-zinc-100 text-zinc-700 py-3 px-4 font-bold uppercase tracking-wider text-sm hover:bg-zinc-200 transition-colors border-2 border-zinc-300"
+            >
+              {t('student.quiz.backToDashboard', 'Về trang chủ học sinh')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-full bg-[#FDFBF7] text-zinc-900 flex flex-col relative overflow-hidden font-sans selection:bg-indigo-600 selection:text-white select-none">
       <QuizHeader 
@@ -286,6 +486,7 @@ export const StudentQuizFeature: React.FC = () => {
         warnings={warnings}
         maxWarnings={maxWarnings}
         onLeaveQuiz={() => setShowExitConfirm(true)}
+        isExam={isExam}
       />
 
       {/* Main Content Area */}
@@ -401,7 +602,7 @@ export const StudentQuizFeature: React.FC = () => {
       )}
 
       {/* Exit Confirmation Dialog */}
-      {showExitConfirm && (
+      {!isExam && showExitConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/80 backdrop-blur-sm p-4">
           <div className="bg-white border-4 border-zinc-900 max-w-md w-full p-8 shadow-[12px_12px_0_0_#4f46e5]">
             <h3 className="text-3xl font-black uppercase tracking-tighter mb-4 text-zinc-900">

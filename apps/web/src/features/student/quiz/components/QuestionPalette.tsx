@@ -61,7 +61,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
         </div>
 
         {/* Question Grid */}
-        <div className="max-h-[320px] overflow-y-auto pr-1">
+        <div className="max-h-[340px] overflow-y-auto p-2">
           <div className="grid grid-cols-5 gap-2">
             {Array.from({ length: totalQuestions }, (_, i) => {
               const isCurrent = i === currentIndex;
@@ -81,7 +81,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
               }
 
               if (isCurrent) {
-                btnStyle += ' ring-2 ring-indigo-600 ring-offset-2 scale-105 font-black';
+                btnStyle += ' ring-2 ring-indigo-600 ring-offset-2 font-black z-10';
               }
 
               return (
@@ -93,7 +93,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
                 >
                   <span>{i + 1}</span>
                   {isFlagged && (
-                    <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-amber-500 border border-zinc-900 rounded-full flex items-center justify-center text-[7px] text-white">
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-500 border border-zinc-900 rounded-full flex items-center justify-center text-[8px] font-black text-white shadow-sm z-20">
                       !
                     </span>
                   )}
