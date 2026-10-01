@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Flag, CheckCircle, HelpCircle } from 'lucide-react';
 
 interface QuestionPaletteProps {
   totalQuestions: number;
