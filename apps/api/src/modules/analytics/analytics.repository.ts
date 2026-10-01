@@ -694,8 +694,11 @@ export class AnalyticsRepository {
       const completedSessions = allSessions.filter(s => s.status === 'completed');
       const activeSession = allSessions.find(s => s.status === 'in_progress');
       const attemptsCount = allSessions.length;
-      const maxAttempts = a.max_attempts || 0;
-      const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
+      const isExam = a.mode === 'exam';
+      const effectiveMaxAttempts = isExam
+        ? (a.max_attempts > 0 ? a.max_attempts : 1)
+        : (a.max_attempts || 0);
+      const isLocked = effectiveMaxAttempts > 0 && attemptsCount >= effectiveMaxAttempts && !activeSession;
       const isCompleted = completedSessions.length > 0;
       const isOverdue = a.deadline ? new Date(a.deadline) < now : false;
       const isDueSoon = a.deadline ? (new Date(a.deadline).getTime() - now.getTime() < 24 * 3600 * 1000 && !isOverdue) : false;
@@ -715,6 +718,7 @@ export class AnalyticsRepository {
 
       return {
         ...a,
+        max_attempts: effectiveMaxAttempts,
         attempts_count: attemptsCount,
         is_locked: isLocked,
         is_completed: isCompleted,

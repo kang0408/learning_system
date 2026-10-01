@@ -12,6 +12,8 @@ export const useQuizSession = (assignmentId: string, mode?: string, topicId?: st
       queryClient.invalidateQueries({ queryKey: ['studentClassAssignments'] });
       queryClient.invalidateQueries({ queryKey: ['studentAssignments'] });
       queryClient.invalidateQueries({ queryKey: ['studentDashboardSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['studentCurriculumDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['studentClassCurriculums'] });
       return result;
     },
     // Prevent refetching to avoid creating multiple sessions unintentionally
@@ -43,6 +45,8 @@ export const useFinishQuiz = () => {
       queryClient.invalidateQueries({ queryKey: ['studentAssignments'] });
       queryClient.invalidateQueries({ queryKey: ['studentClassAssignments'] });
       queryClient.invalidateQueries({ queryKey: ['studentClassDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['studentCurriculumDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['studentClassCurriculums'] });
     }
   });
 };
@@ -60,6 +64,8 @@ export const useAbandonQuiz = () => {
       queryClient.invalidateQueries({ queryKey: ['studentAssignments'] });
       queryClient.invalidateQueries({ queryKey: ['studentClassAssignments'] });
       queryClient.invalidateQueries({ queryKey: ['studentClassDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['studentCurriculumDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['studentClassCurriculums'] });
     }
   });
 };

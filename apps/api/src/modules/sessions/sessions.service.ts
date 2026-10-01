@@ -53,7 +53,7 @@ export class SessionsService {
     return { performance_by_topic, weakestTopic };
   }
 
-  async startSession(studentId: string, assignmentId: string, mode?: 'standard' | 'review', topicId?: string) {
+  async startSession(studentId: string, assignmentId: string, mode?: 'standard' | 'review' | 'exam' | string, topicId?: string) {
     const assignment = await this.sessionsRepository.findAssignmentById(assignmentId);
     if (!assignment || !assignment.is_published) throw new ApiError(404, 'Assignment not found or not published');
 
@@ -196,6 +196,8 @@ export class SessionsService {
     if (redisClient.isOpen) {
       const ttl = assignment.time_limit ? (assignment.time_limit * 60) + 600 : 86400; // time limit + 10 mins, or 24 hours
       await redisClient.setEx(`session:${session.id}`, ttl, JSON.stringify(sessionState)).catch(() => {});
+      await redisClient.del(`student:dashboard_summary:${studentId}`).catch(() => {});
+      await redisClient.del(`student:summary:${studentId}`).catch(() => {});
     }
 
     const timeLimitSeconds = assignment.time_limit ? assignment.time_limit * 60 : null;
@@ -627,7 +629,7 @@ export class SessionsService {
   }
 
   async abandonSession(studentId: string, sessionId: string) {
-    const session = await this.sessionsRepository.findQuizSessionById(sessionId, true);
+    const session = await this.sessionsRepository.findQuizSessionById(sessionId, true) as any;
     if (!session || session.student_id !== studentId) throw new ApiError(404, 'Session not found');
 
     // Auto-submit on Exit cho mode exam: tu dong cham diem va hoan tat phien

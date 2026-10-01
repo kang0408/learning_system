@@ -21,6 +21,8 @@ export interface Assignment {
   title: string;
   deadline?: string | null;
   status?: string;
+  mode?: string;
+  time_limit?: number | null;
   max_attempts?: number;
   class?: { id: string; name: string; subject?: string };
   quiz_sessions?: { id?: string; status: string; score?: number }[];

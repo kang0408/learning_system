@@ -109,12 +109,13 @@ export class CurriculumsService {
       return this.curriculumsRepository.findCurriculumsByClassId(classId, true);
     } else {
       await this.verifyStudentClassAccess(classId, user.userId);
-      return this.curriculumsRepository.findCurriculumsByClassId(classId, false);
+      return this.curriculumsRepository.findCurriculumsByClassId(classId, false, user.userId);
     }
   }
 
   async getCurriculumById(curriculumId: string, user: { userId: string; role: string }) {
-    const curriculum = await this.curriculumsRepository.findCurriculumById(curriculumId);
+    const studentId = user.role === 'student' ? user.userId : undefined;
+    const curriculum = await this.curriculumsRepository.findCurriculumById(curriculumId, studentId);
     if (!curriculum) {
       throw new ApiError(404, 'Curriculum item not found');
     }

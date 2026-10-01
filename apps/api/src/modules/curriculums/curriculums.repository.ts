@@ -91,7 +91,31 @@ export class CurriculumsRepository {
     });
   }
 
-  async findCurriculumsByClassId(classId: string, isTeacher: boolean = false) {
+  async findCurriculumsByClassId(classId: string, isTeacher: boolean = false, studentId?: string) {
+    const assignmentSelect: any = {
+      id: true,
+      title: true,
+      mode: true,
+      deadline: true,
+      max_attempts: true,
+      time_limit: true,
+      is_published: true,
+      _count: {
+        select: {
+          assignment_questions: {
+            where: { question: { deleted_at: null } }
+          }
+        }
+      }
+    };
+
+    if (studentId) {
+      assignmentSelect.quiz_sessions = {
+        where: { student_id: studentId, status: { in: ['in_progress', 'completed', 'abandoned'] } },
+        select: { id: true, score: true, status: true, finished_at: true }
+      };
+    }
+
     return this.prisma.classCurriculum.findMany({
       where: {
         class_id: classId,
@@ -105,22 +129,7 @@ export class CurriculumsRepository {
         assignments: {
           include: {
             assignment: {
-              select: {
-                id: true,
-                title: true,
-                mode: true,
-                deadline: true,
-                max_attempts: true,
-                time_limit: true,
-                is_published: true,
-                _count: {
-                  select: {
-                    assignment_questions: {
-                      where: { question: { deleted_at: null } }
-                    }
-                  }
-                }
-              }
+              select: assignmentSelect
             }
           },
           orderBy: { order_index: 'asc' }
@@ -130,7 +139,31 @@ export class CurriculumsRepository {
     });
   }
 
-  async findCurriculumById(id: string) {
+  async findCurriculumById(id: string, studentId?: string) {
+    const assignmentSelect: any = {
+      id: true,
+      title: true,
+      mode: true,
+      deadline: true,
+      max_attempts: true,
+      time_limit: true,
+      is_published: true,
+      _count: {
+        select: {
+          assignment_questions: {
+            where: { question: { deleted_at: null } }
+          }
+        }
+      }
+    };
+
+    if (studentId) {
+      assignmentSelect.quiz_sessions = {
+        where: { student_id: studentId, status: { in: ['in_progress', 'completed', 'abandoned'] } },
+        select: { id: true, score: true, status: true, finished_at: true }
+      };
+    }
+
     return this.prisma.classCurriculum.findUnique({
       where: { id, deleted_at: null },
       include: {
@@ -147,22 +180,7 @@ export class CurriculumsRepository {
         assignments: {
           include: {
             assignment: {
-              select: {
-                id: true,
-                title: true,
-                mode: true,
-                deadline: true,
-                max_attempts: true,
-                time_limit: true,
-                is_published: true,
-                _count: {
-                  select: {
-                    assignment_questions: {
-                      where: { question: { deleted_at: null } }
-                    }
-                  }
-                }
-              }
+              select: assignmentSelect
             }
           },
           orderBy: { order_index: 'asc' }

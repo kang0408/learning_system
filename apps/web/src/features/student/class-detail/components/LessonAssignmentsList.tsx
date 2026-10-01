@@ -33,7 +33,7 @@ export const LessonAssignmentsList: React.FC<LessonAssignmentsListProps> = ({
           if (!rawAssign) return null;
 
           const detailedAssign = assignmentMap.get(rawAssign.id);
-          const sessions = detailedAssign?.quiz_sessions || [];
+          const sessions = detailedAssign?.quiz_sessions || (rawAssign as any)?.quiz_sessions || [];
           const activeSession = sessions.find((s: any) => s.status === 'in_progress');
           const completedSessions = sessions.filter((s: any) => s.status === 'completed');
           const validSessions = sessions.filter((s: any) => ['in_progress', 'completed', 'abandoned'].includes(s.status));
@@ -41,8 +41,12 @@ export const LessonAssignmentsList: React.FC<LessonAssignmentsListProps> = ({
             ? Math.max(...completedSessions.map((s: any) => s.score))
             : null;
           const attemptsCount = validSessions.length;
-          const maxAttempts = rawAssign.max_attempts || detailedAssign?.max_attempts || 0;
-          const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
+          const isExam = rawAssign.mode === 'exam' || detailedAssign?.mode === 'exam';
+          const rawMax = rawAssign.max_attempts || detailedAssign?.max_attempts || 0;
+          const effectiveMaxAttempts = isExam
+            ? (rawMax > 0 ? rawMax : 1)
+            : rawMax;
+          const isLocked = effectiveMaxAttempts > 0 && attemptsCount >= effectiveMaxAttempts && !activeSession;
           const isOverdue = rawAssign.deadline ? new Date(rawAssign.deadline) < new Date() : false;
 
           const getModeLabel = (mode: string) => {
@@ -98,9 +102,9 @@ export const LessonAssignmentsList: React.FC<LessonAssignmentsListProps> = ({
                   {rawAssign.time_limit && (
                     <span>{t('student.classDetail.timeLimitLabel', { minutes: rawAssign.time_limit })}</span>
                   )}
-                  {maxAttempts > 0 && (
+                  {effectiveMaxAttempts > 0 && (
                     <span>
-                      {t('student.classDetail.attemptsLabel', { count: attemptsCount, max: maxAttempts })}
+                      {t('student.classDetail.attemptsLabel', { count: attemptsCount, max: effectiveMaxAttempts })}
                     </span>
                   )}
                 </div>

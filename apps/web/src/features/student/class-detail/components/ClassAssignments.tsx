@@ -194,8 +194,12 @@ export const ClassAssignments: React.FC<ClassAssignmentsProps> = ({ assignments 
               ? Math.max(...completedSessions.map(s => s.score)) 
               : null;
             const attemptsCount = validSessions.length;
-            const maxAttempts = assignment.max_attempts || 0;
-            const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
+            const isExam = assignment.mode === 'exam';
+            const rawMax = assignment.max_attempts ?? 0;
+            const effectiveMaxAttempts: number = isExam
+              ? (rawMax > 0 ? rawMax : 1)
+              : rawMax;
+            const isLocked = effectiveMaxAttempts > 0 && attemptsCount >= effectiveMaxAttempts && !activeSession;
             const curriculumInfo = assignment.curriculum_assignments?.[0]?.curriculum;
             
             return (
@@ -253,9 +257,9 @@ export const ClassAssignments: React.FC<ClassAssignmentsProps> = ({ assignments 
                         </Link>
                       </div>
                     )}
-                    {maxAttempts > 0 && (
+                    {effectiveMaxAttempts > 0 && (
                       <p className="text-xs font-bold uppercase tracking-widest text-zinc-500 mt-2">
-                        {t('student.classDetail.attempts', { count: attemptsCount, max: maxAttempts })}
+                        {t('student.classDetail.attempts', { count: attemptsCount, max: effectiveMaxAttempts })}
                       </p>
                     )}
                   </div>

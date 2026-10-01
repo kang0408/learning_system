@@ -280,8 +280,11 @@ export const PracticeHub: React.FC = () => {
               const completedSessions = sessions.filter((s: any) => s.status === 'completed');
               const validSessions = sessions.filter((s: any) => ['in_progress', 'completed', 'abandoned'].includes(s.status));
               const attemptsCount = validSessions.length;
-              const maxAttempts = assignment.max_attempts || 0;
-              const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
+              const isExam = assignment.mode === 'exam';
+              const effectiveMaxAttempts = isExam
+                ? (assignment.max_attempts > 0 ? assignment.max_attempts : 1)
+                : (assignment.max_attempts || 0);
+              const isLocked = effectiveMaxAttempts > 0 && attemptsCount >= effectiveMaxAttempts && !activeSession;
               const bestScore = completedSessions.reduce((max: number, s: any) => Math.max(max, Number(s.score || 0)), 0);
 
               return (
@@ -330,7 +333,7 @@ export const PracticeHub: React.FC = () => {
                   <div className="pt-3 border-t border-zinc-200 flex items-center justify-between">
                     <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
                       {assignment.time_limit ? `${assignment.time_limit} phút` : 'Không giới hạn tg'}
-                      {maxAttempts > 0 && ` • Lượt: ${attemptsCount}/${maxAttempts}`}
+                      {effectiveMaxAttempts > 0 && ` • Lượt: ${attemptsCount}/${effectiveMaxAttempts}`}
                     </div>
 
                     {isLocked ? (

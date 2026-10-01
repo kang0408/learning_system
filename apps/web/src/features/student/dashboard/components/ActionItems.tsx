@@ -169,8 +169,12 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
     const completedSessions = sessions.filter(s => s.status === 'completed');
     const validSessions = sessions.filter(s => ['in_progress', 'completed', 'abandoned'].includes(s.status));
     const attemptsCount = validSessions.length;
-    const maxAttempts = assignment.max_attempts || 0;
-    const isLocked = maxAttempts > 0 && attemptsCount >= maxAttempts && !activeSession;
+    const isExam = assignment.mode === 'exam';
+    const rawMax = assignment.max_attempts ?? 0;
+    const effectiveMaxAttempts: number = isExam
+      ? (rawMax > 0 ? rawMax : 1)
+      : rawMax;
+    const isLocked = effectiveMaxAttempts > 0 && attemptsCount >= effectiveMaxAttempts && !activeSession;
     const bestScore = completedSessions.reduce((max, s) => Math.max(max, Number(s.score || 0)), 0);
 
     return (
@@ -203,11 +207,16 @@ export const ActionItems: React.FC<ActionItemsProps> = ({
           <h4 className="text-xl font-black tracking-tighter uppercase leading-snug">
             {assignment.title}
           </h4>
-          <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">
-            {assignment.deadline 
-              ? `${t('student.dashboard.deadline')}: ${new Date(assignment.deadline).toLocaleDateString()}` 
-              : t('student.dashboard.noDeadline')}
-          </p>
+          <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-zinc-500 uppercase tracking-widest">
+            <p>
+              {assignment.deadline 
+                ? `${t('student.dashboard.deadline')}: ${new Date(assignment.deadline).toLocaleDateString()}` 
+                : t('student.dashboard.noDeadline')}
+            </p>
+            {effectiveMaxAttempts > 0 && (
+              <span>• LƯỢT: {attemptsCount}/{effectiveMaxAttempts}</span>
+            )}
+          </div>
         </div>
         
         <div className="flex items-center gap-3 w-full md:w-auto">

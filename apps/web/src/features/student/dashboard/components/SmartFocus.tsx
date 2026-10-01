@@ -148,8 +148,15 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary, dailySchedule =
             </div>
 
             <div className="mt-6 pt-4 border-t-2 border-zinc-900">
-              {topAssignment ? (
-                (topAssignment.is_locked || (topAssignment.max_attempts && (topAssignment.attempts_count || 0) >= topAssignment.max_attempts)) ? (
+              {topAssignment ? (() => {
+                const isExam = topAssignment.mode === 'exam';
+                const rawMax = topAssignment.max_attempts ?? 0;
+                const effectiveMaxAttempts: number = isExam
+                  ? (rawMax > 0 ? rawMax : 1)
+                  : rawMax;
+                const isTopLocked = topAssignment.is_locked || (effectiveMaxAttempts > 0 && (topAssignment.attempts_count || 0) >= effectiveMaxAttempts);
+
+                return isTopLocked ? (
                   <span className="flex items-center justify-between font-bold uppercase tracking-widest text-sm bg-zinc-200 text-zinc-600 px-4 py-2 border-2 border-zinc-900 cursor-not-allowed">
                     <span>{t('student.dashboard.submitted', 'ĐÃ NỘP')}</span>
                   </span>
@@ -165,8 +172,8 @@ export const SmartFocus: React.FC<SmartFocusProps> = ({ summary, dailySchedule =
                     </span>
                     <ArrowUpRight className="w-4 h-4 ml-1" />
                   </Link>
-                )
-              ) : (
+                );
+              })() : (
                 <span className="font-bold text-xs uppercase tracking-widest text-zinc-400">
                   {t('student.dashboard.noPending', 'ĐÃ HOÀN TẤT')}
                 </span>

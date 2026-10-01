@@ -23,6 +23,8 @@ export interface AssignmentItem {
   title: string;
   description?: string;
   deadline?: string;
+  mode?: string;
+  time_limit?: number | null;
   max_attempts?: number;
   created_at?: string;
   quiz_sessions?: QuizSession[];
